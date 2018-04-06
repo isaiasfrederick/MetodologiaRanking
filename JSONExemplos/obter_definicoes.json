@@ -1,0 +1,137 @@
+{
+   "results":[
+      {
+         "type":"headword",
+         "lexicalEntries":[
+            {
+               "pronunciations":[
+                  {
+                     "dialects":[
+                        "British English"
+                     ],
+                     "phoneticSpelling":"\u02c8\u028c\u0261li",
+                     "audioFile":"http://audio.oxforddictionaries.com/en/mp3/ugly_gb_1.mp3",
+                     "phoneticNotation":"IPA"
+                  }
+               ],
+               "derivatives":[
+                  {
+                     "text":"uglily",
+                     "id":"uglily"
+                  }
+               ],
+               "language":"en",
+               "text":"ugly",
+               "entries":[
+                  {
+                     "grammaticalFeatures":[
+                        {
+                           "text":"Positive",
+                           "type":"Degree"
+                        }
+                     ],
+                     "senses":[
+                        {
+                           "short_definitions":[
+                              "unpleasant or repulsive"
+                           ],
+                           "definitions":[
+                              "unpleasant or repulsive, especially in appearance"
+                           ],
+                           "id":"m_en_gbus1088200.010",
+                           "examples":[
+                              {
+                                 "text":"people in school always told me I was ugly"
+                              },
+                              {
+                                 "text":"the ugly sound of a fire alarm"
+                              }
+                           ],
+                           "thesaurusLinks":[
+                              {
+                                 "sense_id":"t_en_gb0015302.001",
+                                 "entry_id":"ugly"
+                              }
+                           ]
+                        },
+                        {
+                           "thesaurusLinks":[
+                              {
+                                 "sense_id":"t_en_gb0015302.002",
+                                 "entry_id":"ugly"
+                              }
+                           ],
+                           "subsenses":[
+                              {
+                                 "short_definitions":[
+                                    "unpleasantly suggestive"
+                                 ],
+                                 "definitions":[
+                                    "unpleasantly suggestive; causing disquiet"
+                                 ],
+                                 "id":"m_en_gbus1088200.016",
+                                 "examples":[
+                                    {
+                                       "text":"ugly rumours persisted that there had been a cover-up"
+                                    }
+                                 ],
+                                 "thesaurusLinks":[
+                                    {
+                                       "sense_id":"t_en_gb0015302.003",
+                                       "entry_id":"ugly"
+                                    }
+                                 ]
+                              },
+                              {
+                                 "short_definitions":[
+                                    "morally repugnant"
+                                 ],
+                                 "definitions":[
+                                    "morally repugnant"
+                                 ],
+                                 "id":"m_en_gbus1088200.017",
+                                 "examples":[
+                                    {
+                                       "text":"racism and its most ugly manifestations, racial attacks and harassment"
+                                    }
+                                 ],
+                                 "thesaurusLinks":[
+                                    {
+                                       "sense_id":"t_en_gb0015302.003",
+                                       "entry_id":"ugly"
+                                    }
+                                 ]
+                              }
+                           ],
+                           "examples":[
+                              {
+                                 "text":"the mood in the room turned ugly"
+                              }
+                           ],
+                           "short_definitions":[
+                              "involving or likely to involve violence or other unpleasantness"
+                           ],
+                           "definitions":[
+                              "involving or likely to involve violence or other unpleasantness"
+                           ],
+                           "id":"m_en_gbus1088200.015"
+                        }
+                     ],
+                     "etymologies":[
+                        "Middle English: from Old Norse uggligr \u2018to be dreaded\u2019, from ugga \u2018to dread\u2019"
+                     ],
+                     "homographNumber":"000"
+                  }
+               ],
+               "lexicalCategory":"Adjective"
+            }
+         ],
+         "word":"ugly",
+         "id":"ugly",
+         "language":"en"
+      }
+   ],
+   "metadata":{
+      "provider":"Oxford University Press"
+   }
+}
