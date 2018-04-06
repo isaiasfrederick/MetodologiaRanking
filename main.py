@@ -12,7 +12,6 @@ def testar_minha_abordagem(configs, metrica):
     configs_semeval2007 = configs['semeval2007']
     todas_metricas = configs_semeval2007['metricas']['separadores'].keys()
 
-    #inicio
     respostas_geradas = dict()
 
     cli_babelnet = ClienteBabelAPI(configs['babelnet'])
