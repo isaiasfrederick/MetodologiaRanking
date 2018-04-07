@@ -16,6 +16,8 @@ class ClienteOxfordAPI(object):
             'app_key': self.chave
         }
 
+        self.obj_urls_invalidas_sinonimos = None
+
     def obter_lista_categoria(self, categoria):
         url = self.url_base + '/wordlist/en/registers=Rare;domains=' + categoria
         return Utilitarios.requisicao_http(url, self.headers)
@@ -66,7 +68,7 @@ class ClienteOxfordAPI(object):
             Utilitarios.salvar_json(dir_obj_json, obj_json)
 
             return obj_json
-        except:
+        except:           
             print('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
 

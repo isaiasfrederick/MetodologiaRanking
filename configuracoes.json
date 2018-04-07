@@ -30,7 +30,7 @@
 				"best" : "::"
 			}
 		},
-		"nome_minha_abordagem" : "WordnetSimplificado"
+		"nome_minha_abordagem" : "MR"
 	},
 	"leipzig" : {
 		"dir_contadores" : "/media/isaias/ParticaoAlternat/Bases/contadores_leipzig_corpus.json",
@@ -39,8 +39,9 @@
 		"dir_separadores" : "",
 		"dir_corpus_filtrado" : ""
 	},
-	"app" : {
-		"pos_tags_aceitas" : {}
+	"aplicacao" : {
+		"metodos_extracao2" : ["simples", "desambiguador", "baseline"],
+		"metodos_extracao" : ["simples", "baseline"]
 	},
 	"dir_temporarios" : "/media/isaias/ParticaoAlternat/Bases/tmp",
 	"dir_saidas_rankeador" : "/media/isaias/ParticaoAlternat/Bases/SaidasRankeador"

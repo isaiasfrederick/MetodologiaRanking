@@ -21,11 +21,11 @@ class ValidadorRankingSemEval2007(object):
         todos_participantes_best = [p for p in self.listar_arq(self.dir_respostas) if '.' + metrica in p]
 
         for participante in todos_participantes_best:
-            resultados_json[participante] = self.calcular_score_abordagem(self.dir_respostas, participante)
+            resultados_json[participante] = self.calcular_score(self.dir_respostas, participante)
 
         return resultados_json
 
-    def calcular_score_abordagem(self, dir_respostas, participante):
+    def calcular_score(self, dir_respostas, participante):
         metrica = participante.split('.')[1]
         arquivo_tmp = self.dir_tmp + '/' + participante.replace('.' + metrica, '.tmp')
 

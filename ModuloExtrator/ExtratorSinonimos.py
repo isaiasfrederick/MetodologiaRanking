@@ -5,14 +5,14 @@ from Utilitarios import Utilitarios
 import traceback
 
 class ExtratorSinonimos(object):
-    def __init__(self, configs, cli_oxford, cli_babelnet):
+    def __init__(self, configs, cli_oxford, cli_babelnet, dir_contadores):
         self.configs = configs
         
         self.desambiguador = Desambiguador()
         self.cli_oxford_api = cli_oxford
         self.cli_babelnet_api = cli_babelnet
 
-        self.contadores = Utilitarios.carregar_json(self.configs['leipzig']['dir_contadores'])
+        self.contadores = Utilitarios.carregar_json(dir_contadores)
 
     def busca_sinonimos(self, palavra, pos, algoritmo, multiword=False, contexto=None, ordenar=True):
         if algoritmo == 'simples':
@@ -21,10 +21,6 @@ class ExtratorSinonimos(object):
             return self.busca_sinonimos_desambiguacao(palavra, pos, contexto, False)
         elif algoritmo == 'baseline':
             return self.buscar_sinonimos_baseline_semeval(palavra, multiword=False)
-        elif algoritmo == 'wander':
-            pass
-        elif algoritmo == 'estatistica':
-            pass
         else:
             pass
 

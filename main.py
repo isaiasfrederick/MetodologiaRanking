@@ -7,41 +7,51 @@ from nltk.corpus import wordnet as wordnet
 from Utilitarios import Utilitarios
 from sys import argv
 
-def testar_minha_abordagem(configs, metrica):
-    configs_semeval2007 = configs['semeval2007']
-    todas_metricas = configs_semeval2007['metricas']['separadores'].keys()
+def aplicar_semeval2007(configs, metodo_extracao, ordenar):
+    respostas_semeval = dict()
 
-    respostas_geradas = dict()
+    configs_semeval2007 = configs['semeval2007']
+    todas_metricas = configs_semeval2007['metricas']['limites'].keys()
+
+    dir_contadores = configs['leipzig']['dir_contadores']
 
     cli_babelnet = ClienteBabelAPI(configs)
     cli_oxford = ClienteOxfordAPI(configs)
 
-    extrator_sinonimos = ExtratorSinonimos(configs, cli_oxford, cli_babelnet)
+    extrator_sinonimos = ExtratorSinonimos(configs, cli_oxford, cli_babelnet, dir_contadores)
     validador_semeval2007 = ValidadorRankingSemEval2007(configs)
 
     dir_arquivo_teste = configs_semeval2007["dir_arquivo_teste"]
     casos_entrada = validador_semeval2007.ler_entrada_teste(dir_arquivo_teste)
 
+    for metrica in todas_metricas:
+        respostas_semeval[metrica] = dict()
+
     for lemma in casos_entrada:
-        respostas_geradas[lemma] = dict()
+        respostas_semeval[metrica][lemma] = dict()
 
         for id_entrada in casos_entrada[lemma]:
             palavra, pos = lemma.split('.')
-            frase = id_entrada['frase']
 
+            frase = id_entrada['frase']
             codigo = id_entrada['codigo']
 
-            sinonimos = extrator_sinonimos.busca_sinonimos(palavra, pos, 'baseline', contexto=frase)
-            sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
+            sinonimos = extrator_sinonimos.busca_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
 
-            try:
-                sinonimos.remove(palavra)
+            if ordenar:
+                sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
+
+            try: sinonimos.remove(palavra)
             except: pass
 
-            limite_superior = int(configs_semeval2007['metricas']['limites'][metrica])
-            respostas_geradas[lemma][codigo] = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
+            for metrica in todas_metricas:
+                if not lemma in respostas_semeval[metrica]:
+                    respostas_semeval[metrica][lemma] = dict()
 
-    return respostas_geradas
+                limite_superior = int(configs_semeval2007['metricas']['limites'][metrica])
+                respostas_semeval[metrica][lemma][codigo] = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
+
+    return respostas_semeval
 
 
 def exibir_todos_resultados(todos_participantes, validador_semeval2007, nome_minha_abordagem):
@@ -59,7 +69,7 @@ def exibir_todos_resultados(todos_participantes, validador_semeval2007, nome_min
 
             indice += 1
 
-        raw_input('\nPressione <enter> para proxima medida')
+        print('\n')
 
 # obter frases do caso de entrada
 def obter_frases_da_base(validador_semeval2007, configs):
@@ -73,25 +83,55 @@ def obter_frases_da_base(validador_semeval2007, configs):
 
             resultados_desambiguador = [r for r in cosine_lesk(frase, palavra, nbest=True, pos=pos) if r[0]]
 
+def gerar_todos_metodos(configs, validador_semeval2007):
+    metodos_extracao = configs['aplicacao']['metodos_extracao']
+    todas_metricas = configs['semeval2007']['metricas']['separadores'].keys()
+
+    resultados = dict()
+
+    for metrica in todas_metricas:
+        resultados[metrica] = [ ]
+
+    for metodo in metodos_extracao:
+        submissoes_geradas = aplicar_semeval2007(configs, metodo, True)
+        for metrica in todas_metricas:
+            print('Calculando metrica %s para o metodo %s' % (metrica, metodo))
+            submissao_gerada = submissoes_geradas[metrica]
+
+            nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
+            nome_minha_abordagem = validador_semeval2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
+
+            resultados_minha_abordagem = validador_semeval2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
+            resultados[metrica].append(resultados_minha_abordagem)
+
+    for metrica in resultados:
+        print('METRICA: ' + metrica)
+        for abordagem in resultados[metrica]:
+            print(abordagem)
+
+        raw_input('\nPressione <enter>')
 
 if __name__ == '__main__':
     configs = Utilitarios.carregar_configuracoes('configuracoes.json')   
     validador_semeval2007 = ValidadorRankingSemEval2007(configs)
 
-    todas_metricas = configs['semeval2007']['metricas']['limites']    
+    gerar_todos_metodos(configs, validador_semeval2007)
+    exit(0)
 
-    for metrica in todas_metricas:        
-        submissao_gerada = testar_minha_abordagem(configs, metrica)
+    submissoes_geradas = aplicar_semeval2007(configs, 'simples', True)
+
+    for metrica in submissoes_geradas.keys():
+        submissao_gerada = submissoes_geradas[metrica]
+
         nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '.' + metrica
 
-        todos_participantes = validador_semeval2007.obter_score_participantes(metrica)
+        resultado_participantes = validador_semeval2007.obter_score_participantes(metrica)
         nome_minha_abordagem = validador_semeval2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
 
-        resultados_minha_abordagem = validador_semeval2007.calcular_score_abordagem(configs['dir_saidas_rankeador'], nome_minha_abordagem)
-        todos_participantes[nome_minha_abordagem] = resultados_minha_abordagem
-        exibir_todos_resultados(todos_participantes, validador_semeval2007, nome_minha_abordagem)
-
+        resultados_minha_abordagem = validador_semeval2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
+        resultado_participantes[nome_minha_abordagem] = resultados_minha_abordagem
+        exibir_todos_resultados(resultado_participantes, validador_semeval2007, nome_minha_abordagem)
 
         print('\n\n')
 
-    print('\n\nFim algoritmo')
+    print('Fim algoritmo')
