@@ -1,9 +1,13 @@
 from Utilitarios import Utilitarios
+import traceback
 import requests
 import json
 
 class ClienteOxfordAPI(object):
-    def __init__(self, configs_oxford):
+    def __init__(self, configs):
+        configs_oxford = configs['oxford']
+
+        self.configs = configs
         self.url_base = configs_oxford['url_base']
         self.app_id = configs_oxford['app_id']
         self.chave = configs_oxford['app_key']
@@ -37,18 +41,34 @@ class ClienteOxfordAPI(object):
         return saida
 
     def obter_sinonimos(self, palavra):
+        dir_cache_oxford = self.configs['oxford']['cache']['sinonimos']
+        
         url = self.url_base + "/entries/en/" + palavra + "/synonyms"
-        obj = Utilitarios.requisicao_http(url, self.headers).json()
-        saida = {}
+        dir_obj_json = dir_cache_oxford + '/' + palavra + '.json'
 
-        for entry in obj['results'][0]['lexicalEntries']:
-            pos = entry['lexicalCategory']
-            if not pos in saida:
-                saida[pos] = []
-            for sense in entry['entries'][0]['senses']:
-                saida[pos].append(sense)
+        obj_json = Utilitarios.carregar_json(dir_obj_json)
 
-        return saida
+        if obj_json:
+            return obj_json
+
+        try:
+            obj = Utilitarios.requisicao_http(url, self.headers).json()
+            obj_json = {}
+
+            for entry in obj['results'][0]['lexicalEntries']:
+                pos = entry['lexicalCategory']
+                if not pos in obj_json:
+                    obj_json[pos] = []
+                for sense in entry['entries'][0]['senses']:
+                    obj_json[pos].append(sense)
+
+            print('URL CERTA: ' + url + '\t\tHeaders: ' + str(self.headers))
+            Utilitarios.salvar_json(dir_obj_json, obj_json)
+
+            return obj_json
+        except:
+            print('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
+            return None
 
     def buscar_sinonimos_por_id(self, id, elemento):
         for e in elemento:

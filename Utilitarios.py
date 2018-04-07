@@ -33,8 +33,24 @@ class Utilitarios(object):
 
     @staticmethod
     def carregar_json(diretorio):
-        arq = open(diretorio, 'r')
-        obj = json.loads(arq.read())
-        arq.close()
+        try:
+            arq = open(diretorio, 'r')
+            obj = json.loads(arq.read())
+            arq.close()
 
-        return obj
+            return obj
+
+        except:
+            return None
+
+    @staticmethod
+    def salvar_json(diretorio, obj):
+        try:
+            arq = open(diretorio, 'w')
+            obj_serializado = json.dumps(obj, indent=4)
+            arq.write(obj_serializado)
+            arq.close()
+
+            return True
+        except:
+            return False

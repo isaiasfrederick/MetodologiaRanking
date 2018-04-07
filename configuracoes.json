@@ -2,19 +2,23 @@
 	"oxford" : {
 		"app_id" : "e405c4bd",
 		"app_key" : "5e3958b4a87bd9f46471e1963ab3b2c1",
-		"url_base" : "https://od-api.oxforddictionaries.com/api/v1"
+		"url_base" : "https://od-api.oxforddictionaries.com/api/v1",
+		"cache" : {
+			"sinonimos" : "/media/isaias/ParticaoAlternat/Bases/Cache/Oxford/Sinonimos",
+			"definicoes" : "/media/isaias/ParticaoAlternat/Bases/Cache/Oxford/Definicoes"
+		}
 	},
 	"babelnet" : {
 		"app_key" : "aff183be-c1c4-4d30-8b50-d555b7d39c48",
 		"url_base" : "https://babelnet.io/v5"
     },
     "semeval2007" : {
-		"dir_resultados_concorrentes" : "/home/isaias/Desktop/SemEval2007/lexsubsystems",
+		"dir_resultados_concorrentes" : "/media/isaias/ParticaoAlternat/SemEval2007/lexsubsystems",
 		"trial" : {
-			"gold_file": "/home/isaias/Desktop/SemEval2007/task10data/scoring/gold",
-			"scorer": "/home/isaias/Desktop/SemEval2007/task10data/scoring/score.pl"
+			"gold_file": "/media/isaias/ParticaoAlternat/SemEval2007/task10data/scoring/gold",
+			"scorer": "/media/isaias/ParticaoAlternat/SemEval2007/task10data/scoring/score.pl"
 		},
-		"dir_arquivo_teste" : "/home/isaias/Desktop/SemEval2007/test/lexsub_test.xml",
+		"dir_arquivo_teste" : "/media/isaias/ParticaoAlternat/SemEval2007/test/lexsub_test.xml",
 		"criterio_ordenacao" : [],
 		"metricas" : {
 			"limites" : {
@@ -29,7 +33,7 @@
 		"nome_minha_abordagem" : "WordnetSimplificado"
 	},
 	"leipzig" : {
-		"dir_contadores" : "/home/isaias/PycharmProjects/MetodologiaRanking/Bases/contadores_leipzig_corpus.json",
+		"dir_contadores" : "/media/isaias/ParticaoAlternat/Bases/contadores_leipzig_corpus.json",
 		"dir_todos_arquivos" : "",
 		"dir_indexes_whoosh" : "/media/isaias/ParticaoAlternat/LeipzigCorpus/Unificado/indexes",
 		"dir_separadores" : "",
@@ -38,6 +42,6 @@
 	"app" : {
 		"pos_tags_aceitas" : {}
 	},
-	"dir_temporarios" : "/home/isaias/PycharmProjects/MetodologiaRanking/Bases/tmp",
-	"dir_saidas_rankeador" : "/home/isaias/PycharmProjects/MetodologiaRanking/Bases/SaidasRankeador"
+	"dir_temporarios" : "/media/isaias/ParticaoAlternat/Bases/tmp",
+	"dir_saidas_rankeador" : "/media/isaias/ParticaoAlternat/Bases/SaidasRankeador"
 }

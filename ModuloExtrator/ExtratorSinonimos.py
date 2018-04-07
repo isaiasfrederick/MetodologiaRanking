@@ -20,7 +20,7 @@ class ExtratorSinonimos(object):
         elif algoritmo == 'desambiguador':
             return self.busca_sinonimos_desambiguacao(palavra, pos, contexto, False)
         elif algoritmo == 'baseline':
-            return self.buscar_sinonimos_baseline_semeval(synset, multiword=False)
+            return self.buscar_sinonimos_baseline_semeval(palavra, multiword=False)
         elif algoritmo == 'wander':
             pass
         elif algoritmo == 'estatistica':
@@ -60,36 +60,18 @@ class ExtratorSinonimos(object):
                         
         return [s for s in sinonimos if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
 
-    def ordenar_por_frequencia(self, palavras):
-        contadores = self.contadores
-        palavras_indexadas = dict()
-        palavras_ordenadas = []
-        
-        for p in palavras:
-            try:
-                if not contadores[p] in palavras_indexadas:
-                    palavras_indexadas[contadores[p]] = []
-            except:
-                palavras_indexadas[0] = []
-
-            try:
-                palavras_indexadas[contadores[p]].append(p)
-            except:
-                palavras_indexadas[0].append(p)
-
-        chaves = palavras_indexadas.keys()
-        #chaves.sort(reverse=True)
-
-        for chave in chaves:
-            palavras_ordenadas += list(set(palavras_indexadas[chave]))
-
-        return palavras_ordenadas
-
-    def buscar_sinonimos_baseline_semeval(self, synset, multiword):
+    def buscar_sinonimos_baseline_semeval(self, palavra, multiword):
         sinonimos_nivel1 = set()
         sinonimos_nivel2 = set()
         sinonimos_nivel3 = set()
         sinonimos_nivel4 = set()
+
+        palavra = unicode(palavra)
+
+        try:
+            synset =  [res[0] for res in self.desambiguador.desambiguar(contexto, palavra) if res[1]][0]
+        except:
+            synset = wn.synsets(palavra)[0]
 
         for s in synset.lemma_names(): sinonimos_nivel1.add(s)
 
@@ -107,22 +89,27 @@ class ExtratorSinonimos(object):
             if lemma in synset.name():
                 try:
                     obj_sinonimos = self.cli_oxford_api.obter_sinonimos(lemma)
-                    obj_definicoes = self.cli_oxford_api.obter_definicoes(lemma)
+                    
+                    if obj_sinonimos:
+                        obj_definicoes = self.cli_oxford_api.obter_definicoes(lemma)
 
-                    obj_final = self.cli_oxford_api.mesclar_significados_sinonimos(obj_definicoes,obj_sinonimos)
-                    obj_final = obj_final[pos]
+                        obj_final = self.cli_oxford_api.mesclar_significados_sinonimos(obj_definicoes,obj_sinonimos)
+                        obj_final = obj_final[pos]
 
-                    for registro in obj_final:
-                        try:
-                            for syn in registro['synonyms']:
-                                sinonimos_nivel3.add(syn)
-                        except KeyError, ke: pass
-                        try:
-                            for subsense in registro['subsenses']:
-                                for syn in subsense['synonyms']:
-                                    sinonimos_nivel3.add(syn)
-                        except KeyError, ke: pass
+                        for registro in obj_final:
+                            try:
+                                for sin in registro['synonyms']:
+                                    sinonimos_nivel3.add(sin)
+                            except KeyError, ke: pass
+                            try:
+                                for subsense in registro['subsenses']:
+                                    for sin in subsense['synonyms']:
+                                        sinonimos_nivel3.add(sin)
+                            except KeyError, ke: pass
                 except AttributeError, ae:
+                    print('Lemma: ' + lemma)
+                    print('Synset: ')
+                    print(unicode(synset.name()))
                     traceback.print_exc()
 
         conjunto = list()
@@ -143,10 +130,34 @@ class ExtratorSinonimos(object):
         todos_resultados = [sinonimos_nivel1, sinonimos_nivel2, sinonimos_nivel3, sinonimos_nivel4]
 
         for i in range(1, len(todos_resultados)):
-            for syn in todos_resultados[i]:
-                if syn not in resolverdor_duplicatas:
-                    resolutor_colisoes_list.append(syn)
-                    resolverdor_duplicatas.add(syn)
+            for sin in todos_resultados[i]:
+                if sin not in resolverdor_duplicatas:
+                    resolutor_colisoes_list.append(sin)
+                    resolverdor_duplicatas.add(sin)
 
-        return [s for s in sinonimos_final if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
+        return [s for s in resolverdor_duplicatas if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
 
+    def ordenar_por_frequencia(self, palavras):
+        contadores = self.contadores
+        palavras_indexadas = dict()
+        palavras_ordenadas = []
+        
+        for p in palavras:
+            try:
+                if not contadores[p] in palavras_indexadas:
+                    palavras_indexadas[contadores[p]] = []
+            except:
+                palavras_indexadas[0] = []
+
+            try:
+                palavras_indexadas[contadores[p]].append(p)
+            except:
+                palavras_indexadas[0].append(p)
+
+        chaves = palavras_indexadas.keys()
+        chaves.sort(reverse=True)
+
+        for chave in chaves:
+            palavras_ordenadas += list(set(palavras_indexadas[chave]))
+
+        return palavras_ordenadas

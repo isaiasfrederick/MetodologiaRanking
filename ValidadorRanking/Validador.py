@@ -1,14 +1,15 @@
-from os import system
-from os import listdir
 from os.path import isfile, join
 import xml.etree.ElementTree as ET
 from lxml import etree
+from os import listdir
+from os import system
 import operator
+import os.path
 
 class ValidadorRankingSemEval2007(object):
     def __init__(self, configs):
         self.configs = configs
-
+        
         self.dir_respostas = configs['semeval2007']['dir_resultados_concorrentes']
         self.gold_file = configs['semeval2007']['trial']['gold_file']
         self.scorer = configs['semeval2007']['trial']['scorer']
@@ -25,8 +26,6 @@ class ValidadorRankingSemEval2007(object):
         return resultados_json
 
     def calcular_score_abordagem(self, dir_respostas, participante):
-        import os.path
-
         metrica = participante.split('.')[1]
         arquivo_tmp = self.dir_tmp + '/' + participante.replace('.' + metrica, '.tmp')
 

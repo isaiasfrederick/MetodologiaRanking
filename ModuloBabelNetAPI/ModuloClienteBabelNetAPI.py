@@ -3,7 +3,11 @@ import requests
 import json
 
 class ClienteBabelAPI(object):
-    def __init__(self, configs_babelnet):
+    def __init__(self, configs):
+        self.configs = configs
+        
+        configs_babelnet = self.configs['babelnet']
+
         self.url_base = configs_babelnet['url_base']
         self.chave = configs_babelnet['app_key']
     

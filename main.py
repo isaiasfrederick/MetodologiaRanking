@@ -6,7 +6,6 @@ from pywsd.lesk import cosine_lesk as cosine_lesk
 from nltk.corpus import wordnet as wordnet
 from Utilitarios import Utilitarios
 from sys import argv
-# https://groups.google.com/forum/#!topic/corpling-with-r/YPe55S0bykQ
 
 def testar_minha_abordagem(configs, metrica):
     configs_semeval2007 = configs['semeval2007']
@@ -14,8 +13,8 @@ def testar_minha_abordagem(configs, metrica):
 
     respostas_geradas = dict()
 
-    cli_babelnet = ClienteBabelAPI(configs['babelnet'])
-    cli_oxford = ClienteOxfordAPI(configs['oxford'])
+    cli_babelnet = ClienteBabelAPI(configs)
+    cli_oxford = ClienteOxfordAPI(configs)
 
     extrator_sinonimos = ExtratorSinonimos(configs, cli_oxford, cli_babelnet)
     validador_semeval2007 = ValidadorRankingSemEval2007(configs)
@@ -32,8 +31,7 @@ def testar_minha_abordagem(configs, metrica):
 
             codigo = id_entrada['codigo']
 
-            print((frase, palavra))
-            sinonimos = extrator_sinonimos.busca_sinonimos(palavra, pos, 'desambiguador', contexto=frase)
+            sinonimos = extrator_sinonimos.busca_sinonimos(palavra, pos, 'baseline', contexto=frase)
             sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
 
             try:
