@@ -16,8 +16,8 @@ class ClienteOxfordAPI(object):
             'app_key': self.chave
         }
 
-        self.dir_obj_urls_invalidas = configs['oxford']['cache']['sinonimos']
-        self.obj_urls_invalidas_sinonimos = Utilitarios.carregar_json(self.dir_obj_urls_invalidas)
+        self.dir_obj_urls_invalidas_sinonimos = configs['oxford']['cache']['obj_urls_invalidas']
+        self.obj_urls_invalidas_sinonimos = Utilitarios.carregar_json(self.dir_obj_urls_invalidas_sinonimos)
 
         if not self.obj_urls_invalidas_sinonimos:
             self.obj_urls_invalidas_sinonimos = dict()
@@ -79,8 +79,8 @@ class ClienteOxfordAPI(object):
             print('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
 
-    def salvar_urls_invalidas(self):
-        Utilitarios.salvar_json(self.dir_obj_urls_invalidas)
+    def persistir_urls_invalidas(self):
+        Utilitarios.salvar_json(self.dir_obj_urls_invalidas_sinonimos, self.obj_urls_invalidas_sinonimos)
 
     def buscar_sinonimos_por_id(self, id, elemento):
         for e in elemento:
@@ -120,8 +120,10 @@ class ClienteOxfordAPI(object):
         url = self.url_base + "/entries/en/" + palavra + "/antonyms"
         return Utilitarios.requisicao_http(url, self.headers)
 
-    def __def__(self):
+    def __del__(self):
         try:
-            self.salvar_urls_invalidas()
+            print('Salvando URLs invalidas...')
+            self.persistir_urls_invalidas()
+            print('URLs invalidas salvas.')
         except:
-            pass
+            traceback.print_exc()

@@ -6,6 +6,7 @@ from pywsd.lesk import cosine_lesk as cosine_lesk
 from nltk.corpus import wordnet as wordnet
 from Utilitarios import Utilitarios
 from sys import argv
+import traceback
 
 def aplicar_semeval2007(configs, metodo_extracao, ordenar):
     respostas_semeval = dict()
@@ -50,7 +51,7 @@ def aplicar_semeval2007(configs, metodo_extracao, ordenar):
 
                 limite_superior = int(configs_semeval2007['metricas']['limites'][metrica])
                 respostas_semeval[metrica][lemma][codigo] = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
-
+        
     return respostas_semeval
 
 
@@ -95,7 +96,7 @@ def gerar_todos_metodos(configs, validador_semeval2007):
     for metodo in metodos_extracao:
         submissoes_geradas = aplicar_semeval2007(configs, metodo, True)
         for metrica in todas_metricas:
-            print('Calculando metrica %s para o metodo %s' % (metrica, metodo))
+            print('Calculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
             submissao_gerada = submissoes_geradas[metrica]
 
             nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
@@ -107,11 +108,11 @@ def gerar_todos_metodos(configs, validador_semeval2007):
     return resultados
 
 if __name__ == '__main__':
-    configs = Utilitarios.carregar_configuracoes('configuracoes.json')   
+    # arg[1] = diretorio das configuracoes.json
+    configs = Utilitarios.carregar_configuracoes(argv[1])
     validador_semeval2007 = ValidadorRankingSemEval2007(configs)
 
     gerar_todos_metodos(configs, validador_semeval2007)
-    exit(0)
 
     submissoes_geradas = aplicar_semeval2007(configs, 'simples', True)
 
