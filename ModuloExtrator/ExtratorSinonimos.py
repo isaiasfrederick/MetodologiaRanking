@@ -136,7 +136,7 @@ class ExtratorSinonimos(object):
 
     def ordenar_por_frequencia(self, palavras):
         contadores = self.contadores
-        
+
         palavras_indexadas = dict()
         palavras_ordenadas = []
         
