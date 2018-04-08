@@ -104,12 +104,7 @@ def gerar_todos_metodos(configs, validador_semeval2007):
             resultados_minha_abordagem = validador_semeval2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
             resultados[metrica].append(resultados_minha_abordagem)
 
-    for metrica in resultados:
-        print('METRICA: ' + metrica)
-        for abordagem in resultados[metrica]:
-            print(abordagem)
-
-        raw_input('\nPressione <enter>')
+    return resultados
 
 if __name__ == '__main__':
     configs = Utilitarios.carregar_configuracoes('configuracoes.json')   

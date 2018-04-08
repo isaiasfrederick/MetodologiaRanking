@@ -90,18 +90,19 @@ class ExtratorSinonimos(object):
                         obj_definicoes = self.cli_oxford_api.obter_definicoes(lemma)
 
                         obj_final = self.cli_oxford_api.mesclar_significados_sinonimos(obj_definicoes,obj_sinonimos)
-                        obj_final = obj_final[pos]
-
-                        for registro in obj_final:
-                            try:
-                                for sin in registro['synonyms']:
-                                    sinonimos_nivel3.add(sin)
-                            except KeyError, ke: pass
-                            try:
-                                for subsense in registro['subsenses']:
-                                    for sin in subsense['synonyms']:
+                        try:
+                            obj_final = obj_final[pos]
+                            for registro in obj_final:
+                                try:
+                                    for sin in registro['synonyms']:
                                         sinonimos_nivel3.add(sin)
-                            except KeyError, ke: pass
+                                except KeyError, ke: pass
+                                try:
+                                    for subsense in registro['subsenses']:
+                                        for sin in subsense['synonyms']:
+                                            sinonimos_nivel3.add(sin)
+                                except KeyError, ke: pass
+                        except: pass
                 except AttributeError, ae:
                     print('Lemma: ' + lemma)
                     print('Synset: ')

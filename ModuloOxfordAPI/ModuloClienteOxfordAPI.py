@@ -16,7 +16,11 @@ class ClienteOxfordAPI(object):
             'app_key': self.chave
         }
 
-        self.obj_urls_invalidas_sinonimos = None
+        self.dir_obj_urls_invalidas = configs['oxford']['cache']['sinonimos']
+        self.obj_urls_invalidas_sinonimos = Utilitarios.carregar_json(self.dir_obj_urls_invalidas)
+
+        if not self.obj_urls_invalidas_sinonimos:
+            self.obj_urls_invalidas_sinonimos = dict()
 
     def obter_lista_categoria(self, categoria):
         url = self.url_base + '/wordlist/en/registers=Rare;domains=' + categoria
@@ -43,6 +47,10 @@ class ClienteOxfordAPI(object):
         return saida
 
     def obter_sinonimos(self, palavra):
+        if palavra in self.obj_urls_invalidas_sinonimos:
+            print('URL EVITADA: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            return None
+
         dir_cache_oxford = self.configs['oxford']['cache']['sinonimos']
         
         url = self.url_base + "/entries/en/" + palavra + "/synonyms"
@@ -65,12 +73,14 @@ class ClienteOxfordAPI(object):
                     obj_json[pos].append(sense)
 
             print('URL CERTA: ' + url + '\t\tHeaders: ' + str(self.headers))
-            Utilitarios.salvar_json(dir_obj_json, obj_json)
-
             return obj_json
-        except:           
+        except:
+            self.obj_urls_invalidas_sinonimos[palavra] = ""
             print('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
+
+    def salvar_urls_invalidas(self):
+        Utilitarios.salvar_json(self.dir_obj_urls_invalidas)
 
     def buscar_sinonimos_por_id(self, id, elemento):
         for e in elemento:
@@ -110,6 +120,8 @@ class ClienteOxfordAPI(object):
         url = self.url_base + "/entries/en/" + palavra + "/antonyms"
         return Utilitarios.requisicao_http(url, self.headers)
 
-class ExtratorOxford(object):
-    def __init__(self):
-        pass
+    def __def__(self):
+        try:
+            self.salvar_urls_invalidas()
+        except:
+            pass
