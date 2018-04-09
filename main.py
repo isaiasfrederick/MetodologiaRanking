@@ -1,12 +1,13 @@
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
-from ValidadorRanking.Validador import ValidadorRankingSemEval2007
+from ValidadorRanking.Validadores import ValidadorRankingSemEval2007, ValidadorGeneralizedAveragePrecision
 from pywsd.lesk import cosine_lesk as cosine_lesk
 from nltk.corpus import wordnet as wordnet
 from Utilitarios import Utilitarios
 from sys import argv
 import traceback
+import re
 
 def aplicar_semeval2007(configs, metodo_extracao, ordenar):
     respostas_semeval = dict()
@@ -55,7 +56,7 @@ def aplicar_semeval2007(configs, metodo_extracao, ordenar):
     return respostas_semeval
 
 
-def exibir_todos_resultados(todos_participantes, validador_semeval2007, nome_minha_abordagem):
+def exibir_todos_resultados(todos_participantes, validador_semeval2007):
     lista_todos_participantes = todos_participantes.values()
     todas_dimensoes = todos_participantes[todos_participantes.keys()[0]].keys()
     
@@ -65,8 +66,7 @@ def exibir_todos_resultados(todos_participantes, validador_semeval2007, nome_min
 
         indice = 1
         for participante in lista_todos_participantes:
-            marcador = "" if participante['nome'] != nome_minha_abordagem else " <<<<"
-            print(str(indice) + ' - ' + participante['nome'] + '  -  ' + str(participante[dimensao]) + marcador)
+            print(str(indice) + ' - ' + participante['nome'] + '  -  ' + str(participante[dimensao]))
 
             indice += 1
 
@@ -84,7 +84,8 @@ def obter_frases_da_base(validador_semeval2007, configs):
 
             resultados_desambiguador = [r for r in cosine_lesk(frase, palavra, nbest=True, pos=pos) if r[0]]
 
-def gerar_todos_metodos(configs, validador_semeval2007):
+# gerar todos os metodos de extracao direcionados ao semeval2007
+def gerar_submissoes_para_semeval2007(configs, validador_semeval2007):
     metodos_extracao = configs['aplicacao']['metodos_extracao']
     todas_metricas = configs['semeval2007']['metricas']['separadores'].keys()
 
@@ -94,10 +95,10 @@ def gerar_todos_metodos(configs, validador_semeval2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        submissoes_geradas = aplicar_semeval2007(configs, metodo, True)
+        todas_submissoes_geradas = aplicar_semeval2007(configs, metodo, True)
         for metrica in todas_metricas:
             print('Calculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
-            submissao_gerada = submissoes_geradas[metrica]
+            submissao_gerada = todas_submissoes_geradas[metrica]
 
             nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
             nome_minha_abordagem = validador_semeval2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
@@ -107,27 +108,64 @@ def gerar_todos_metodos(configs, validador_semeval2007):
 
     return resultados
 
+def realizar_semeval2007(configs, validador_semeval2007):
+    minhas_submissoes_geradas = gerar_submissoes_para_semeval2007(configs, validador_semeval2007)
+
+    for metrica in minhas_submissoes_geradas.keys():
+        submissao_gerada = minhas_submissoes_geradas[metrica]
+
+        resultados_participantes = validador_semeval2007.obter_score_participantes_originais(metrica)
+
+        for minha_abordagem in submissao_gerada:
+            resultados_participantes[minha_abordagem['nome']] = minha_abordagem
+
+        exibir_todos_resultados(resultados_participantes, validador_semeval2007)
+        print('\n\n')
+
+def obter_gold_rankings(configs):
+    saida = dict()
+    dir_gold_file = configs['semeval2007']['trial']['gold_file']
+
+    arquivo_gold = open(dir_gold_file, 'r')
+    linhas = arquivo_gold.readlines()
+    arquivo_gold.close()
+
+
+    for l in linhas:
+        resposta_linha = dict()
+        print(l)
+        try:
+            ltmp = str(l)
+            ltmp = ltmp.replace('\n', '')
+            chave, sugestoes = ltmp.split(" :: ")
+            for sinonimo in str(sugestoes).split(';'):
+                if sinonimo != "":
+                    sinonimo_lista = str(sinonimo).split(' ')
+                    votos = int(sinonimo_lista.pop())
+                    sinonimo_final = ' '.join(sinonimo_lista)
+
+                    print((sinonimo_final, votos))
+            
+                    resposta_linha[sinonimo_final] = votos
+
+            saida[chave] = resposta_linha
+        except:
+            traceback.print_exc()
+    
+    return saida
+
 if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
+
     validador_semeval2007 = ValidadorRankingSemEval2007(configs)
+    validador_gap = ValidadorGeneralizedAveragePrecision()
 
-    gerar_todos_metodos(configs, validador_semeval2007)
+#    realizar_semeval2007(configs, validador_semeval2007)
+    for v in obter_gold_rankings(configs).values():
+        score = validador_gap.average_precision(v, v)
+        print(v)
+        print(score)
 
-    submissoes_geradas = aplicar_semeval2007(configs, 'simples', True)
 
-    for metrica in submissoes_geradas.keys():
-        submissao_gerada = submissoes_geradas[metrica]
-
-        nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '.' + metrica
-
-        resultado_participantes = validador_semeval2007.obter_score_participantes(metrica)
-        nome_minha_abordagem = validador_semeval2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
-
-        resultados_minha_abordagem = validador_semeval2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
-        resultado_participantes[nome_minha_abordagem] = resultados_minha_abordagem
-        exibir_todos_resultados(resultado_participantes, validador_semeval2007, nome_minha_abordagem)
-
-        print('\n\n')
-
-    print('Fim algoritmo')
+    print('Fim do __main__')

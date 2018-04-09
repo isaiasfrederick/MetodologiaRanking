@@ -3,8 +3,10 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 from os import listdir
 from os import system
+import traceback
 import operator
 import os.path
+import io
 
 class ValidadorRankingSemEval2007(object):
     def __init__(self, configs):
@@ -15,7 +17,7 @@ class ValidadorRankingSemEval2007(object):
         self.scorer = configs['semeval2007']['trial']['scorer']
         self.dir_tmp = configs['dir_temporarios']
 
-    def obter_score_participantes(self, metrica):
+    def obter_score_participantes_originais(self, metrica):
         resultados_json = {}
 
         todos_participantes_best = [p for p in self.listar_arq(self.dir_respostas) if '.' + metrica in p]
@@ -36,6 +38,7 @@ class ValidadorRankingSemEval2007(object):
         args = (comando_scorer, dir_entrada, self.gold_file, metrica, arquivo_tmp)
 
         comando = "perl %s %s %s -t %s > %s" % args
+
         system(comando)
 
         obj = self.ler_registro(arquivo_tmp)
@@ -62,11 +65,13 @@ class ValidadorRankingSemEval2007(object):
         arq = open(str(path_arquivo), 'r')
         linhas = arq.readlines()
 
-        for l in linhas:
+        for l2 in linhas:
             try:
+                l = str(l2).replace('\n','')
                 chave, valor = l.split(':')
-                obj[chave] = float(valor) if float(valor) % 1 else int(valor)
-            except: pass
+                obj[chave] = float(valor)
+            except:
+                pass
 
         arq.close()
         return obj
@@ -115,3 +120,66 @@ class ValidadorRankingSemEval2007(object):
 class ValidadorGeneralizedAveragePrecision(object):
     def __init__(self):
         pass
+
+    def constructX(my_ranklist, gold_ranklist):
+        x = []
+        
+        for item in my_ranklist:
+            x.append(int(item in gold_ranklist))
+
+        return x
+
+    def precision(x, i):
+        return sum(x[:i])/(i + 0.0)
+
+    def average_precision(my_ranklist, gold_ranklist):
+        result = 0.0
+        x = constructX(my_ranklist, gold_ranklist)
+
+        for i in range(1, len(my_ranklist) + 1):
+            result += x[i - 1] * precision(x, i)
+
+        return result / len(gold_ranklist)
+
+    def I(val):
+        return int(val > 0)
+
+    def average(arr):
+        return sum(arr) / (len(arr) + 0.)
+
+    def gap(my_ranklist, gold_ranklist, gold_weights):
+        x = constructX(my_ranklist, gold_ranklist)
+        result = 0.
+
+        for i in range(1, len(my_ranklist) + 1):
+            result += I(x[i - 1]) * precision(x, i)
+        denominator = 0.
+        for i in range(len(gold_ranklist)):
+            denominator += I(gold_weights[i]) * average(gold_weights[:i+1])
+
+        return result / denominator
+
+    def teste_gap():
+        # my_ranklist is the output of any paraphrase-ranking algorithm (let's say it gives top 5 words)
+        my_ranklist = ['clever', 'intelligent', 'luminous', 'hopeful', 'intelligent'];
+        # gold_ranklist is the actual gold data that was ranked by people (assume 5 people were asked, and this is what they chose)
+        gold_ranklist = ['clever', 'intelligent', 'smart'];
+        # the i-th element in gold_weights gives the weight associated with corresponding element in gold_ranklist.
+        # for example, 3 people told 'clever', and 1 each told 'intelligent' and 'smart'.
+        gold_weights = [3, 1, 1];
+
+        print >>sys.stderr,  my_ranklist;
+        print >>sys.stderr,  gold_ranklist;
+        print >>sys.stderr,  gold_weights;
+
+        print 'average precision = ' + str(gap.average_precision(my_ranklist, gold_ranklist));
+        print 'GAP = ' + str(gap.gap(my_ranklist, gold_ranklist, gold_weights));
+
+        my_ranklist = ['luminous', 'hopeful', 'intelligent', 'clever', 'intelligent'];
+        gold_ranklist = ['clever', 'intelligent', 'smart'];
+        gold_weights = [3, 1, 1];
+        print >>sys.stderr,  my_ranklist;
+        print >>sys.stderr,  gold_ranklist;
+
+        print 'average precision = ' + str(gap.average_precision(my_ranklist, gold_ranklist));
+        print 'GAP = ' + str(gap.gap(my_ranklist, gold_ranklist, gold_weights));

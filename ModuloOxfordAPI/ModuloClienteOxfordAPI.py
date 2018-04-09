@@ -69,7 +69,7 @@ class ClienteOxfordAPI(object):
             traceback.print_exc()
             raw_input('Pression <enter>')
             self.obj_urls_invalidas_definicoes[palavra] = ""
-            print('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
+            raw_input('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
 
     def obter_sinonimos(self, palavra):
@@ -148,8 +148,6 @@ class ClienteOxfordAPI(object):
 
     def __del__(self):
         try:
-            print('Salvando URLs invalidas...')
             self.persistir_urls_invalidas()
-            print('URLs invalidas salvas.')
         except:
             traceback.print_exc()
