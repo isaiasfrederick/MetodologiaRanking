@@ -163,9 +163,10 @@ if __name__ == '__main__':
 
 #    realizar_semeval2007(configs, validador_semeval2007)
     for v in obter_gold_rankings(configs).values():
-        score = validador_gap.average_precision(v, v)
-        print(v)
-        print(score)
+        print(v.keys())
+        print(v.values())
+        print('\n\n')
 
+        score = validador_gap.average_precision(v.keys(), v.values())
 
     print('Fim do __main__')

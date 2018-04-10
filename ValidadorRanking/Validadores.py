@@ -121,7 +121,7 @@ class ValidadorGeneralizedAveragePrecision(object):
     def __init__(self):
         pass
 
-    def constructX(my_ranklist, gold_ranklist):
+    def constructX(self, my_ranklist, gold_ranklist):
         x = []
         
         for item in my_ranklist:
@@ -129,25 +129,25 @@ class ValidadorGeneralizedAveragePrecision(object):
 
         return x
 
-    def precision(x, i):
+    def precision(self, x, i):
         return sum(x[:i])/(i + 0.0)
 
-    def average_precision(my_ranklist, gold_ranklist):
+    def average_precision(self, my_ranklist, gold_ranklist):
         result = 0.0
-        x = constructX(my_ranklist, gold_ranklist)
+        x = self.constructX(my_ranklist, gold_ranklist)
 
         for i in range(1, len(my_ranklist) + 1):
-            result += x[i - 1] * precision(x, i)
+            result += x[i - 1] * self.precision(x, i)
 
         return result / len(gold_ranklist)
 
-    def I(val):
+    def I(self, val):
         return int(val > 0)
 
-    def average(arr):
+    def average(self, arr):
         return sum(arr) / (len(arr) + 0.)
 
-    def gap(my_ranklist, gold_ranklist, gold_weights):
+    def gap(self, my_ranklist, gold_ranklist, gold_weights):
         x = constructX(my_ranklist, gold_ranklist)
         result = 0.
 
@@ -183,3 +183,7 @@ class ValidadorGeneralizedAveragePrecision(object):
 
         print 'average precision = ' + str(gap.average_precision(my_ranklist, gold_ranklist));
         print 'GAP = ' + str(gap.gap(my_ranklist, gold_ranklist, gold_weights));
+
+
+    def meu_gap(gold, meu_ranking):
+        pass
