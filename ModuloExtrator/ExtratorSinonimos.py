@@ -1,7 +1,7 @@
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
+from ModuloUtilitarios.Utilitarios import Utilitarios
 from Desambiguacao.Desambiguador import Desambiguador
 from nltk.corpus import wordnet as wn
-from Utilitarios import Utilitarios
 import traceback
 
 class ExtratorSinonimos(object):

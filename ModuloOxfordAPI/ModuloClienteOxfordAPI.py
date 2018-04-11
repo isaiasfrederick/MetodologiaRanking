@@ -1,4 +1,4 @@
-from Utilitarios import Utilitarios
+from ModuloUtilitarios.Utilitarios import Utilitarios
 import os
 import traceback
 import requests

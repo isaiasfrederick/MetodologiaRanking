@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 
 class Utilitarios(object):
     @staticmethod
@@ -46,6 +47,10 @@ class Utilitarios(object):
     @staticmethod
     def deletar_arquivo(dir_arquivo):
         system("rm " + dir_arquivo)
+
+    @staticmethod
+    def limpar_diretorio_temporarios(configs):
+        os.system('rm ' + configs['dir_temporarios'] + '/*')
 
     @staticmethod
     def salvar_json(diretorio, obj):

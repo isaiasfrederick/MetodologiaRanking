@@ -1,10 +1,10 @@
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
+from ModuloUtilitarios.Utilitarios import Utilitarios
 from ValidadorRanking.Validadores import *
 from pywsd.lesk import cosine_lesk as cosine_lesk
 from nltk.corpus import wordnet as wordnet
-from Utilitarios import Utilitarios
 from sys import argv
 import traceback
 import re
@@ -158,6 +158,8 @@ if __name__ == '__main__':
     validador_gap = GeneralizedAveragePrecisionMelamud()
 
     realizar_semeval2007(configs, validador_semeval2007)
+    raw_input('<enter>')
+    Utilitarios.limpar_diretorio_temporarios(configs)
 #    for v in obter_gold_rankings(configs).values():
 #        print(v.keys())
 #        print(v.values())
