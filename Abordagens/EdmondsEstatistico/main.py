@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from nltk.corpus import stopwords as sw
+from Utilitarios import Utilitarios
 from unidecode import unidecode
 from nltk import word_tokenize
 from math import log10, sqrt
@@ -16,7 +17,7 @@ import re
 
 def salvar_json(caminho_json_saida, palavras):
     try:
-        obj_texto = json.dumps(palavras, indent=4, encoding='latin1')
+        obj_texto = json.dumps(palavras, indent=4, encoding='latin1')        
     except UnicodeDecodeError, ude:
         pass
 

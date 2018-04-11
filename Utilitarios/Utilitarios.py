@@ -44,6 +44,10 @@ class Utilitarios(object):
             return None
 
     @staticmethod
+    def deletar_arquivo(dir_arquivo):
+        system("rm " + dir_arquivo)
+
+    @staticmethod
     def salvar_json(diretorio, obj):
         try:
             arq = open(diretorio, 'w')
