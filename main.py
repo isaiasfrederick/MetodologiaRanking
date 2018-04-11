@@ -108,6 +108,13 @@ def gerar_submissoes_para_semeval2007(configs, validador_semeval2007):
 
     return resultados
 
+def gerar_submissoes_para_gap(configs, medida_ranking_completo = 'oot'):
+    total_anotadores = configs['semeval2007']['total_anotadores']
+    max_sugestoes = configs['semeval2007']['max_sugestoes']
+
+    limite_sugestoes = total_anotadores * max_sugestoes
+    
+
 def realizar_semeval2007(configs, validador_semeval2007):
     minhas_submissoes_geradas = gerar_submissoes_para_semeval2007(configs, validador_semeval2007)
 
@@ -150,6 +157,42 @@ def obter_gold_rankings(configs):
     
     return saida
 
+def carregar_arquivo_submissao_semeval2007(configs, dir_arquivo, medida="oot"):
+    arquivo_gold = open(dir_arquivo, 'r')
+    todas_linhas = arquivo_gold.readlines()
+    arquivo_gold.close()
+
+    saida = dict()
+
+    separador = configs['semeval2007']['metricas']['separadores'][medida]
+    separador = " " + separador + " "
+
+    total_sugestoes = 0
+
+    for linha in todas_linhas:
+        resposta_linha = dict()
+        try:
+            ltmp = str(linha)
+            ltmp = ltmp.replace('\n', '')
+
+            chave, sugestoes = ltmp.split(separador)
+            todos_candidatos = sugestoes.split(';')
+            indice = 0
+
+            for sinonimo in todos_candidatos:
+                if sinonimo != "":
+                    sinonimo_lista = sinonimo
+                    votos = len(todos_candidatos) - indice           
+                    resposta_linha[sinonimo] = votos
+
+                indice += 1
+
+            saida[chave] = resposta_linha
+        except:
+            traceback.print_exc()
+    
+    return saida
+
 if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
@@ -158,13 +201,19 @@ if __name__ == '__main__':
     validador_gap = GeneralizedAveragePrecisionMelamud()
 
     realizar_semeval2007(configs, validador_semeval2007)
-    raw_input('<enter>')
-    Utilitarios.limpar_diretorio_temporarios(configs)
-#    for v in obter_gold_rankings(configs).values():
-#        print(v.keys())
-#        print(v.values())
-#        print('\n\n')
+    gerar_submissoes_para_gap(configs)
 
+    submissoes_semeval2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])
+    submissoes_semeval2007 = [e for e in submissoes_semeval2007 if '.oot' in e]
+
+    for subsmissao_semeval2007 in submissoes_semeval2007:
+        s = carregar_arquivo_submissao_semeval2007(configs, subsmissao_semeval2007)
+        for e in s:
+            print(e)
+            print(s[e])
+            print('\n')
+        
+#    Utilitarios.limpar_diretorio_temporarios(configs)
 #        score = validador_gap.average_precision(v.keys(), v.values())
 
     print('Fim do __main__')

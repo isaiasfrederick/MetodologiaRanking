@@ -1,4 +1,5 @@
 import requests
+import glob
 import json
 import os
 
@@ -63,3 +64,7 @@ class Utilitarios(object):
             return True
         except:
             return False
+
+    @staticmethod
+    def listar_arquivos(diretorio):
+        return glob.glob(diretorio + '/*')
