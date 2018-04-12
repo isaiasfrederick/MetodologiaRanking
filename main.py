@@ -229,16 +229,17 @@ if __name__ == '__main__':
                 print('Abordagem: [%s]\t\tFrase: [%s]' % (nome_abordagem, lexema))
                 meu_ranking = [(k, minha_abordagem[lexema][k]) for k in minha_abordagem[lexema]]
                 gap_score = validador_gap.calc(ranking_gold, meu_ranking)
-                print('Ranking Gold')
                 print('GAP: ' + str(gap_score))
+                print('Meu ranking')
                 print(meu_ranking)
+                print('Rankin gold')
                 print(ranking_gold)
                 print('\n')
 
                 resultados_gap[nome_abordagem][lexema] = gap_score
 
-        amostra = resultados_gap[nome_abordagem].values()
-        gap_medio = sum(amostra) / len(amostra)
+        amostra_gaps = resultados_gap[nome_abordagem].values()
+        gap_medio = sum(amostra_gaps) / len(amostra_gaps)
 
         print('GAP Medio: ' + str(gap_medio))
 
