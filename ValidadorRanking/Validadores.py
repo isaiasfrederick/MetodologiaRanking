@@ -220,7 +220,7 @@ class GeneralizedAveragePrecisionMelamud(object):
         for [key, value] in gold_vector:
             gold_map[key]=value
         sorted_gold_vector = sorted(gold_vector, key=itemgetter(1), reverse=True)          
-        gold_vector_accumulated = GeneralizedAveragePrecision.accumulate_score(sorted_gold_vector)
+        gold_vector_accumulated = self.accumulate_score(sorted_gold_vector)
 
 
         ''' first we use the eval score to sort the eval vector accordingly '''
@@ -237,7 +237,7 @@ class GeneralizedAveragePrecisionMelamud(object):
             else:
                 gold_score = 0
             sorted_evaluated_vector_with_gold_scores.append([key, gold_score])
-        evaluated_vector_accumulated = GeneralizedAveragePrecision.accumulate_score(sorted_evaluated_vector_with_gold_scores)   
+        evaluated_vector_accumulated = self.accumulate_score(sorted_evaluated_vector_with_gold_scores)   
                                   
         ''' this is sum of precisions over all recall points '''                          
         i = 0

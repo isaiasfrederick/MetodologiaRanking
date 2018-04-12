@@ -9,11 +9,11 @@ from sys import argv
 import traceback
 import re
 
-def aplicar_semeval2007(configs, metodo_extracao, ordenar):
+def aplicar_se2007(configs, metodo_extracao, ordenar):
     respostas_semeval = dict()
 
-    configs_semeval2007 = configs['semeval2007']
-    todas_metricas = configs_semeval2007['metricas']['limites'].keys()
+    configs_se2007 = configs['semeval2007']
+    todas_metricas = configs_se2007['metricas']['limites'].keys()
 
     dir_contadores = configs['leipzig']['dir_contadores']
 
@@ -21,10 +21,10 @@ def aplicar_semeval2007(configs, metodo_extracao, ordenar):
     cli_oxford = ClienteOxfordAPI(configs)
 
     extrator_sinonimos = ExtratorSinonimos(configs, cli_oxford, cli_babelnet, dir_contadores)
-    validador_semeval2007 = ValidadorRankingSemEval2007(configs)
+    validador_se2007 = ValidadorRankingSemEval2007(configs)
 
-    dir_arquivo_teste = configs_semeval2007["dir_arquivo_teste"]
-    casos_entrada = validador_semeval2007.ler_entrada_teste(dir_arquivo_teste)
+    dir_arquivo_teste = configs_se2007["dir_arquivo_teste"]
+    casos_entrada = validador_se2007.ler_entrada_teste(dir_arquivo_teste)
 
     for metrica in todas_metricas:
         respostas_semeval[metrica] = dict()
@@ -50,19 +50,19 @@ def aplicar_semeval2007(configs, metodo_extracao, ordenar):
                 if not lemma in respostas_semeval[metrica]:
                     respostas_semeval[metrica][lemma] = dict()
 
-                limite_superior = int(configs_semeval2007['metricas']['limites'][metrica])
+                limite_superior = int(configs_se2007['metricas']['limites'][metrica])
                 respostas_semeval[metrica][lemma][codigo] = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
         
     return respostas_semeval
 
 
-def exibir_todos_resultados(todos_participantes, validador_semeval2007):
+def exibir_todos_resultados(todos_participantes, validador_se2007):
     lista_todos_participantes = todos_participantes.values()
     todas_dimensoes = todos_participantes[todos_participantes.keys()[0]].keys()
     
     for dimensao in todas_dimensoes:
         print('DIMENSAO: ' + dimensao)
-        validador_semeval2007.ordenar_scores(lista_todos_participantes, dimensao)
+        validador_se2007.ordenar_scores(lista_todos_participantes, dimensao)
 
         indice = 1
         for participante in lista_todos_participantes:
@@ -73,8 +73,8 @@ def exibir_todos_resultados(todos_participantes, validador_semeval2007):
         print('\n')
 
 # obter frases do caso de entrada
-def obter_frases_da_base(validador_semeval2007, configs):
-    entrada = validador_semeval2007.ler_entrada_teste(configs['semeval2007']['dir_arquivo_teste'])
+def obter_frases_da_base(validador_se2007, configs):
+    entrada = validador_se2007.ler_entrada_teste(configs['semeval2007']['dir_arquivo_teste'])
 
     for lemma in entrada:
         for id_entrada in entrada[lemma]:
@@ -84,26 +84,26 @@ def obter_frases_da_base(validador_semeval2007, configs):
 
             resultados_desambiguador = [r for r in cosine_lesk(frase, palavra, nbest=True, pos=pos) if r[0]]
 
-# gerar todos os metodos de extracao direcionados ao semeval2007
-def gerar_submissoes_para_semeval2007(configs, validador_semeval2007):
+# gerar todos os metodos de extracao direcionados ao se2007
+def gerar_submissoes_para_se2007(configs, validador_se2007):
     metodos_extracao = configs['aplicacao']['metodos_extracao']
-    todas_metricas_semeval2007 = configs['semeval2007']['metricas']['separadores'].keys()
+    todas_metricas_se2007 = configs['semeval2007']['metricas']['separadores'].keys()
 
     resultados = dict()
 
-    for metrica in todas_metricas_semeval2007:
+    for metrica in todas_metricas_se2007:
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        todas_submissoes_geradas = aplicar_semeval2007(configs, metodo, True)
-        for metrica in todas_metricas_semeval2007:
-            print('Calculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
+        todas_submissoes_geradas = aplicar_se2007(configs, metodo, True)
+        for metrica in todas_metricas_se2007:
+            print('\n\nCalculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
             submissao_gerada = todas_submissoes_geradas[metrica]
 
             nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
-            nome_minha_abordagem = validador_semeval2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
+            nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
 
-            resultados_minha_abordagem = validador_semeval2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
+            resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
             resultados[metrica].append(resultados_minha_abordagem)
 
     return resultados
@@ -114,18 +114,17 @@ def gerar_submissoes_para_gap(configs, medida_ranking_completo = 'oot'):
 
     limite_sugestoes = total_anotadores * max_sugestoes
     
-
-def realizar_semeval2007(configs, validador_semeval2007):
-    minhas_submissoes_geradas = gerar_submissoes_para_semeval2007(configs, validador_semeval2007)
+def realizar_se2007(configs, validador_se2007):
+    minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)
 
     for metrica in minhas_submissoes_geradas.keys():
         submissao_gerada = minhas_submissoes_geradas[metrica]
-        resultados_participantes = validador_semeval2007.obter_score_participantes_originais(metrica)
+        resultados_participantes = validador_se2007.obter_score_participantes_originais(metrica)
 
         for minha_abordagem in submissao_gerada:
             resultados_participantes[minha_abordagem['nome']] = minha_abordagem
 
-        exibir_todos_resultados(resultados_participantes, validador_semeval2007)
+        exibir_todos_resultados(resultados_participantes, validador_se2007)
         print('\n\n')
 
 def obter_gold_rankings(configs):
@@ -136,28 +135,29 @@ def obter_gold_rankings(configs):
     arquivo_gold.close()
 
     saida = dict()
+    separador = " :: "
 
     for linha in todas_linhas:
         resposta_linha = dict()
         try:
             ltmp = str(linha)
             ltmp = ltmp.replace('\n', '')
-            chave, sugestoes = ltmp.split(" :: ")
-            for sinonimo in str(sugestoes).split(';'):
-                if sinonimo != "":
-                    sinonimo_lista = str(sinonimo).split(' ')
-                    votos = int(sinonimo_lista.pop())
-                    sinonimo_final = ' '.join(sinonimo_lista)
-            
-                    resposta_linha[sinonimo_final] = votos
+            chave, sugestoes = ltmp.split(separador)
+            sugestoes = [s for s in sugestoes.split(';') if s]
 
+            for sinonimo in sugestoes:
+                sinonimo_lista = str(sinonimo).split(' ')
+                votos = int(sinonimo_lista.pop())
+                sinonimo_final = ' '.join(sinonimo_lista)
+            
+                resposta_linha[sinonimo_final] = votos
             saida[chave] = resposta_linha
         except:
             traceback.print_exc()
     
     return saida
 
-def carregar_arquivo_submissao_semeval2007(configs, dir_arquivo, medida="oot"):
+def carregar_arquivo_submissao_se2007(configs, dir_arquivo, medida="oot"):
     arquivo_gold = open(dir_arquivo, 'r')
     todas_linhas = arquivo_gold.readlines()
     arquivo_gold.close()
@@ -193,26 +193,55 @@ def carregar_arquivo_submissao_semeval2007(configs, dir_arquivo, medida="oot"):
     
     return saida
 
+
 if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    validador_semeval2007 = ValidadorRankingSemEval2007(configs)
+    validador_se2007 = ValidadorRankingSemEval2007(configs)
     validador_gap = GeneralizedAveragePrecisionMelamud()
 
-    realizar_semeval2007(configs, validador_semeval2007)
+    realizar_se2007(configs, validador_se2007)
     gerar_submissoes_para_gap(configs)
 
-    submissoes_semeval2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])
-    submissoes_semeval2007 = [e for e in submissoes_semeval2007 if '.oot' in e]
+    gold_rankings_se2007 = obter_gold_rankings(configs)
 
-    for subsmissao_semeval2007 in submissoes_semeval2007:
-        s = carregar_arquivo_submissao_semeval2007(configs, subsmissao_semeval2007)
-        for e in s:
-            print(e)
-            print(s[e])
-            print('\n')
-        
+    lista_todas_submissoes_se2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])
+
+    # Usa, originalmente, OOT
+    lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]
+    submissoes_se2007_carregadas = dict()
+
+    resultados_gap = dict()
+
+    for dir_submissao_se2007 in lista_todas_submissoes_se2007:
+        submissao_carregada = carregar_arquivo_submissao_se2007(configs, dir_submissao_se2007)
+        nome_abordagem = dir_submissao_se2007.split('/').pop()
+
+        submissoes_se2007_carregadas[nome_abordagem] = submissao_carregada
+        resultados_gap[nome_abordagem] = dict()
+
+    for nome_abordagem in submissoes_se2007_carregadas:
+        minha_abordagem = submissoes_se2007_carregadas[nome_abordagem]
+        for lexema in gold_rankings_se2007:
+            ranking_gold = [(k, gold_rankings_se2007[lexema][k]) for k in gold_rankings_se2007[lexema]]
+            if lexema in minha_abordagem:
+                print('Abordagem: [%s]\t\tFrase: [%s]' % (nome_abordagem, lexema))
+                meu_ranking = [(k, minha_abordagem[lexema][k]) for k in minha_abordagem[lexema]]
+                gap_score = validador_gap.calc(ranking_gold, meu_ranking)
+                print('Ranking Gold')
+                print('GAP: ' + str(gap_score))
+                print(meu_ranking)
+                print(ranking_gold)
+                print('\n')
+
+                resultados_gap[nome_abordagem][lexema] = gap_score
+
+        amostra = resultados_gap[nome_abordagem].values()
+        gap_medio = sum(amostra) / len(amostra)
+
+        print('GAP Medio: ' + str(gap_medio))
+
 #    Utilitarios.limpar_diretorio_temporarios(configs)
 #        score = validador_gap.average_precision(v.keys(), v.values())
 

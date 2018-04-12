@@ -38,7 +38,7 @@ class ClienteOxfordAPI(object):
 
     def obter_definicoes(self, palavra, lematizar=True):
         if palavra in self.obj_urls_invalidas_definicoes:
-            print('URL EVITADA: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
             return None
 
         dir_cache_oxford = self.configs['oxford']['cache']['definicoes']            
@@ -61,20 +61,20 @@ class ClienteOxfordAPI(object):
                 for sense in entry['entries'][0]['senses']:
                     saida[entry['lexicalCategory']].append(sense)
 
-            print('URL CERTA: ' + url + '\t\tHeaders: ' + str(self.headers))
-            print('Salvando em cache: ' + str(Utilitarios.salvar_json(dir_obj_json, saida)))
+            print('ClienteOxford URL certa: ' + url + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: Salvando em cache: ' + str(Utilitarios.salvar_json(dir_obj_json, saida)))
 
             return saida
         except:
             traceback.print_exc()
             raw_input('Pression <enter>')
             self.obj_urls_invalidas_definicoes[palavra] = ""
-            raw_input('URL ERRADA: ' + url + '\t\tHeaders: ' + str(self.headers))
+            raw_input('ClienteOxford: URL errada: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
 
     def obter_sinonimos(self, palavra):
         if palavra in self.obj_urls_invalidas_sinonimos:
-            print('URL EVITADA: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
             return None
 
         dir_cache_oxford = self.configs['oxford']['cache']['sinonimos']            
