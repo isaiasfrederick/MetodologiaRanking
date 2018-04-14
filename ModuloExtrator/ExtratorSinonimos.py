@@ -14,35 +14,41 @@ class ExtratorSinonimos(object):
 
         self.contadores = Utilitarios.carregar_json(dir_contadores)
 
-    def busca_sinonimos(self, palavra, pos, algoritmo, multiword=False, contexto=None, ordenar=True):
+    def buscar_sinonimos(self, palavra, pos, algoritmo, multiword=False, contexto=None, ordenar=True):
         if algoritmo == 'simples':
-            return self.busca_sinonimos_simples(palavra, pos, contexto, False)
+            return self.buscar_sinonimos_simples(palavra, pos, contexto, False)
         elif algoritmo == 'desambiguador':
-            return self.busca_sinonimos_desambiguacao(palavra, pos, contexto, False)
+            return self.buscar_sinonimos_desambiguacao(palavra, pos, contexto, False)
         elif algoritmo == 'baseline':
             return self.buscar_sinonimos_baseline_semeval(palavra, multiword=False)
+        elif algoritmo == 'topk':
+            return self.buscar_topk(palavra, pos, multiword, 2)
+        elif algoritmo == 'todos':
+            return self.buscar_todos_significados(palavra, pos, multiword, 10000)
         else:
             pass
 
         return None
 
     # obtem todos sinonimos de todos synsets da Wordnet
-    def busca_sinonimos_simples(self, palavra, pos, contexto, multiword):
+    def buscar_sinonimos_simples(self, palavra, pos, contexto, multiword):
         sinonimos = []
 
         for s in wn.synsets(unicode(palavra), pos):
             for l in s.lemma_names():
                 sinonimos.append(l)
 
-        sinonimos_final = []
+        saida_sinonimos = []
+        for s in set(sinonimos):
+            if (not Utilitarios.multipalavra(s) and not multiword) or multiword:
+                saida_sinonimos.append(s)
 
-        for e in list(set(sinonimos)):
-            if not (Utilitarios.multipalavra(e) and multiword == False):
-                sinonimos_final.append(e.lower())
+        return saida_sinonimos
 
-        return [s for s in sinonimos_final if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
+    def buscar_todos_significados(self, palavra, pos, multiword, topk):
+        return self.buscar_topk(palavra, pos, multiword, 10000)
 
-    def busca_sinonimos_desambiguacao(self, palavra, pos, contexto, multiword):
+    def buscar_sinonimos_desambiguacao(self, palavra, pos, contexto, multiword):
         sinonimos = []
         synsets = wn.synsets(palavra, pos)
 
@@ -56,6 +62,18 @@ class ExtratorSinonimos(object):
                         
         return [s for s in sinonimos if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
 
+    def buscar_topk(self, palavra, pos, multiword, topk):
+        try:
+            meu_set = set()
+            for s in wn.synsets(palavra, pos)[:topk]:
+                for l in s.lemma_names():
+                    meu_set.add(l)
+            return list(meu_set)
+        except:
+            traceback.print_exc()
+            raw_input('<enter>')
+            return []
+
     def buscar_sinonimos_baseline_semeval(self, palavra, multiword):
         sinonimos_nivel1 = set()
         sinonimos_nivel2 = set()
@@ -67,6 +85,7 @@ class ExtratorSinonimos(object):
         try:
             synset =  [res[0] for res in self.desambiguador.desambiguar(contexto, palavra) if res[1]][0]
         except:
+            # Synset mais usual
             synset = wn.synsets(palavra)[0]
 
         for s in synset.lemma_names(): sinonimos_nivel1.add(s)
@@ -103,11 +122,7 @@ class ExtratorSinonimos(object):
                                             sinonimos_nivel3.add(sin)
                                 except KeyError, ke: pass
                         except: pass
-                except AttributeError, ae:
-                    print('Lemma: ' + lemma)
-                    print('Synset: ')
-                    print(unicode(synset.name()))
-                    traceback.print_exc()
+                except AttributeError, ae: pass
 
         conjunto = list()
         for l in synset.lemma_names():
@@ -132,7 +147,13 @@ class ExtratorSinonimos(object):
                     resolutor_colisoes_list.append(sin)
                     resolverdor_duplicatas.add(sin)
 
-        return [s for s in resolverdor_duplicatas if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
+        resultado_final = []
+
+        for s in resolverdor_duplicatas:
+            if (not Utilitarios.multipalavra(s) and not multiword) or multiword:
+                resultado_final.append(s)
+
+        return resultado_final
 
     def ordenar_por_frequencia(self, palavras):
         contadores = self.contadores

@@ -38,7 +38,7 @@ def aplicar_se2007(configs, metodo_extracao, ordenar):
             frase = id_entrada['frase']
             codigo = id_entrada['codigo']
 
-            sinonimos = extrator_sinonimos.busca_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
+            sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
 
             if ordenar:
                 sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
@@ -194,6 +194,20 @@ def carregar_arquivo_submissao_se2007(configs, dir_arquivo, medida="oot"):
     return saida
 
 
+def testeGAP():
+    validador_gap = GeneralizedAveragePrecisionMelamud()
+
+    ranking = {'war': 8, 'combat': 2, 'fight': 1}
+    gold = {'war': 3, 'fight': 1, 'combat': 2}
+
+    ranking = [(k, ranking[k]) for k in ranking]
+    gold = [(k, gold[k]) for k in gold]
+
+    s = validador_gap.calc(ranking, gold)
+    raw_input("GAP: " + str(s))
+    return
+
+
 if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
@@ -202,6 +216,9 @@ if __name__ == '__main__':
     validador_gap = GeneralizedAveragePrecisionMelamud()
 
     realizar_se2007(configs, validador_se2007)
+
+    raw_input('\n<ENTER>')
+
     gerar_submissoes_para_gap(configs)
 
     gold_rankings_se2007 = obter_gold_rankings(configs)
@@ -229,10 +246,9 @@ if __name__ == '__main__':
                 print('Abordagem: [%s]\t\tFrase: [%s]' % (nome_abordagem, lexema))
                 meu_ranking = [(k, minha_abordagem[lexema][k]) for k in minha_abordagem[lexema]]
                 gap_score = validador_gap.calc(ranking_gold, meu_ranking)
-                print('GAP: ' + str(gap_score))
                 print('Meu ranking')
                 print(meu_ranking)
-                print('Rankin gold')
+                print('Ranking gold')
                 print(ranking_gold)
                 print('\n')
 
@@ -241,9 +257,10 @@ if __name__ == '__main__':
         amostra_gaps = resultados_gap[nome_abordagem].values()
         gap_medio = sum(amostra_gaps) / len(amostra_gaps)
 
-        print('GAP Medio: ' + str(gap_medio))
+        resultados_gap[nome_abordagem] = gap_medio
 
-#    Utilitarios.limpar_diretorio_temporarios(configs)
-#        score = validador_gap.average_precision(v.keys(), v.values())
+    for nome_abordagem in resultados_gap:
+        gap_medio = resultados_gap[nome_abordagem]
+        print('[%s]\tGAP Medio: %s' % (nome_abordagem, str(gap_medio)))
 
-    print('Fim do __main__')
+    print('\n\n\nFim do __main__')
