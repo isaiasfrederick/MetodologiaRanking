@@ -1,3 +1,4 @@
+from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
@@ -194,23 +195,21 @@ def carregar_arquivo_submissao_se2007(configs, dir_arquivo, medida="oot"):
     return saida
 
 
-def testeGAP():
-    validador_gap = GeneralizedAveragePrecisionMelamud()
+def testar_indexador_whoosh(configs):
+    indexador_whoosh = IndexadorWhoosh.IndexadorWhoosh(configs['leipzig']['dir_indexes_whoosh'])
+    contadores = Utilitarios.carregar_json(configs['leipzig']['dir_contadores'])
 
-    ranking = {'war': 8, 'combat': 2, 'fight': 1}
-    gold = {'war': 3, 'fight': 1, 'combat': 2}
+    sinonimos = ['movie', 'picture', 'production']
 
-    ranking = [(k, ranking[k]) for k in ranking]
-    gold = [(k, gold[k]) for k in gold]
-
-    s = validador_gap.calc(ranking, gold)
-    raw_input("GAP: " + str(s))
-    return
-
+    abordagem_edmonds = AbordagemEdmonds.AbordagemEdmonds(indexador_whoosh, contadores)
+    abordagem_edmonds.construir_redes(configs, sinonimos, 100, 1)    
 
 if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
+
+    testar_indexador_whoosh(configs)
+    exit(0)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)
     validador_gap = GeneralizedAveragePrecisionMelamud()
