@@ -1,3 +1,4 @@
+from os import system
 import requests
 import glob
 import json
@@ -68,3 +69,7 @@ class Utilitarios(object):
     @staticmethod
     def listar_arquivos(diretorio):
         return glob.glob(diretorio + '/*')
+
+    @staticmethod
+    def limpar_console():
+        system('clear')

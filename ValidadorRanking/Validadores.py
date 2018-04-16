@@ -122,78 +122,6 @@ class ValidadorRankingSemEval2007(object):
         return nome_abordagem
 
 
-class ValidadorGeneralizedAveragePrecisionOriginal(object):
-    def __init__(self):
-        pass
-
-    def constructX(self, my_ranklist, gold_ranklist):
-        x = []
-        
-        for item in my_ranklist:
-            x.append(int(item in gold_ranklist))
-
-        return x
-
-    def precision(self, x, i):
-        return sum(x[:i])/(i + 0.0)
-
-    def average_precision(self, my_ranklist, gold_ranklist):
-        result = 0.0
-        x = self.constructX(my_ranklist, gold_ranklist)
-
-        for i in range(1, len(my_ranklist) + 1):
-            result += x[i - 1] * self.precision(x, i)
-
-        return result / len(gold_ranklist)
-
-    def I(self, val):
-        return int(val > 0)
-
-    def average(self, arr):
-        return sum(arr) / (len(arr) + 0.)
-
-    def gap(self, my_ranklist, gold_ranklist, gold_weights):
-        x = constructX(my_ranklist, gold_ranklist)
-        result = 0.
-
-        for i in range(1, len(my_ranklist) + 1):
-            result += I(x[i - 1]) * precision(x, i)
-        denominator = 0.
-        for i in range(len(gold_ranklist)):
-            denominator += I(gold_weights[i]) * average(gold_weights[:i+1])
-
-        return result / denominator
-
-    def teste_gap():
-        # my_ranklist is the output of any paraphrase-ranking algorithm (let's say it gives top 5 words)
-        my_ranklist = ['clever', 'intelligent', 'luminous', 'hopeful', 'intelligent'];
-        # gold_ranklist is the actual gold data that was ranked by people (assume 5 people were asked, and this is what they chose)
-        gold_ranklist = ['clever', 'intelligent', 'smart'];
-        # the i-th element in gold_weights gives the weight associated with corresponding element in gold_ranklist.
-        # for example, 3 people told 'clever', and 1 each told 'intelligent' and 'smart'.
-        gold_weights = [3, 1, 1];
-
-        print >>sys.stderr,  my_ranklist;
-        print >>sys.stderr,  gold_ranklist;
-        print >>sys.stderr,  gold_weights;
-
-        print 'average precision = ' + str(gap.average_precision(my_ranklist, gold_ranklist));
-        print 'GAP = ' + str(gap.gap(my_ranklist, gold_ranklist, gold_weights));
-
-        my_ranklist = ['luminous', 'hopeful', 'intelligent', 'clever', 'intelligent'];
-        gold_ranklist = ['clever', 'intelligent', 'smart'];
-        gold_weights = [3, 1, 1];
-        print >>sys.stderr,  my_ranklist;
-        print >>sys.stderr,  gold_ranklist;
-
-        print 'average precision = ' + str(gap.average_precision(my_ranklist, gold_ranklist));
-        print 'GAP = ' + str(gap.gap(my_ranklist, gold_ranklist, gold_weights));
-
-
-    def meu_gap(gold, meu_ranking):
-        pass
-
-
 # Extraido de https://github.com/orenmel/lexsub/blob/master/jcs/evaluation/measures/generalized_average_precision.py
 # Implementacao de Oren Melamud
 '''
@@ -202,6 +130,20 @@ http://aclweb.org/anthology//P/P10/P10-1097.pdf
 '''
 
 class GeneralizedAveragePrecisionMelamud(object):
+    def __init__(self, configs):
+        self.configs = configs
+
+    # metodo criado por isaiasfrederick@gmail.com
+    def obter_score_participantes_originais(self, metrica):
+        resultados_json = {}
+
+        todos_participantes_best = [p for p in self.listar_arq(self.dir_respostas) if '.' + metrica in p]
+
+        for participante in todos_participantes_best:
+            resultados_json[participante] = self.calcular_score(self.dir_respostas, participante)
+
+        return resultados_json
+
     def accumulate_score(self, gold_vector):
         accumulated_vector = []
         accumulated_score = 0

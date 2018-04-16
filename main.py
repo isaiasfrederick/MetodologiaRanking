@@ -10,7 +10,7 @@ from sys import argv
 import traceback
 import re
 
-def aplicar_se2007(configs, metodo_extracao, ordenar):
+def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
     respostas_semeval = dict()
 
     configs_se2007 = configs['semeval2007']
@@ -56,7 +56,6 @@ def aplicar_se2007(configs, metodo_extracao, ordenar):
         
     return respostas_semeval
 
-
 def exibir_todos_resultados(todos_participantes, validador_se2007):
     lista_todos_participantes = todos_participantes.values()
     todas_dimensoes = todos_participantes[todos_participantes.keys()[0]].keys()
@@ -96,7 +95,7 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        todas_submissoes_geradas = aplicar_se2007(configs, metodo, True)
+        todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
         for metrica in todas_metricas_se2007:
             print('\n\nCalculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
             submissao_gerada = todas_submissoes_geradas[metrica]
@@ -110,14 +109,21 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
     return resultados
 
 def gerar_submissoes_para_gap(configs, medida_ranking_completo = 'oot'):
+    gold_rankings = obter_gold_rankings(configs)
+
     total_anotadores = configs['semeval2007']['total_anotadores']
     max_sugestoes = configs['semeval2007']['max_sugestoes']
-
     limite_sugestoes = total_anotadores * max_sugestoes
+
+    for lexema in gold_rankings:
+        print(lexema)
+
     
 def realizar_se2007(configs, validador_se2007):
+    # gerar todas minhas abordagens de baseline
     minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)
 
+    # para cada metrica (OOT e Best)
     for metrica in minhas_submissoes_geradas.keys():
         submissao_gerada = minhas_submissoes_geradas[metrica]
         resultados_participantes = validador_se2007.obter_score_participantes_originais(metrica)
@@ -128,6 +134,7 @@ def realizar_se2007(configs, validador_se2007):
         exibir_todos_resultados(resultados_participantes, validador_se2007)
         print('\n\n')
 
+# carregar gold file
 def obter_gold_rankings(configs):
     dir_gold_file = configs['semeval2007']['trial']['gold_file']
 
@@ -157,6 +164,9 @@ def obter_gold_rankings(configs):
             traceback.print_exc()
     
     return saida
+
+def aplicar_metrica_gap_participantes_semeval2007(configs):
+    gerar_submissoes_para_gap(configs)
 
 def carregar_arquivo_submissao_se2007(configs, dir_arquivo, medida="oot"):
     arquivo_gold = open(dir_arquivo, 'r')
@@ -199,17 +209,16 @@ def testar_indexador_whoosh(configs):
     indexador_whoosh = IndexadorWhoosh.IndexadorWhoosh(configs['leipzig']['dir_indexes_whoosh'])
     contadores = Utilitarios.carregar_json(configs['leipzig']['dir_contadores'])
 
-    sinonimos = ['movie', 'picture', 'production']
+    abordagem_edmonds = AbordagemEdmonds.AbordagemEdmonds(configs, indexador_whoosh, contadores)
+    raizes = ['car', 'vehicle']
+    abordagem_edmonds.construir_rede(raizes, 2, 1)
 
-    abordagem_edmonds = AbordagemEdmonds.AbordagemEdmonds(indexador_whoosh, contadores)
-    abordagem_edmonds.construir_redes(configs, sinonimos, 100, 1)    
 
 if __name__ == '__main__':
+    Utilitarios.limpar_console()
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
-
-    testar_indexador_whoosh(configs)
-    exit(0)
+#    testar_indexador_whoosh(configs)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)
     validador_gap = GeneralizedAveragePrecisionMelamud()

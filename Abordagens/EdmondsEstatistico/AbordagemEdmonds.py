@@ -16,9 +16,10 @@ import sys
 import re
 
 class AbordagemEdmonds(object):
-    def __init__(self, indexador_whoosh, contadores):
+    def __init__(self, configs, indexador_whoosh, contadores):
         self.indexador = indexador_whoosh
         self.contadores = contadores
+        self.configs = configs
 
     def salvar_json(self, caminho_json_saida, palavras):        
         Utilitarios.salvar_json(caminho_json_saida, palavras)
@@ -65,33 +66,52 @@ class AbordagemEdmonds(object):
     def selecionar_par(self, mi, tscore):
         return mi >= 0 and tscore >= 0
 
-    def percorrer_janela(self, raiz, janela, freq_min, raizes, palavras_ctxt):
+    def percorrer_janela(self, raiz, janela, palavras_proibidas, palavras_ctxt):
         for p_viz in janela:
             try:
-                if self.contadores[p_viz] >= freq_min:
-                    if not p_viz in raizes:
+                if self.contadores[p_viz]:
+                    if not p_viz in palavras_proibidas:
                         if not p_viz in palavras_ctxt[raiz]:
                             palavras_ctxt[raiz][p_viz] = 0
                         palavras_ctxt[raiz][p_viz] += 1
             except KeyError, ke: pass
         return palavras_ctxt
 
-#   def calcular_mi(self, tamanho_corpus, freq_par, freq_a, freq_b, janela):
-#   def calcular_tscore(self, tamanho_corpus, freq_par, freq_a, freq_b, janela=1):
-    def construir_relacao_primeira_ordem(self, sinonimo, palavras_contexto):
-        resultado = dict()
-        tam_corpus = sum(self.contadores.values())
-        freq_sinonimo = self.contadores[sinonimo]
-        mi = self.calcular_mi(tam_corpus, palavras_ctxt[palavra][viz], freq_sin, freq_viz, janela)
-        tscore = self.calcular_tscore(tam_corpus, palavras_ctxt[palavra][viz], freq_sin, freq_viz)
-        return (mi, tscore)
+    def construir_rede(self, raizes_arg, nivel_maximo, janela):
+        raizes = list(raizes_arg)
+        palavras_proibidas = set(raizes)
 
-    def construir_redes(self, configs, raizes, janela, freq_min):
+        todos_objetos_niveis = []
+
+        for nivel in range(1, nivel_maximo + 1):
+            dir_obj_nivel = self.construir_nivel('nivel-%s.json' % nivel, raizes, janela, palavras_proibidas)
+
+            todos_objetos_niveis.append(dir_obj_nivel)
+
+            palavras_novo_nivel = []
+
+            obj_nivel = Utilitarios.carregar_json(dir_obj_nivel)
+
+            for raiz in obj_nivel.keys():
+                palavras_novo_nivel += obj_nivel[raiz].keys()
+
+            raw_input("%d é o total de novas palavras adicionadas para o mesmo nível" % len(palavras_novo_nivel))
+
+            palavras_proibidas.update(palavras_novo_nivel)
+            raizes = palavras_novo_nivel
+
+
+#   palavras_proibidas = set
+    def construir_nivel(self, nome_arq_saida, raizes, janela, set_palavras_proibidas):
         tam_corpus = sum(self.contadores.values())
         cont_coocorrencia = dict()
+        resultado_metricas = dict()
         total_linhas = 0
 
-        for raiz in raizes: cont_coocorrencia[raiz] = dict()
+        for raiz in raizes:
+            set_palavras_proibidas.add(raiz)
+            cont_coocorrencia[raiz] = dict()
+            resultado_metricas[raiz] = dict()
 
         # recupera todos os documentos que contém palavras do contexto
         documentos_retornados = self.indexador.consultar_documentos(raizes)
@@ -124,8 +144,8 @@ class AbordagemEdmonds(object):
                     esq_ctxt = fr_tokenizada[index - janela : index]
                     dir_ctxt = fr_tokenizada[index + 1 : index + 1 + janela]
 
-                    cont_coocorrencia = self.percorrer_janela(raiz, esq_ctxt, freq_min, raizes, cont_coocorrencia)
-                    cont_coocorrencia = self.percorrer_janela(raiz, dir_ctxt, freq_min, raizes, cont_coocorrencia)
+                    cont_coocorrencia = self.percorrer_janela(raiz, esq_ctxt, set_palavras_proibidas, cont_coocorrencia)
+                    cont_coocorrencia = self.percorrer_janela(raiz, dir_ctxt, set_palavras_proibidas, cont_coocorrencia)
                                 
                 except ValueError, ve: pass
                 except Exception, e:
@@ -137,8 +157,6 @@ class AbordagemEdmonds(object):
 
         metrica_mi = dict()
         metrica_tscore = dict()
-
-        resultado = []
 
         # Calculando Mutual Information
         for raiz in cont_coocorrencia:
@@ -152,15 +170,16 @@ class AbordagemEdmonds(object):
                 metrica_mi[raiz][viz] = self.calcular_mi(tam_corpus, cont_coocorrencia[raiz][viz], freq_sin, freq_viz, janela)
                 metrica_tscore[raiz][viz] = self.calcular_tscore(tam_corpus, cont_coocorrencia[raiz][viz], freq_sin, freq_viz)
 
-                if self.selecionar_par(metrica_mi[raiz][viz], metrica_tscore[raiz][viz]):
-                    resultado.append((raiz, viz, metrica_mi[raiz][viz], metrica_tscore[raiz][viz]))
+                mi, tscore = metrica_mi[raiz][viz], metrica_tscore[raiz][viz]
+                resultado_metricas[raiz][viz] = {'t-score': tscore, 'mi': mi, 'co': cont_coocorrencia[raiz][viz]}
 
-        caminho_json_saida = '-'.join(raizes)
-        #self.salvar_json(caminho_json_saida, cont_coocorrencia)
-        self.salvar_json(caminho_json_saida, resultado)
-        raw_input('Salvando arquivo em: ' + caminho_json_saida)
-        resultado = sorted(resultado, key=lambda e: e[2], reverse=True)
-        raw_input('Fim desta funcao.')
+        caminho_json_saida = self.configs['aplicacao']['dir_saida_base_coocorrencia'] + '/' + nome_arq_saida
+        self.salvar_json(caminho_json_saida, resultado_metricas)
+        
+        print('Salvando arquivo em: ' + caminho_json_saida)
+        print('Fim desta funcao.')
+
+        return caminho_json_saida
 
     def gerar_contador_palavras(self, dir_arq_corpus, caminho_saida):
         caminhos_corpus = carregar_caminhos_corpus(dir_arq_corpus)
@@ -223,34 +242,3 @@ class AbordagemEdmonds(object):
                 return True
 
         return False
-
-    def init(acao, dir_arq_corpus, caminho_arquivo_sinonimos):
-        index_corpus = '/media/isaias/ParticaoAlternat/LeipzigCorpus/Unificado/indexes'
-        indexador = IndexadorWhoosh(index_corpus)
-        dir_contadores = raw_input('Diretorio contadores: ')
-
-        caminhos_corpus = carregar_caminhos_corpus(dir_arq_corpus)
-
-        if acao == 'contadores':
-            gerar_contador_palavras(dir_arq_corpus, dir_contadores)
-        elif acao == 'redes':
-            arq_contadores = open(dir_contadores, 'r')
-            obj_contadores = json.loads(arq_contadores.read())
-            arq_contadores.close()
-
-            todos_grupos_sinonimos = carregar_sinonimos(caminho_arquivo_sinonimos)
-            tamanho_janela = raw_input('Tamanho janela: ')
-
-            for cluster in todos_grupos_sinonimos:
-                ordem = 1
-                ordem_max = 2
-                construir_redes
-                (
-                    ordem_max,
-                    ordem,
-                    indexador,
-                    obj_contadores,
-                    list(cluster),
-                    cluster,
-                    int(tamanho_janela)
-                )
