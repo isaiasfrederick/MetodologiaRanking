@@ -221,7 +221,7 @@ if __name__ == '__main__':
 #    testar_indexador_whoosh(configs)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)
-    validador_gap = GeneralizedAveragePrecisionMelamud()
+    validador_gap = GeneralizedAveragePrecisionMelamud(configs)
 
     realizar_se2007(configs, validador_se2007)
 
