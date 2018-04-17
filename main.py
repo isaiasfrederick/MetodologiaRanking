@@ -217,23 +217,6 @@ def testar_indexador_whoosh(configs):
     abordagem_edmonds.construir_rede(raizes, 2, 1)
 
 
-def testar_extrator_oxford(configs):
-    palavra = raw_input('Digite a palavra: ')
-
-    coletor_web = ColetorOxfordWeb(configs)
-    cliente_api = ClienteOxfordAPI(configs)
-
-    obj_cli = cliente_api.iniciar_coleta(palavra)
-    obj_col = coletor_web.iniciar_coleta(palavra)
-
-    unificador_oxford = UnificadorObjetosFonteOxford(configs)
-    obj_integrado_oxford = unificador_oxford.mesclar_objetos(obj_cli, obj_col)
-
-    print('\n\n')
-    raw_input(obj_integrado_oxford)
-    raw_input('\n<enter>')
-
-
 if __name__ == '__main__':
     Utilitarios.limpar_console()
     # arg[1] = diretorio das configuracoes.json

@@ -1,19 +1,16 @@
-from pywsd.utils import lemmatize, porter, lemmatize_sentence
-from pywsd.cosine import cosine_similarity as cos_sim
+
 from nltk.corpus import stopwords, wordnet
 from pyperclip import copy as copy
 from lxml import html, etree
 from itertools import chain
 from sys import argv
 import requests
-#import Utils
 import json
 import re
 
 from ModuloUtilitarios.Utilitarios import Utilitarios
 import os
 import traceback
-import requests
 import json
 
 class ClienteOxfordAPI(object):
@@ -40,9 +37,10 @@ class ClienteOxfordAPI(object):
         if not self.obj_urls_invalidas_definicoes:
             self.obj_urls_invalidas_definicoes = dict()
 
+    # retorna todas informacoes da API de Oxford
     def iniciar_coleta(self, palavra):
-        definicoes = self.obter_definicoes(palavra)
-        sinonimos = self.obter_sinonimos(palavra)
+        definicoes = self.obter_definicoes(palavra) # Objeto 1
+        sinonimos = self.obter_sinonimos(palavra) # Objeto 2
 
         # a API nao prove sinonimos e definicoes de forma unificada, entao...
         objeto_unificado = self.mesclar_significados_sinonimos(definicoes, sinonimos)
@@ -400,6 +398,9 @@ class UnificadorObjetosFonteOxford(object):
 
     # mescla objetos obtidos via coletor-web e cliente API
     def mesclar_objetos(self, obj_cli, obj_col):
+        if not obj_cli or not obj_col:
+            return None
+
         obj_col = dict(obj_col)
 
         try:
@@ -413,7 +414,6 @@ class UnificadorObjetosFonteOxford(object):
                         obj_col[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
             traceback.print_exc()
-            raw_input('<enter>')
             return None
 
         return obj_col
@@ -422,15 +422,6 @@ class UnificadorObjetosFonteOxford(object):
     def obter_sinonimos_por_definicao(self,pos, definicao, obj_cli):
         # retirando o ponto final e colocando em caixa baixa
         definicao = definicao[:-1].lower()
-
-        print(pos)
-        raw_input(obj_cli.keys())
-
-        if pos == 'n':
-            pos = 'Noun'
-        elif pos == 'v':
-            pos = 'Verb'
-        else: pos = ''
 
         try:
             for regs in obj_cli[pos]:
@@ -446,3 +437,18 @@ class UnificadorObjetosFonteOxford(object):
             traceback.print_exc()
             
         return []
+
+
+    def testar_extrator_oxford(self, palavra):        
+        coletor_web_oxford = ColetorOxfordWeb(self.configs)
+        cliente_api_oxford = ClienteOxfordAPI(self.configs)
+
+        obj_cli = cliente_api_oxford.iniciar_coleta(palavra)
+        obj_col = coletor_web_oxford.iniciar_coleta(palavra)
+
+        unificador_oxford = UnificadorObjetosFonteOxford(self.configs)
+        obj_integrado_oxford = unificador_oxford.mesclar_objetos(obj_cli, obj_col)
+
+        print('\n\n')
+        raw_input(obj_integrado_oxford)
+        raw_input('\n<enter>')
