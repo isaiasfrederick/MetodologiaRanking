@@ -54,8 +54,12 @@ class ValidadorRankingSemEval2007(object):
         return obj
 
     def ordenar_scores(self, lista_scores, valor):
-        lista_scores.sort(key=operator.itemgetter(valor))
-        lista_scores.reverse()
+        if len(lista_scores) > 1:
+            try:
+                lista_scores.sort(key=operator.itemgetter(valor))                
+                lista_scores.reverse()
+            except:
+                pass
 
         return lista_scores
 

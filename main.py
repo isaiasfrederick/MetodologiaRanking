@@ -1,6 +1,7 @@
+#! coding: utf-8
 from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI, ColetorOxfordWeb, UnificadorObjetosFonteOxford
 from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
 from ModuloUtilitarios.Utilitarios import Utilitarios
 from ValidadorRanking.Validadores import *
@@ -66,7 +67,9 @@ def exibir_todos_resultados(todos_participantes, validador_se2007):
 
         indice = 1
         for participante in lista_todos_participantes:
-            print(str(indice) + ' - ' + participante['nome'] + '  -  ' + str(participante[dimensao]))
+            try:
+                print(str(indice) + ' - ' + participante['nome'] + '  -  ' + str(participante[dimensao]))
+            except: pass
 
             indice += 1
 
@@ -214,11 +217,30 @@ def testar_indexador_whoosh(configs):
     abordagem_edmonds.construir_rede(raizes, 2, 1)
 
 
+def testar_extrator_oxford(configs):
+    palavra = raw_input('Digite a palavra: ')
+
+    coletor_web = ColetorOxfordWeb(configs)
+    cliente_api = ClienteOxfordAPI(configs)
+
+    obj_cli = cliente_api.iniciar_coleta(palavra)
+    obj_col = coletor_web.iniciar_coleta(palavra)
+
+    unificador_oxford = UnificadorObjetosFonteOxford(configs)
+    obj_integrado_oxford = unificador_oxford.mesclar_objetos(obj_cli, obj_col)
+
+    print('\n\n')
+    raw_input(obj_integrado_oxford)
+    raw_input('\n<enter>')
+
+
 if __name__ == '__main__':
     Utilitarios.limpar_console()
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
-#    testar_indexador_whoosh(configs)
+
+    testar_extrator_oxford(configs)
+    exit(0)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)
     validador_gap = GeneralizedAveragePrecisionMelamud(configs)

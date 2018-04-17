@@ -25,10 +25,10 @@ class ExtratorSinonimos(object):
             return self.buscar_topk(palavra, pos, multiword, 2)
         elif algoritmo == 'todos':
             return self.buscar_todos_significados(palavra, pos, multiword, 10000)
-        else:
-            pass
+        elif algoritmo == 'minha_abordagem':
+            return self.buscar_sinonimos_minha_abordagem(palavra, multiword=False)
 
-        return None
+        return []
 
     # obtem todos sinonimos de todos synsets da Wordnet
     def buscar_sinonimos_simples(self, palavra, pos, contexto, multiword):
@@ -73,6 +73,10 @@ class ExtratorSinonimos(object):
             traceback.print_exc()
             raw_input('<enter>')
             return []
+
+    def buscar_sinonimos_minha_abordagem(self, palavra, multiword):
+        resultado = wn.synsets(palavra)[0].lemma_names()
+        return Utilitarios.remover_multipalavras(resultado)
 
     def buscar_sinonimos_baseline_semeval(self, palavra, multiword):
         sinonimos_nivel1 = set()
