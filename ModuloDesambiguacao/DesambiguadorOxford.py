@@ -7,6 +7,7 @@ from itertools import chain
 from nltk.corpus import wordnet
 import re
 
+
 class DesambiguadorOxford(object):
     def __init__(self, configs, base_oxford):
         self.configs = configs
