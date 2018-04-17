@@ -14,24 +14,24 @@ class ExtratorSinonimos(object):
 
         self.contadores = Utilitarios.carregar_json(dir_contadores)
 
-    def buscar_sinonimos(self, palavra, pos, algoritmo, multiword=False, contexto=None, ordenar=True):
-        if algoritmo == 'simples':
-            return self.buscar_sinonimos_simples(palavra, pos, contexto, False)
-        elif algoritmo == 'desambiguador':
-            return self.buscar_sinonimos_desambiguacao(palavra, pos, contexto, False)
-        elif algoritmo == 'baseline':
+    def buscar_sinonimos(self, palavra, pos, metodo, fontes = ['wordnet'], multiword=False, contexto=None, ordenar=True):
+        if metodo == 'simples':
+            return self.buscar_sinonimos_simples(palavra, pos, fontes, False)
+        elif metodo == 'desambiguador':
+            return self.buscar_sinonimos_desambiguacao(palavra, pos, contexto, fontes, False)
+        elif metodo == 'baseline':
             return self.buscar_sinonimos_baseline_semeval(palavra, multiword=False)
-        elif algoritmo == 'topk':
+        elif metodo == 'topk':
             return self.buscar_topk(palavra, pos, multiword, 2)
-        elif algoritmo == 'todos':
-            return self.buscar_todos_significados(palavra, pos, multiword, 10000)
-        elif algoritmo == 'minha_abordagem':
+        elif metodo == 'todos':
+            return self.buscar_todos_significados(palavra, pos, fontes, multiword, 10000)
+        elif metodo == 'minha_abordagem':
             return self.buscar_sinonimos_minha_abordagem(palavra, multiword=False)
 
         return []
 
     # obtem todos sinonimos de todos synsets da Wordnet
-    def buscar_sinonimos_simples(self, palavra, pos, contexto, multiword):
+    def buscar_sinonimos_simples(self, palavra, pos, fontes, multiword):
         sinonimos = []
 
         for s in wn.synsets(unicode(palavra), pos):
@@ -45,14 +45,14 @@ class ExtratorSinonimos(object):
 
         return saida_sinonimos
 
-    def buscar_todos_significados(self, palavra, pos, multiword, topk):
+    def buscar_todos_significados(self, palavra, pos, fontes, multiword, topk):
         return self.buscar_topk(palavra, pos, multiword, 10000)
 
-    def buscar_sinonimos_desambiguacao(self, palavra, pos, contexto, multiword):
+    def buscar_sinonimos_desambiguacao(self, palavra, pos, ctxt, fontes, multiword):
         sinonimos = []
         synsets = wn.synsets(palavra, pos)
 
-        significados = self.desambiguador.desambiguar(contexto, palavra)
+        significados = self.desambiguador.desambiguar(ctxt, palavra)
         significados = [res[0] for res in significados if res[1]]
 
         for s in significados:
@@ -62,7 +62,7 @@ class ExtratorSinonimos(object):
                         
         return [s for s in sinonimos if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
 
-    def buscar_topk(self, palavra, pos, multiword, topk):
+    def buscar_topk(self, palavra, pos, fontes, multiword, topk):
         try:
             meu_set = set()
             for s in wn.synsets(palavra, pos)[:topk]:
@@ -74,11 +74,11 @@ class ExtratorSinonimos(object):
             raw_input('<enter>')
             return []
 
-    def buscar_sinonimos_minha_abordagem(self, palavra, multiword):
+    def buscar_sinonimos_minha_abordagem(self, palavra, fontes, multiword):
         resultado = wn.synsets(palavra)[0].lemma_names()
         return Utilitarios.remover_multipalavras(resultado)
 
-    def buscar_sinonimos_baseline_semeval(self, palavra, multiword):
+    def buscar_sinonimos_baseline_semeval(self, palavra, fontes, multiword):
         sinonimos_nivel1 = set()
         sinonimos_nivel2 = set()
         sinonimos_nivel3 = set()
@@ -159,23 +159,23 @@ class ExtratorSinonimos(object):
 
         return resultado_final
 
-    def ordenar_por_frequencia(self, palavras):
+    def ordenar_por_frequencia(self, todas_palavras):
         contadores = self.contadores
 
         palavras_indexadas = dict()
         palavras_ordenadas = []
         
-        for p in palavras:
+        for palavra in todas_palavras:
             try:
-                if not contadores[p] in palavras_indexadas:
-                    palavras_indexadas[contadores[p]] = []
+                if not contadores[palavra] in palavras_indexadas:
+                    palavras_indexadas[contadores[palavra]] = []
             except:
                 palavras_indexadas[0] = []
 
             try:
-                palavras_indexadas[contadores[p]].append(p)
+                palavras_indexadas[contadores[palavra]].append(palavra)
             except:
-                palavras_indexadas[0].append(p)
+                palavras_indexadas[0].append(palavra)
 
         chaves = palavras_indexadas.keys()
         chaves.sort(reverse=True)

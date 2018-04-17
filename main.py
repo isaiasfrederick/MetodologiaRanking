@@ -1,7 +1,7 @@
 #! coding: utf-8
 from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI, ColetorOxfordWeb, UnificadorObjetosFonteOxford
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI, ColetorOxfordWeb, BaseUnificadaObjetosOxford
 from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
 from ModuloUtilitarios.Utilitarios import Utilitarios
 from ValidadorRanking.Validadores import *
@@ -216,13 +216,23 @@ def testar_indexador_whoosh(configs):
     raizes = ['car', 'vehicle']
     abordagem_edmonds.construir_rede(raizes, 2, 1)
 
+def teste_desambiguador_oxford(configs):
+    from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
+    base_oxford = BaseUnificadaObjetosOxford(configs)
+    des = DesambiguadorOxford(configs, base_oxford)
+
+    f = "On Sunday at Craven Cottage, Jose Mourinho and his all stars exhibited all of the above symptoms and they were made to pay the price by a Fulham side that had in previous weeks woken up after matches with their heads kicked in."
+
+    for s, score in des.adapted_cosine_lesk(f, 'side', 'Noun'):
+        print((s[:2], score))
+
 
 if __name__ == '__main__':
     Utilitarios.limpar_console()
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    testar_extrator_oxford(configs)
+    teste_desambiguador_oxford(configs)
     exit(0)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)

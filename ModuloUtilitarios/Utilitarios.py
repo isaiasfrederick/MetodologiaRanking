@@ -1,8 +1,20 @@
+# -*- coding: utf-8 -*-
 from os import system
 import requests
 import glob
 import json
 import os
+
+from unicodedata import normalize
+from sys import version_info
+import random, string
+import unicodedata
+import re, math
+import os
+from nltk.corpus import stopwords
+from collections import Counter
+import requests
+
 
 class Utilitarios(object):
     @staticmethod
@@ -73,3 +85,95 @@ class Utilitarios(object):
     @staticmethod
     def limpar_console():
         system('clear')
+
+    @staticmethod
+    def retornar_valida(frase):
+        frase = Utils.remove_acentos(frase)
+        frase = re.sub('[?!,;]', '', frase)
+        frase = frase.replace("\'", " ")
+        frase = frase.replace("-", " ")
+        frase = frase.replace("\'", "")
+        frase = frase.replace("\\`", "")
+        frase = frase.replace("\"", "")
+        frase = frase.replace("\n", " ")
+
+        return frase.strip().lower()
+
+    @staticmethod
+    def retornar_valida(frase, lower=True, strip=True):
+        frase = Utils.remove_acentos(frase)
+        frase = re.sub('[?!,;]', '', frase)
+        frase = frase.replace("\'", " ")
+        frase = frase.replace("-", " ")
+        frase = frase.replace("\'", "")
+        frase = frase.replace("\\`", "")
+        frase = frase.replace("\"", "")
+        frase = frase.replace("\n", " ")
+
+        if lower: frase = frase.lower()
+        if strip: frase = frase.strip()
+
+        return frase
+
+    @staticmethod
+    def remove_acentos(cadeia, codif='utf-8'):
+        if version_info[0] == 2:
+            try:
+                return normalize('NFKD', cadeia.decode(codif)).encode('ASCII','ignore')
+            except: pass
+        elif version_info[0] == 3:
+            try:
+                return normalize('NFKD', cadeia).encode('ASCII', 'ignore').decode('ASCII')
+            except: pass
+
+        return cadeia
+
+    @staticmethod
+    def retornar_valida_pra_indexar(frase):
+        frase = Utilitarios.remove_acentos(frase)
+        frase = re.sub('[(\[?!,;.\])]', ' ', frase)
+        frase = frase.replace("\'", " ")
+        frase = frase.replace("-", " ")
+        frase = frase.replace(":", " ")
+        frase = frase.replace("@", " ")
+        frase = frase.replace("\'", " ")
+        frase = frase.replace("/", " ")
+        frase = frase.replace("\\`", " ")
+        frase = frase.replace("\"", " ")
+        frase = frase.replace("\n", " ")
+
+        frase = ''.join(e for e in frase if (e.isalnum() and not e.isdigit()) or e == ' ')
+
+        return frase.strip().lower()
+
+    @staticmethod
+    def obter_peso_frase(frase):
+        frequencias = Utils.obter_frequencias_frase(frase)
+        soma = sum([e[1] for e in frequencias])
+
+        return (soma / len(frequencias), frequencias)
+
+    @staticmethod
+    def is_stop_word(p):
+        return p in stopwords.words('english')
+
+    @staticmethod
+    def get_cosseno(vec1, vec2):
+        intersection = set(vec1.keys()) & set(vec2.keys())
+        numerator = sum([vec1[x] * vec2[x] for x in intersection])
+
+        sum1 = sum([vec1[x] ** 2 for x in vec1.keys()])
+        sum2 = sum([vec2[x] ** 2 for x in vec2.keys()])
+        denominator = math.sqrt(sum1) * math.sqrt(sum2)
+
+        if not denominator:
+            return 0.0
+        else:
+            return float(numerator) / denominator
+
+    @staticmethod
+    def texto_para_vetor(text, stem=False):
+        word = re.compile(r'\w+')
+        words = word.findall(text)
+
+        return Counter(words)

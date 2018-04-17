@@ -170,6 +170,7 @@ class ClienteOxfordAPI(object):
         except:
             traceback.print_exc()
 
+
 class ColetorOxfordWeb(object):
     def __init__(self, configs):
         self.configs = configs
@@ -390,14 +391,18 @@ class ColetorOxfordWeb(object):
 
         return list()
 
-
 # esta classe faz o merge de objetos do coletor
-class UnificadorObjetosFonteOxford(object):
+class BaseUnificadaObjetosOxford(object):
     def __init__(self, configs):
         self.configs = configs
+        self.cliente_api_oxford = ClienteOxfordAPI(self.configs)
+        self.coletor_web_oxford = ColetorOxfordWeb(self.configs)
 
     # mescla objetos obtidos via coletor-web e cliente API
-    def mesclar_objetos(self, obj_cli, obj_col):
+    def iniciar_consulta(self, palavra):
+        obj_cli = self.cliente_api_oxford.iniciar_coleta(palavra)
+        obj_col = self.coletor_web_oxford.iniciar_coleta(palavra)
+
         if not obj_cli or not obj_col:
             return None
 
@@ -413,7 +418,7 @@ class UnificadorObjetosFonteOxford(object):
                         sinonimos = self.obter_sinonimos_por_definicao(pos, def_sec, obj_cli)
                         obj_col[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
-            traceback.print_exc()
+            #traceback.print_exc()
             return None
 
         return obj_col
@@ -433,8 +438,7 @@ class UnificadorObjetosFonteOxford(object):
                     if definicao in subsense['definitions']:
                         try: return subsense['synonyms']
                         except: return []
-        except:
-            traceback.print_exc()
+        except: pass
             
         return []
 
@@ -446,8 +450,8 @@ class UnificadorObjetosFonteOxford(object):
         obj_cli = cliente_api_oxford.iniciar_coleta(palavra)
         obj_col = coletor_web_oxford.iniciar_coleta(palavra)
 
-        unificador_oxford = UnificadorObjetosFonteOxford(self.configs)
-        obj_integrado_oxford = unificador_oxford.mesclar_objetos(obj_cli, obj_col)
+        unificador_oxford = BaseUnificadaObjetosOxford(self.configs)
+        obj_integrado_oxford = unificador_oxford.iniciar_consulta(obj_cli, obj_col)
 
         print('\n\n')
         raw_input(obj_integrado_oxford)
