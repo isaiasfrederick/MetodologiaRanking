@@ -418,7 +418,6 @@ class BaseUnificadaObjetosOxford(object):
                         sinonimos = self.obter_sinonimos_por_definicao(pos, def_sec, obj_cli)
                         obj_col[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
-            #traceback.print_exc()
             return None
 
         return obj_col

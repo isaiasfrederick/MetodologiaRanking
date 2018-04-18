@@ -232,8 +232,8 @@ if __name__ == '__main__':
     # arg[1] = diretorio das configuracoes.json
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    teste_desambiguador_oxford(configs)
-    exit(0)
+    #teste_desambiguador_oxford(configs)
+    #exit(0)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)
     validador_gap = GeneralizedAveragePrecisionMelamud(configs)

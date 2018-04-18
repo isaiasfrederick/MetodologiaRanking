@@ -20,13 +20,13 @@ class ExtratorSinonimos(object):
         elif metodo == 'desambiguador':
             return self.buscar_sinonimos_desambiguacao(palavra, pos, contexto, fontes, False)
         elif metodo == 'baseline':
-            return self.buscar_sinonimos_baseline_semeval(palavra, multiword=False)
+            return self.buscar_sinonimos_baseline_semeval(palavra, pos, fontes, multiword=False)
         elif metodo == 'topk':
-            return self.buscar_topk(palavra, pos, multiword, 2)
+            return self.buscar_top_k(palavra, pos, fontes, multiword, 2)
         elif metodo == 'todos':
             return self.buscar_todos_significados(palavra, pos, fontes, multiword, 10000)
         elif metodo == 'minha_abordagem':
-            return self.buscar_sinonimos_minha_abordagem(palavra, multiword=False)
+            return self.buscar_sinonimos_minha_abordagem(palavra, pos, fontes, multiword=False)
 
         return []
 
@@ -46,7 +46,7 @@ class ExtratorSinonimos(object):
         return saida_sinonimos
 
     def buscar_todos_significados(self, palavra, pos, fontes, multiword, topk):
-        return self.buscar_topk(palavra, pos, multiword, 10000)
+        return self.buscar_top_k(palavra, pos, fontes, multiword, 10000)
 
     def buscar_sinonimos_desambiguacao(self, palavra, pos, ctxt, fontes, multiword):
         sinonimos = []
@@ -62,7 +62,7 @@ class ExtratorSinonimos(object):
                         
         return [s for s in sinonimos if (not Utilitarios.multipalavra(s) and not multiword) or multiword]
 
-    def buscar_topk(self, palavra, pos, fontes, multiword, topk):
+    def buscar_top_k(self, palavra, pos, fontes, multiword, topk):
         try:
             meu_set = set()
             for s in wn.synsets(palavra, pos)[:topk]:
@@ -74,11 +74,11 @@ class ExtratorSinonimos(object):
             raw_input('<enter>')
             return []
 
-    def buscar_sinonimos_minha_abordagem(self, palavra, fontes, multiword):
-        resultado = wn.synsets(palavra)[0].lemma_names()
+    def buscar_sinonimos_minha_abordagem(self, palavra, pos, fontes, multiword):
+        resultado = wn.synsets(palavra, pos)[0].lemma_names()
         return Utilitarios.remover_multipalavras(resultado)
 
-    def buscar_sinonimos_baseline_semeval(self, palavra, fontes, multiword):
+    def buscar_sinonimos_baseline_semeval(self, palavra, pos, fontes, multiword):
         sinonimos_nivel1 = set()
         sinonimos_nivel2 = set()
         sinonimos_nivel3 = set()
@@ -86,64 +86,50 @@ class ExtratorSinonimos(object):
 
         palavra = unicode(palavra)
 
-        try:
-            synset =  [res[0] for res in self.desambiguador.desambiguar(contexto, palavra) if res[1]][0]
-        except:
-            # Synset mais usual
-            synset = wn.synsets(palavra)[0]
+        synset = wn.synsets(palavra)[0]
+        sinonimos_nivel1.update(synset.lemma_names())
 
-        for s in synset.lemma_names(): sinonimos_nivel1.add(s)
+        if synset.pos() in ['n', 'v']:
+            for h in synset.hypernyms():
+                sinonimos_nivel2.update(h.lemma_names())
+        else:
+            for s in synset.part_meronyms(): sinonimos_nivel2.update(s.lemma_names())
+            for s in synset.part_holonyms(): sinonimos_nivel2.update(s.lemma_names())
+            for s in synset.member_meronyms(): sinonimos_nivel2.update(s.lemma_names())
+            for s in synset.member_holonyms(): sinonimos_nivel2.update(s.lemma_names())
 
-        for h in synset.hypernyms():
-            for sh in h.lemma_names():
-                sinonimos_nivel2.add(sh)
+        if wn.synsets(palavra).__len__() > 1:
+            for s in wn.synsets(palavra[1:]):
+                sinonimos_nivel3.update(s.lemma_names())
 
-        if synset.pos() == 'r': pos = 'Adverb'
-        elif synset.pos() in ['a', 's']: pos = 'Adjective'
-        elif synset.pos() == 'n': pos = 'Noun'
-        elif synset.pos() == 'v': pos = 'Verb'
-        else: pos = ''
-
-        for lemma in synset.lemma_names():
-            if lemma in synset.name():
-                try:
-                    obj_sinonimos = self.cli_oxford_api.obter_sinonimos(lemma)
+        if synset.pos() in ['n', 'v']:
+            if wn.synsets(palavra).__len__() > 1:
+                for s in wn.synsets(palavra[1:]):
+                    for h in s.hypernyms(): sinonimos_nivel4.update(s.lemma_names())
+        else:
+            if wn.synsets(palavra).__len__() > 1:
+                for s in wn.synsets(palavra[1:]):
+                    for p in synset.part_meronyms():
+                        for h in p.hypernyms():
+                            sinonimos_nivel4.add(h.lemma_names())
+                    for p in synset.part_holonyms():
+                        for h in p.hypernyms():
+                            sinonimos_nivel4.add(h.lemma_names())
+                    for m in synset.member_meronyms():
+                        for m in p.hypernyms():
+                            sinonimos_nivel4.add(m.lemma_names())
+                    for m in synset.member_holonyms():
+                        for m in p.hypernyms():
+                            sinonimos_nivel4.add(m.lemma_names())
                     
-                    if obj_sinonimos:
-                        obj_definicoes = self.cli_oxford_api.obter_definicoes(lemma)
-
-                        obj_final = self.cli_oxford_api.mesclar_significados_sinonimos(obj_definicoes,obj_sinonimos)
-                        try:
-                            obj_final = obj_final[pos]
-                            for registro in obj_final:
-                                try:
-                                    for sin in registro['synonyms']:
-                                        sinonimos_nivel3.add(sin)
-                                except KeyError, ke: pass
-                                try:
-                                    for subsense in registro['subsenses']:
-                                        for sin in subsense['synonyms']:
-                                            sinonimos_nivel3.add(sin)
-                                except KeyError, ke: pass
-                        except: pass
-                except AttributeError, ae: pass
-
-        conjunto = list()
-        for l in synset.lemma_names():
-            for s in wn.synsets(l):
-                if s != synset:
-                    for n in s.lemma_names():
-                        sinonimos_nivel4.add(n)
-
-        sinonimos_nivel1 = Utilitarios.remover_multipalavras(list(sinonimos_nivel1))
         sinonimos_nivel2 = Utilitarios.remover_multipalavras(list(sinonimos_nivel2))
         sinonimos_nivel3 = Utilitarios.remover_multipalavras(list(sinonimos_nivel3))
         sinonimos_nivel4 = Utilitarios.remover_multipalavras(list(sinonimos_nivel4))
 
-        resolverdor_duplicatas = set(sinonimos_nivel1)
+        resolverdor_duplicatas = set(sinonimos_nivel2)
         resolutor_colisoes_list = list(resolverdor_duplicatas)
 
-        todos_resultados = [sinonimos_nivel1, sinonimos_nivel2, sinonimos_nivel3, sinonimos_nivel4]
+        todos_resultados = [sinonimos_nivel2, sinonimos_nivel3, sinonimos_nivel4]
 
         for i in range(1, len(todos_resultados)):
             for sin in todos_resultados[i]:
