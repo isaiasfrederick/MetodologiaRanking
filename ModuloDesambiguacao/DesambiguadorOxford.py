@@ -1,30 +1,59 @@
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford, ClienteOxfordAPI, ColetorOxfordWeb
-from ModuloUtilitarios.Utilitarios import Utilitarios
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
+from ModuloUtilitarios.Utilitarios import Utilitarios
 from pywsd.cosine import cosine_similarity as cos_sim
 from nltk.corpus import stopwords, wordnet
-from itertools import chain
+from nltk import pos_tag, word_tokenize
 from nltk.corpus import wordnet
+from itertools import chain
 import re
 
 
 class DesambiguadorOxford(object):
-    def __init__(self, configs, base_oxford):
+    def __init__(self, configs, base_unificada_oxford):
         self.configs = configs
-        self.base_oxford = base_oxford
+        self.base_oxford = base_unificada_oxford
+
+    # Retira relacoes semanticas a partir da Wordnet
+    def extrair_relacao_semantica(self, lemma, palavras_arg):
+        palavras = list(palavras_arg)
+        casamentos = dict()
+
+        for p in palavras:
+            casamentos[p] = dict()
+
+        for synset in wordnet.synsets(lemma):
+            pass
+
+        return []
+
 
     """Gera a assinatura a partir de um significado Oxford a partir dos parametros"""
-    def assinatura_significado_aux(self, lemma, definicao, exemplos):
+    def assinatura_significado_aux(self, lemma, definicao, exemplos, extrair_relacao_semantica):
         retornar_valida = Utilitarios.retornar_valida_pra_indexar
 
         assinatura = []
         assinatura += retornar_valida(definicao.replace('.', ''))
-        assinatura += list(chain(*[retornar_valida(ex).split() for ex in exemplos]))
+
+        if exemplos:
+            assinatura += list(chain(*[retornar_valida(ex).split() for ex in exemplos]))
+
+        if extrair_relacao_semantica:
+            pass
+
         assinatura += lemma
 
         assinatura = [p for p in assinatura if len(p) > 1]
 
         return assinatura
+
+    """Metodo treinado por exemplos"""
+    def desambiguar_por_exemplos(self, frase, palavra_ambigua, pos, nbest=True, lemma=True, stem=True, stop=True):
+        pass
+
+    """Treinador desambiguador por exemplos"""
+    def treinar_desambiguador_exemplos(self, sentidos):
+        pass
 
     """Metodo Cosseno feito para o dicionario de Oxford"""
     def adapted_cosine_lesk(self, frase, palavra_ambigua, pos, nbest=True, lemma=True, stem=True, stop=True):

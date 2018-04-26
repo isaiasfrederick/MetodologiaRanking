@@ -4,7 +4,8 @@ import requests
 import glob
 import json
 import os
-
+import re, math
+from collections import Counter
 from unicodedata import normalize
 from sys import version_info
 import random, string
@@ -43,8 +44,36 @@ class Utilitarios(object):
         return obj
 
     @staticmethod
-    def cosseno(conjunto1, conjunto2):
-        return ""
+    def cosseno(doc1, doc2):
+        vec1 = Utilitarios.doc_para_vetor(doc1.lower())
+        vec2 = Utilitarios.doc_para_vetor(doc2.lower())
+
+        intersection = set(vec1.keys()) & set(vec2.keys())
+        numerator = sum([vec1[x] * vec2[x] for x in intersection])
+
+        sum1 = sum([vec1[x]**2 for x in vec1.keys()])
+        sum2 = sum([vec2[x]**2 for x in vec2.keys()])
+        denominator = math.sqrt(sum1) * math.sqrt(sum2)
+
+        if denominator:
+            return float(numerator) / denominator
+        else:
+            return 0.0
+
+    @staticmethod
+    def jaccard(doc1, doc2):
+        doc1 = set(doc1.split())
+        doc2 = set(doc2.split())
+
+        return float(len(doc1 & doc2)) / len(doc1 | doc2)
+
+    @staticmethod
+    def doc_para_vetor(text):
+        WORD = re.compile(r'\w+')
+        words = WORD.findall(text)
+        words = text.split(' ')
+
+        return Counter(words)
 
     @staticmethod
     def carregar_json(diretorio):
@@ -156,24 +185,3 @@ class Utilitarios(object):
     @staticmethod
     def is_stop_word(p):
         return p in stopwords.words('english')
-
-    @staticmethod
-    def get_cosseno(vec1, vec2):
-        intersection = set(vec1.keys()) & set(vec2.keys())
-        numerator = sum([vec1[x] * vec2[x] for x in intersection])
-
-        sum1 = sum([vec1[x] ** 2 for x in vec1.keys()])
-        sum2 = sum([vec2[x] ** 2 for x in vec2.keys()])
-        denominator = math.sqrt(sum1) * math.sqrt(sum2)
-
-        if not denominator:
-            return 0.0
-        else:
-            return float(numerator) / denominator
-
-    @staticmethod
-    def texto_para_vetor(text, stem=False):
-        word = re.compile(r'\w+')
-        words = word.findall(text)
-
-        return Counter(words)

@@ -23,14 +23,6 @@ class AbordagemEdmonds(object):
 
     def salvar_json(self, caminho_json_saida, palavras):        
         Utilitarios.salvar_json(caminho_json_saida, palavras)
-        #try:
-        #    obj_texto = json.dumps(palavras, indent=4, encoding='latin1')        
-        #except UnicodeDecodeError, ude:
-        #    pass
-
-        #obj_json_saida = open(caminho_json_saida, 'w')
-        #obj_json_saida.write(obj_texto)
-        #obj_json_saida.close()
 
     def get_regex(self):
         rgx1 = u"\.|\,|\;|\s|\"|\-|\?|\!|\:|\t|\`|\_|\\(|\\)|\\[|\\]|@|\*"
