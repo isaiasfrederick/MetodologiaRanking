@@ -68,6 +68,15 @@ class Utilitarios(object):
         return float(len(doc1 & doc2)) / len(doc1 | doc2)
 
     @staticmethod
+    def juntar_tokens(array):
+        saida = ""
+
+        for token in array:
+            saida += re.sub('[_-]', ' ', token) + ' '
+
+        return list(set(saida[:-1].split(' ')))
+
+    @staticmethod
     def doc_para_vetor(text):
         WORD = re.compile(r'\w+')
         words = WORD.findall(text)

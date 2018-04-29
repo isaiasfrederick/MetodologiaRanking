@@ -1,7 +1,8 @@
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford, ClienteOxfordAPI, ColetorOxfordWeb
+from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from ModuloUtilitarios.Utilitarios import Utilitarios
 from pywsd.cosine import cosine_similarity as cos_sim
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
 from nltk.corpus import stopwords, wordnet
 from nltk import pos_tag, word_tokenize
 from nltk.corpus import wordnet
@@ -12,7 +13,8 @@ import re
 class DesambiguadorOxford(object):
     def __init__(self, configs, base_unificada_oxford):
         self.configs = configs
-        self.base_oxford = base_unificada_oxford
+        self.base_unificada_oxford = base_unificada_oxford
+        self.rep_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
     # Retira relacoes semanticas a partir da Wordnet
     def extrair_relacao_semantica(self, lemma, palavras_arg):
@@ -27,9 +29,8 @@ class DesambiguadorOxford(object):
 
         return []
 
-
-    """Gera a assinatura a partir de um significado Oxford a partir dos parametros"""
-    def assinatura_significado_aux(self, lemma, definicao, exemplos, extrair_relacao_semantica):
+    """ Gera a assinatura a partir de um significado Oxford a partir dos parametros """
+    def assinatura_significado_aux(self, lema, definicao, exemplos, extrair_relacao_semantica):
         retornar_valida = Utilitarios.retornar_valida_pra_indexar
 
         assinatura = []
@@ -39,10 +40,26 @@ class DesambiguadorOxford(object):
             assinatura += list(chain(*[retornar_valida(ex).split() for ex in exemplos]))
 
         if extrair_relacao_semantica:
-            pass
+            nova_definicao = definicao.replace(lema, '')
+            substantivos = self.rep_conceitos.extrair_substantivos(nova_definicao)
 
-        assinatura += lemma
+            print("HIPERONIMOS DETECTADOS PARA '%s'" % nova_definicao)
+            hiperonimos_extraidos = self.rep_conceitos.extrair_hiperonimos_detectados(lema, definicao)
+            for h in hiperonimos_extraidos:
+                dist_cosseno = Utilitarios.cosseno(definicao, wordnet.synset(h).definition())
+                print('\t- ' + str(h) + '  -  ' + str(dist_cosseno) + ' - ' + str(hiperonimos_extraidos[h]))
+                for h2 in wordnet.synsets(h.split('.')[0]):
+                    if h2.name() != h:
+                        dist_cosseno = Utilitarios.cosseno(definicao, h2.definition())
+                        print('\t\t- ' + h2.name() + '  -  ' + str(dist_cosseno))
 
+            print('\n\n')
+            print("SUBSTANTIVOS PARA A DEFINICAO '%s'" % nova_definicao)
+            for s in substantivos:
+                print('\t- ' + s)
+            print('\n')
+
+        assinatura += lema
         assinatura = [p for p in assinatura if len(p) > 1]
 
         return assinatura
@@ -56,12 +73,17 @@ class DesambiguadorOxford(object):
         pass
 
     """Metodo Cosseno feito para o dicionario de Oxford"""
-    def adapted_cosine_lesk(self, frase, palavra_ambigua, pos, nbest=True, lemma=True, stem=True, stop=True):
-        assinaturas = self.assinatura_significado(palavra_ambigua, lemma, stem, stop)
+    def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True, lemma=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
+        self.rep_conceitos = CasadorConceitos(self.configs)
+
+        assinaturas = self.assinatura_significado(ambigua, lemma, stem, stop, extrair_relacao_semantica=usar_ontologia)
         assinaturas = [a for a in assinaturas if pos in a[0]]
 
         frase = " ".join(lemmatize_sentence(frase))
         pontuacao = []
+
+        if usar_exemplos:
+            pass
 
         for a in assinaturas:
             ass_tmp = a[3]
@@ -80,8 +102,8 @@ class DesambiguadorOxford(object):
         return resultado if nbest else [resultado[0]]
 
     """Gera uma assinatura de um significado Oxford para aplicar Cosseno"""
-    def assinatura_significado(self, lemma, lematizar=True, stem=False, stop=True):
-        resultado = self.base_oxford.iniciar_consulta(lemma)
+    def assinatura_significado(self, lemma, lematizar=True, stem=False, stop=True, extrair_relacao_semantica=False):
+        resultado = self.base_unificada_oxford.iniciar_consulta(lemma)
         lemma = lemmatize(lemma)
 
         assinaturas_significados = []  #(nome, definicao, exemplos)
@@ -100,7 +122,7 @@ class DesambiguadorOxford(object):
                 assinaturas_significados.append(synset_corrente)
 
                 # Colocando exemplos na assinatura
-                synset_corrente[3] += self.assinatura_significado_aux(lemma, s, exemplos)
+                synset_corrente[3] += self.assinatura_significado_aux(lemma, s, exemplos, extrair_relacao_semantica)
 
                 sig_secundarios = resultado[pos][s]['def_secs']
 
@@ -110,7 +132,7 @@ class DesambiguadorOxford(object):
                     synset_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
                     assinaturas_significados.append(synset_corrente_sec)
 
-                    synset_corrente_sec[3] += self.assinatura_significado_aux(lemma, ss, exemplos_secundarios)
+                    synset_corrente_sec[3] += self.assinatura_significado_aux(lemma, ss, exemplos_secundarios, extrair_relacao_semantica)
 
                     indice += 1
 

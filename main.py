@@ -8,42 +8,57 @@ import re
 def teste_desambiguador(configs):
     from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
     from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
-    from CasadorDefinicoes.RepositorioCentralConceitos import RepositorioCentralConceitos
+    from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
     from nltk.corpus import wordnet as wn
 
-    base_oxford = BaseUnificadaObjetosOxford(configs)
-    des = DesambiguadorOxford(configs,base_oxford)
-    repositorio_definicoes = RepositorioCentralConceitos(configs)
+    base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
+    desambiguador_oxford = DesambiguadorOxford(configs, base_unificada_oxford)
+    repositorio_definicoes = CasadorConceitos(configs, base_unificada_oxford)
 
+    repositorio_definicoes.iniciar_casamento(raw_input("Digite a palavra do ingles: "), "Noun")
+    exit(0)
+
+    # ---------------------------------------------------------------------------
+    f = "If Australia was not at or about to be at war, the tactical voter's decision would be easy this weekend.".lower()
+    desambiguador_oxford.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    exit(0)
+
+    # ---------------------------------------------------------------------------
     dfs = ["A state of armed conflict between different countries or different groups within a country."]
     dfs.append("A state of competition or hostility between different people or groups.")
     dfs.append("A sustained campaign against an undesirable situation or activity.")
 
     synsets = wn.synsets('war', 'n')
 
-    repositorio_definicoes.buscar_casamento_perfeito('car', synsets, dfs)
+    repositorio_definicoes.busca_todos_hiperonimos('car', synsets, dfs)
 
-    exit(0)
+    raw_input('\n\n\n<enter>\n')
+    f2 = 'A sustained campaign against an undesirable situation or activity.'
+#    f2 = 'A state of competition or hostility between different people or groups.'
 
-    f = "A road vehicle, typically with four wheels, powered by an internal "
-    f += "combustion engine and able to carry a small number of people."
-    f = f.lower()
+    for s in repositorio_definicoes.buscador_conceitos_centrais('campaign', 'n', f2):
+        print(s[0].definition() + ' - ' + str(s[1]))
 
-    f = "The passenger compartment of a lift, cableway, or balloon."
+    print('\n\n\n\n')
+    # ---------------------------------------------------------------------------
+
+
+    f = "A system for transmitting voices over a distance using wire or radio, by converting acoustic vibrations to electrical signals."
     f.lower()
 
     stem = True
-    rel = False
+    rel = True
 
-    tds_synsets = wn.synsets('car', 'n')
+    tds_synsets = wn.synsets('telephone', 'n')
 
     for s in tds_synsets:
         assinatura = repositorio_definicoes.assinatura_synset(s, stem=stem, usar_relacoes=rel)
         f = repositorio_definicoes.stemizar_frase(f) if stem else f
         r = Utilitarios.cosseno(assinatura, f)
-        print('Frase: ' + f)
-        print('Synset: ' + s.name() + ' - ' + s.definition())
-        print('Sinonimos: ' + str(s.lemma_names()))
+        print('OXFORD: Frase: ' + f)
+        print('\tAssinatura: ' + f)
+        print('WORDNET: Synset: ' + s.name() + ' - ' + s.definition())
+        print('\tAssinatura: ' + assinatura)
         print('Cosseno: ' + str(r))
         r = Utilitarios.jaccard(assinatura, f)
         print('Jaccard: ' + str(r))

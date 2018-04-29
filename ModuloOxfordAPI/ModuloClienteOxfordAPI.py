@@ -314,31 +314,6 @@ class ColetorOxfordWeb(object):
         stemmer = SnowballStemmer("english")
         return [stemmer.stem(t) for t in tokens]
 
-    # retira do obj json a estrutura de aninhamento entre definicoes
-    def retirar_indentacao_coleta_oxford(self, lemma, obj):
-        resultado = []
-        cont = 1
-        for pos in obj.keys():
-            for definicao_prim in obj[pos].keys():
-                nome_def = "%s.%s.%d" % (lemma, pos, cont)
-                exemplos = obj[pos][definicao_prim]['exemplos']
-
-                d = (nome_def, definicao_prim, exemplos)
-                resultado.append(d)
-
-                cont += 1
-
-                for definicao_sec in obj[pos][definicao_prim]['def_secs']:
-                    nome_def = "%s.%s.%d" % (lemma, pos, cont)
-                    obj_def_sec = obj[pos][definicao_prim]['def_secs'][definicao_sec]
-                    exemplos = obj_def_sec['exemplos']
-                    d = (nome_def, definicao_sec, exemplos)
-                    resultado.append(d)
-
-                    cont += 1
-
-        return resultado
-
     def retornar_tokens_radicalizados(self, frase):
         return None
 
