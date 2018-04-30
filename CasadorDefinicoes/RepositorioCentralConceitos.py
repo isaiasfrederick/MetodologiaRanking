@@ -5,6 +5,7 @@ from nltk.corpus import wordnet as wn
 from ModuloUtilitarios.Utilitarios import Utilitarios
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
 import re
+import json
 
 # esta classe funcionara como um "casador" de definicoes de diferentes fontes da abordagem
 class CasadorConceitos:
@@ -23,7 +24,37 @@ class CasadorConceitos:
             if hiperonimo in c: return True
         return False
 
+    def cache_contem(self, lema, pos):
+        try:
+            dir_cache = self.configs['aplicacao']['dir_cache_casador_definicoes']
+            dir_saida = dir_cache + '/%s.%s.json' % (lema, pos)
+
+            obj = open(dir_saida, 'r')
+            obj_retorno = json.loads(obj.read())
+            obj.close()
+
+            return obj_retorno
+        except:
+            return None
+
+    def salvar_casamento(self, lema, pos, resultado):
+        try:
+            dir_cache = self.configs['aplicacao']['dir_cache_casador_definicoes']
+            dir_saida = dir_cache + '/%s.%s.json' % (lema, pos)
+
+            obj = open(dir_saida, 'w')
+            obj.write(json.dumps(resultado, indent=4))
+
+            obj.close()
+            return True
+        except: return False
+
     def iniciar_casamento(self, lema, pos):
+        obj_cache = self.cache_contem(lema, pos)
+
+        if obj_cache:
+            return obj_cache
+
         todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
         todos_synsets = wn.synsets(lema, pos[0].lower())
 
@@ -39,22 +70,26 @@ class CasadorConceitos:
         resultado_final = dict()
 
         for cas in casamentos_autoreferenciado:
-            def_oxford, hiper_name, dist_cosseno = cas
+            def_oxford, hiper, dist_cosseno = cas
             if not def_oxford in resultado_final:
-                resultado_final[def_oxford] = hiper_name
+                if not hiper.name() in resultado_final.values():
+                    resultado_final[def_oxford] = hiper.name()
+
         for cas in casamentos_hiperonimos:
             def_oxford, hiper_name, synset_correto, dist_cosseno = cas
             if not def_oxford in resultado_final:
-                resultado_final[def_oxford] = synset_correto
+                if not synset_correto.name() in resultado_final.values():
+                    resultado_final[def_oxford] = synset_correto.name()
+
         for cas in casamentos_meronimos:
             def_oxford, hiper_name, synset_correto, dist_cosseno = cas
             if not def_oxford in resultado_final:
-                resultado_final[def_oxford] = synset_correto
+                if not synset_correto.name() in resultado_final.values():
+                    resultado_final[def_oxford] = synset_correto.name()
 
-        for def_oxford in resultado_final:
-            print('\t- ' + str((def_oxford, resultado_final[def_oxford], resultado_final[def_oxford].definition())))
+        self.salvar_casamento(lema, pos, resultado_final)
 
-        print("\n\n\nFim do iniciar_casamento()")
+        return resultado_final
 
     # dado um conceito central através de um lema, retorne um conceito mais indicado
     def buscador_conceitos_centrais(self, lema, pos, doc):
@@ -120,7 +155,9 @@ class CasadorConceitos:
 
         return assinatura
 
-    def assinatura_synset(self, s, usar_relacoes=True, stem=True, remover_duplicatas=True, incluir_def_relacionados=False):
+    def assinatura_synset(self, s, usar_relacoes=True, \
+        stem=True, remover_duplicatas=True, incluir_def_relacionados=False):
+
         sep = self.sep
 
         assinatura = ' '.join([' ' + re.sub(sep, ' ', n) for n in s.lemma_names()])
@@ -152,10 +189,10 @@ class CasadorConceitos:
 
         resultados = dict()
 
-        for s in wn.synsets(lema, pos):
+        for s in wn.synsets(lema, pos[0].lower()):
             for caminho in s.hypernym_paths():
                 for substantivo in todos_substantivos:
-                    for sh in wn.synsets(substantivo, pos):
+                    for sh in wn.synsets(substantivo, pos[0].lower()):
                         if sh in caminho:
                             if not sh.name() in resultados:
                                 resultados[sh.name()] = list()
@@ -233,6 +270,7 @@ class CasadorConceitos:
                         def_oxford = hiper_oxford[h][0]
                         todos_lemas = Utilitarios.juntar_tokens(wn.synset(h_wn).lemma_names())
                         def_wordnet = wn.synset(h_wn).definition() + ' ' + ' '.join(todos_lemas)
+
                         cosseno = Utilitarios.cosseno(def_wordnet, def_oxford)
                         casamentos_hiperonimos.append((def_oxford, h_wn, hiper_wordnet[h_wn][0], cosseno))
 
@@ -249,6 +287,7 @@ class CasadorConceitos:
                     def_oxford = hiper_oxford[h][0]
                     todos_lemas = Utilitarios.juntar_tokens(wn.synset(h_wn).lemma_names())
                     def_wordnet = wn.synset(h_wn).definition() + ' ' + ' '.join(todos_lemas)
+
                     cosseno = Utilitarios.cosseno(def_wordnet, def_oxford)
                     casamentos_meronimos.append((def_oxford, h_wn, hiper_wordnet[h_wn][0], cosseno))
 

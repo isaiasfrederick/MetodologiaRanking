@@ -7,20 +7,33 @@ import re
 
 def teste_desambiguador(configs):
     from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
+    from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
     from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
     from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
     from nltk.corpus import wordnet as wn
 
     base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
     desambiguador_oxford = DesambiguadorOxford(configs, base_unificada_oxford)
+    desambiguador_unificado = DesambiguadorUnificado(configs, base_unificada_oxford)
     repositorio_definicoes = CasadorConceitos(configs, base_unificada_oxford)
 
-    repositorio_definicoes.iniciar_casamento(raw_input("Digite a palavra do ingles: "), "Noun")
-    exit(0)
+    #repositorio_definicoes.iniciar_casamento(raw_input("Digite a palavra do ingles: "), "Noun")
+    #exit(0)
 
     # ---------------------------------------------------------------------------
     f = "If Australia was not at or about to be at war, the tactical voter's decision would be easy this weekend.".lower()
-    desambiguador_oxford.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    r = desambiguador_oxford.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    r = [(e[0][0:2], e[1]) for e in r]
+
+    for e in r:
+        print(e)
+
+    print('\n\n\n')
+    r = desambiguador_unificado.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    
+    for e in r:
+        print(e)
+
     exit(0)
 
     # ---------------------------------------------------------------------------
@@ -43,7 +56,8 @@ def teste_desambiguador(configs):
     # ---------------------------------------------------------------------------
 
 
-    f = "A system for transmitting voices over a distance using wire or radio, by converting acoustic vibrations to electrical signals."
+    f = "A system for transmitting voices over a distance using wire or radio, by converting "
+    f += "acoustic vibrations to electrical signals."
     f.lower()
 
     stem = True

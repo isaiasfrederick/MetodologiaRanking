@@ -1,6 +1,6 @@
-from pywsd.lesk import cosine_lesk
+from pywsd.lesk_isaias import cosine_lesk
 
-class Desambiguador(object):
+class DesambiguadorWordnet(object):
     def __init__(self):
         pass
 
