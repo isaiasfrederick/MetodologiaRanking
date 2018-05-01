@@ -18,22 +18,25 @@ class DesambiguadorUnificado(object):
         self.base_unificada_oxford = base_unificada_oxford
         self.casador_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
-    def assinatura_significado(self, inventario, pos):
+    def assinaturas_significados(self, inventario, pos, usar_ontologia=True):
         assinaturas = []
 
         for registro in inventario:
             ass_tmp = ""
 
             for e in registro['definicoes']: ass_tmp += ' ' + re.sub('[-_]', ' ', e)
-            for e in registro['hiperonimos']:
-                ass_tmp += ' ' + re.sub('[_-]', ' ', e.definition())
-                ass_tmp + ' '.join(e.lemma_names())
+
+            if usar_ontologia:
+                for e in registro['hiperonimos']:
+                    ass_tmp += ' ' + re.sub('[_-]', ' ', e.definition())
+                    ass_tmp += ' ' + ' '.join(e.lemma_names())
 
             ass_tmp += ' '.join([re.sub('[_-]', ' ', e) for e in registro['lemas']])
 
             ass_tmp = re.sub('[,.;]', ' ', ass_tmp)
             ass_tmp = ass_tmp.replace(')', ' ')
             ass_tmp = ass_tmp.replace('(', ' ')
+            ass_tmp = re.sub('[-_]', ' ', ass_tmp)
 
             assinaturas.append((registro['definicoes'], ass_tmp.split(' ')))
 
@@ -43,12 +46,14 @@ class DesambiguadorUnificado(object):
         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
         inventario_unificado = self.construir_inventario_unificado(ambigua, pos)
-        assinaturas = self.assinatura_significado(inventario_unificado, pos)
+        todas_assinaturas = self.assinaturas_significados(inventario_unificado, \
+        pos, usar_ontologia=usar_ontologia)
 
         frase = " ".join(lemmatize_sentence(frase))
+        raw_input('\n' + frase + '\n')
         pontuacao = []
 
-        for a in assinaturas:
+        for a in todas_assinaturas:
             ass_tmp = a[1]
 
             if stop:
@@ -64,10 +69,8 @@ class DesambiguadorUnificado(object):
 
         return resultado if nbest else [resultado[0]]
 
-    def construir_inventario_unificado(self, palavra, pos):
-        if pos == 'n': pos = 'Noun'
-        elif pos == 'v': pos = 'Verb'
-        else: pos = ''
+    def construir_inventario_unificado(self, palavra, pos, usar_ontologia=True):
+        pos = Utilitarios.conversor_pos(pos)
 
         inventario = []
         # indexado (def_oxford, synset_name)
@@ -84,6 +87,7 @@ class DesambiguadorUnificado(object):
         for synset in wordnet.synsets(palavra, pos[0].lower()):
             registro = {}
 
+            registro['synset'] = synset.name()
             registro['definicoes'] = [synset.definition()]
             registro['fontes'] = ['wordnet']
             registro['exemplos'] = synset.examples()
@@ -105,16 +109,22 @@ class DesambiguadorUnificado(object):
             nome, def_oxford, exemplos = reg
             if not def_oxford in casamentos:
                 registro = {}
+
+                registro['synset'] = None
                 registro['fontes'] = ['oxford']
                 registro['definicoes'] = [def_oxford]
                 registro['exemplos'] = exemplos
-                registro['hiperonimos'] = []
+
+                if not usar_ontologia:
+                    registro['hiperonimos'] = []
+                else:
+                    registro['hiperonimos'] = []
+
                 registro['lemas'] = []
 
                 inventario.append(registro)
 
         return inventario
-
 
     # retira do obj json a estrutura de aninhamento entre definicoes
     def desindentar_coleta_oxford(self, lema, obj_entrada):
@@ -125,8 +135,8 @@ class DesambiguadorUnificado(object):
                 nome_def = "%s.%s.%d" % (lema, pos, cont)
                 exemplos = obj_entrada[pos][definicao_prim]['exemplos']
 
-                d = (nome_def, definicao_prim, exemplos)
-                resultado.append(d)
+                def_oxford = (nome_def, definicao_prim, exemplos)
+                resultado.append(def_oxford)
 
                 cont += 1
 
@@ -134,8 +144,8 @@ class DesambiguadorUnificado(object):
                     nome_def = "%s.%s.%d" % (lema, pos, cont)
                     obj_def_sec = obj_entrada[pos][definicao_prim]['def_secs'][definicao_sec]
                     exemplos = obj_def_sec['exemplos']
-                    d = (nome_def, definicao_sec, exemplos)
-                    resultado.append(d)
+                    def_oxford = (nome_def, definicao_sec, exemplos)
+                    resultado.append(def_oxford)
 
                     cont += 1
 

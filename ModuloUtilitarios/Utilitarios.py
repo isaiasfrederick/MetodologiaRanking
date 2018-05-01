@@ -28,6 +28,19 @@ class Utilitarios(object):
         return res if res.status_code == 200 else None
 
     @staticmethod
+    def conversor_pos(pos_wordnet):
+        pos = pos_wordnet
+        #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
+
+        if pos == 'n': pos = 'Noun'
+        elif pos == 'v': pos = 'Verb'
+        elif pos == 'r': pos = 'Adverb'
+        elif pos == 'a': pos = 'Adjective'
+        else: pos = ''
+
+        return pos
+
+    @staticmethod
     def multipalavra(palavra):
         return '-' in palavra or ' ' in palavra or '_' in palavra
 

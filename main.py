@@ -22,63 +22,32 @@ def teste_desambiguador(configs):
 
     # ---------------------------------------------------------------------------
     f = "If Australia was not at or about to be at war, the tactical voter's decision would be easy this weekend.".lower()
-    r = desambiguador_oxford.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    f = "i was at fight using my box.".lower()
+    r = desambiguador_oxford.adapted_cosine_lesk(f, 'fight', 'n', usar_ontologia=True)
     r = [(e[0][0:2], e[1]) for e in r]
 
     for e in r:
         print(e)
 
+
     print('\n\n\n')
-    r = desambiguador_unificado.adapted_cosine_lesk(f, 'war', 'n', usar_ontologia=True)
+    raw_input('\n<enter>')
+    Utilitarios.limpar_console()
+
+    r = desambiguador_unificado.adapted_cosine_lesk(f, raw_input('Lema: '), 'n', usar_ontologia=True)
     
     for e in r:
         print(e)
 
     exit(0)
+    Utilitarios.limpar_console()
 
     # ---------------------------------------------------------------------------
-    dfs = ["A state of armed conflict between different countries or different groups within a country."]
-    dfs.append("A state of competition or hostility between different people or groups.")
-    dfs.append("A sustained campaign against an undesirable situation or activity.")
 
-    synsets = wn.synsets('war', 'n')
-
-    repositorio_definicoes.busca_todos_hiperonimos('car', synsets, dfs)
-
-    raw_input('\n\n\n<enter>\n')
-    f2 = 'A sustained campaign against an undesirable situation or activity.'
-#    f2 = 'A state of competition or hostility between different people or groups.'
-
-    for s in repositorio_definicoes.buscador_conceitos_centrais('campaign', 'n', f2):
-        print(s[0].definition() + ' - ' + str(s[1]))
-
-    print('\n\n\n\n')
-    # ---------------------------------------------------------------------------
-
-
-    f = "A system for transmitting voices over a distance using wire or radio, by converting "
-    f += "acoustic vibrations to electrical signals."
-    f.lower()
-
-    stem = True
-    rel = True
-
-    tds_synsets = wn.synsets('telephone', 'n')
-
-    for s in tds_synsets:
-        assinatura = repositorio_definicoes.assinatura_synset(s, stem=stem, usar_relacoes=rel)
-        f = repositorio_definicoes.stemizar_frase(f) if stem else f
-        r = Utilitarios.cosseno(assinatura, f)
-        print('OXFORD: Frase: ' + f)
-        print('\tAssinatura: ' + f)
-        print('WORDNET: Synset: ' + s.name() + ' - ' + s.definition())
-        print('\tAssinatura: ' + assinatura)
-        print('Cosseno: ' + str(r))
-        r = Utilitarios.jaccard(assinatura, f)
-        print('Jaccard: ' + str(r))
-        print('\n\n')
 
 if __name__ == '__main__':
+    system('rm /media/isaias/ParticaoAlternat/Bases/Cache/CasadorDefinicoes/*')
+
     if len(argv) < 2:
         print('\nParametrizacao errada!')
         print('Tente py ./main <dir_config_file>\n\n')
