@@ -31,14 +31,14 @@ class DesambiguadorOxford(object):
         return []
 
     """ Gera a assinatura a partir de um significado Oxford a partir dos parametros """
-    def assinatura_significado_aux(self, lema, pos, definicao, exemplos, extrair_relacao_semantica):
+    def assinatura_significado_aux(self, lema, pos, definicao, lista_exemplos, extrair_relacao_semantica=False):
         retornar_valida = Utilitarios.retornar_valida_pra_indexar
 
-        assinatura = []
-        assinatura += retornar_valida(definicao.replace('.', ''))
+        assinatura = retornar_valida(definicao.replace('.', '')).lower()
+        assinatura = [p for p in word_tokenize(assinatura) if not p in [',', ';', '.']]
 
-        if exemplos:
-            assinatura += list(chain(*[retornar_valida(ex).split() for ex in exemplos]))
+        if lista_exemplos:
+            assinatura += list(chain(*[retornar_valida(ex).split() for ex in lista_exemplos]))
 
         if extrair_relacao_semantica:
             nova_definicao = definicao.replace(lema, '')
@@ -58,27 +58,26 @@ class DesambiguadorOxford(object):
 
         return assinatura
 
-    """Metodo treinado por exemplos"""
-    def desambiguar_por_exemplos(self, frase, palavra_ambigua, pos, nbest=True, lemma=True, stem=True, stop=True):
-        pass
-
-    """Treinador desambiguador por exemplos"""
-    def treinar_desambiguador_exemplos(self, sentidos):
-        pass
 
     """Metodo Cosseno feito para o dicionario de Oxford"""
-    def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
+    def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True,\
+         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
+
         self.rep_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
-        # (self, lemma, lematizar=True, stem=False, stop=True, extrair_relacao_semantica=False):
-        assinaturas = self.assinatura_significado(ambigua)
+        assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usar_exemplos)
         assinaturas = [a for a in assinaturas if pos in a[0]]
 
-        frase = " ".join(lemmatize_sentence(frase))
-        pontuacao = []
+        frase = [p for p in word_tokenize(frase.lower()) if not p in [',', ';', '.']]        
 
-        if usar_exemplos:
-            pass
+        if stem:
+            frase = [i for i in frase if i not in stopwords.words('english')]
+        if lematizar:
+            frase = [lemmatize(i) for i in frase]
+        if stem:
+            frase = [porter.stem(i) for i in frase]
+
+        pontuacao = []
 
         for a in assinaturas:
             ass_tmp = a[3]
@@ -90,15 +89,19 @@ class DesambiguadorOxford(object):
             if stem:
                 ass_tmp = [porter.stem(i) for i in ass_tmp]
 
-            pontuacao.append((cos_sim(frase, " ".join(ass_tmp)), a[0:3]))
+            pontuacao.append((cos_sim(" ".join(frase), " ".join(ass_tmp)), a[0:3]))
 
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
         return resultado if nbest else [resultado[0]]
 
     """Gera uma assinatura de um significado Oxford para aplicar Cosseno"""
-    def assinatura_significado(self, lema, lematizar=True, stem=False, stop=True, extrair_relacao_semantica=False):
+    def assinatura_significado(self, lema, lematizar=True, stem=False, stop=True, extrair_relacao_semantica=False, usar_exemplos=False):
         resultado = self.base_unificada_oxford.iniciar_consulta(lema)
+
+        if not resultado:
+            resultado = {}
+
         lema = lemmatize(lema)
 
         assinaturas_significados = []  #(nome, definicao, exemplos)
@@ -110,7 +113,11 @@ class DesambiguadorOxford(object):
             for s in significados:
                 nome_sig = "%s.%s.%d" % (lema, pos, indice)
                 indice += 1
-                exemplos = resultado[pos][s]['exemplos']
+
+                if usar_exemplos:
+                    exemplos = resultado[pos][s]['exemplos']
+                else:
+                    exemplos = []
 
                 # nome, definicao, exemplos, assinatura
                 synset_corrente = [nome_sig, s, exemplos, []]
@@ -123,7 +130,12 @@ class DesambiguadorOxford(object):
 
                 for ss in sig_secundarios:
                     nome_sig_sec = "%s.%s.%d" % (lema, pos, indice)
-                    exemplos_secundarios = resultado[pos][s]['def_secs'][ss]['exemplos']
+
+                    if usar_exemplos:
+                        exemplos_secundarios = resultado[pos][s]['def_secs'][ss]['exemplos']
+                    else:
+                        exemplos_secundarios = []
+
                     synset_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
                     assinaturas_significados.append(synset_corrente_sec)
 

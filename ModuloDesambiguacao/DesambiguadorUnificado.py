@@ -1,6 +1,8 @@
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
 from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from ModuloUtilitarios.Utilitarios import Utilitarios
+from nltk.tokenize import word_tokenize
 from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.lesk_isaias import cosine_lesk
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
@@ -9,7 +11,6 @@ from nltk import pos_tag, word_tokenize
 from nltk.corpus import wordnet
 from itertools import chain
 import re
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
 
 
 class DesambiguadorUnificado(object):
@@ -18,17 +19,24 @@ class DesambiguadorUnificado(object):
         self.base_unificada_oxford = base_unificada_oxford
         self.casador_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
-    def assinaturas_significados(self, inventario, pos, usar_ontologia=True):
+    def assinaturas_significados(self, inventario, usar_exemplos=False, usar_ontologia=False):
         assinaturas = []
 
         for registro in inventario:
             ass_tmp = ""
+
+            try:
+                lista_exemplos = registro['exemplos']
+            except:
+                traceback.print_exc()
+                raw_input('<enter>')
 
             for e in registro['definicoes']: ass_tmp += ' ' + re.sub('[-_]', ' ', e)
 
             if usar_ontologia:
                 for e in registro['hiperonimos']:
                     ass_tmp += ' ' + re.sub('[_-]', ' ', e.definition())
+                    raw_input('\nAdicionando hiperonimo: ' + ass_tmp)
                     ass_tmp += ' ' + ' '.join(e.lemma_names())
 
             ass_tmp += ' '.join([re.sub('[_-]', ' ', e) for e in registro['lemas']])
@@ -38,19 +46,36 @@ class DesambiguadorUnificado(object):
             ass_tmp = ass_tmp.replace('(', ' ')
             ass_tmp = re.sub('[-_]', ' ', ass_tmp)
 
-            assinaturas.append((registro['definicoes'], ass_tmp.split(' ')))
+            ass_tmp = ass_tmp.lower()
+            ass_tmp = ass_tmp.split(' ')
+
+            if usar_exemplos:
+                ass_tmp += list(chain(*[self.retornar_valida(ex).split() for ex in lista_exemplos]))
+
+            ass_tmp = [palavra.lower() for palavra in ass_tmp]
+
+            assinaturas.append((registro['definicoes'], ass_tmp))
 
         return assinaturas
+
+    def retornar_valida(self, frase):
+        return Utilitarios.retornar_valida(frase)
 
     def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True, \
         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
         inventario_unificado = self.construir_inventario_unificado(ambigua, pos)
-        todas_assinaturas = self.assinaturas_significados(inventario_unificado, \
-        pos, usar_ontologia=usar_ontologia)
+        todas_assinaturas = self.assinaturas_significados(inventario_unificado, usar_exemplos=usar_exemplos)
 
-        frase = " ".join(lemmatize_sentence(frase))
-        raw_input('\n' + frase + '\n')
+        frase = [p for p in word_tokenize(frase.lower()) if not p in [',', ';', '.']]        
+
+        if stem:
+            frase = [i for i in frase if i not in stopwords.words('english')]
+        if lematizar:
+            frase = [lemmatize(i) for i in frase]
+        if stem:
+            frase = [porter.stem(i) for i in frase]
+
         pontuacao = []
 
         for a in todas_assinaturas:
@@ -63,14 +88,14 @@ class DesambiguadorUnificado(object):
             if stem:
                 ass_tmp = [porter.stem(i) for i in ass_tmp]
 
-            pontuacao.append((cos_sim(frase, " ".join(ass_tmp)), a[0]))
+            pontuacao.append((cos_sim(" ".join(frase), " ".join(ass_tmp)), a[0]))
 
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
         return resultado if nbest else [resultado[0]]
 
     def construir_inventario_unificado(self, palavra, pos, usar_ontologia=True):
-        pos = Utilitarios.conversor_pos(pos)
+        pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
         inventario = []
         # indexado (def_oxford, synset_name)

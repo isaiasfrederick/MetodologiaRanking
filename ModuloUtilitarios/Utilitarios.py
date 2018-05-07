@@ -28,17 +28,24 @@ class Utilitarios(object):
         return res if res.status_code == 200 else None
 
     @staticmethod
-    def conversor_pos(pos_wordnet):
-        pos = pos_wordnet
+    def conversor_pos_wn_oxford(pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
-
+        
         if pos == 'n': pos = 'Noun'
         elif pos == 'v': pos = 'Verb'
         elif pos == 'r': pos = 'Adverb'
         elif pos == 'a': pos = 'Adjective'
-        else: pos = ''
 
         return pos
+
+    @staticmethod
+    def conversor_pos_oxford_wn(pos):
+        if pos in ['Noun', 'Verb', 'Adjective']:
+            return pos[0].lower()
+        elif pos == 'Adverb':
+            return 'r'
+        else:
+            return pos
 
     @staticmethod
     def multipalavra(palavra):
@@ -152,7 +159,7 @@ class Utilitarios(object):
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
-        frase = Utils.remove_acentos(frase)
+        frase = Utilitarios.remove_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")

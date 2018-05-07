@@ -5,49 +5,107 @@ from sys import argv
 import traceback
 import re
 
-def teste_desambiguador(configs):
-    from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
-    from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
-    from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
-    from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
-    from nltk.corpus import wordnet as wn
+# Experimentacao
+from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
+from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
+from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
+from nltk.corpus import wordnet as wn
+# Fim pacotes da Experimentacao
 
+
+def TesteDesambiguadores(configs):
     base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
+
     desambiguador_oxford = DesambiguadorOxford(configs, base_unificada_oxford)
     desambiguador_unificado = DesambiguadorUnificado(configs, base_unificada_oxford)
-    repositorio_definicoes = CasadorConceitos(configs, base_unificada_oxford)
+    desambiguador_wordnet = DesambiguadorWordnet(configs)
 
-    #repositorio_definicoes.iniciar_casamento(raw_input("Digite a palavra do ingles: "), "Noun")
-    #exit(0)
+    #repositorio_definicoes = CasadorConceitos(configs, base_unificada_oxford)
+
+    lema = 'side'
+
+    frase = "On Sunday at Craven Cottage, Jose Mourinho and his all stars exhibited all "
+    frase += "of the above symptoms and they were made to pay the price by a Fulham side that had "
+    frase += "in previous weeks woken up after matches with their heads kicked in .".lower()
+
+    pos = 'n'
+
+    if False:
+        casador = CasadorConceitos(configs, base_unificada_oxford)
+        casador.iniciar_casamento(raw_input('Lema: '), raw_input('POS: '))
+
 
     # ---------------------------------------------------------------------------
-    f = "If Australia was not at or about to be at war, the tactical voter's decision would be easy this weekend.".lower()
-    f = "i was at fight using my box.".lower()
-    r = desambiguador_oxford.adapted_cosine_lesk(f, 'fight', 'n', usar_ontologia=True)
-    r = [(e[0][0:2], e[1]) for e in r]
 
-    for e in r:
-        print(e)
+    if True:
+        print('\n\nDESAMBIGUADOR OXFORD')
+        resultado = desambiguador_oxford.adapted_cosine_lesk(frase, lema, pos, usar_ontologia=True, usar_exemplos=False)
+        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
+      
+        for elemento in resultado:
+            nome_definicao, definicao, pontuacao = elemento[0][0], elemento[0][1], elemento[1]
 
+            # consulta repositorio pra obter dados
+            obj_retorno = base_unificada_oxford.iniciar_consulta(lema)
+            # busca sinonimos por definicao
+            sinonimos = base_unificada_oxford.obter_sinonimos(pos, definicao, obj_retorno)
 
-    print('\n\n\n')
-    raw_input('\n<enter>')
-    Utilitarios.limpar_console()
+            print((nome_definicao, definicao, pontuacao, sinonimos))
+            print('\n')
+            
+        print('\n\n\n')
+        raw_input('\n<ENTER>')
+        Utilitarios.limpar_console()
 
-    r = desambiguador_unificado.adapted_cosine_lesk(f, raw_input('Lema: '), 'n', usar_ontologia=True)
-    
-    for e in r:
-        print(e)
+    # ---------------------------------------------------------------------------
+
+    if True:
+        resultado = desambiguador_unificado.adapted_cosine_lesk(frase, lema, pos, usar_ontologia=True, usar_exemplos=False)
+        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
+
+        print('\n\nDESAMBIGADOR UNIFICADO (USANDO EXEMPLOS)\n')
+        for elemento in resultado:
+            print(elemento)
+
+        print('\n\n\n')
+        raw_input('\n<enter>')
+        Utilitarios.limpar_console()
+
+    # ---------------------------------------------------------------------------
+
+    if True:
+        resultado = desambiguador_unificado.adapted_cosine_lesk(frase, lema, pos, usar_exemplos=False)
+        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
+
+        print('\n\nDESAMBIGADOR UNIFICADO (SEM UTILIZAR EXEMPLOS)\n')
+        for elemento in resultado:
+            print(elemento)
+
+        print('\n\n\n')
+        raw_input('\n<enter>')
+        Utilitarios.limpar_console()
+
+    # ---------------------------------------------------------------------------
+
+    if True:
+        print('DESAMBIGADOR WORDNET')
+        resultado = desambiguador_wordnet.adapted_cosine_lesk(frase, lema, pos=pos)
+
+        for elemento in resultado:
+            print(elemento)
+
+        print('\n\n\n')
+        raw_input('\n<enter>')
+        Utilitarios.limpar_console()
 
     exit(0)
-    Utilitarios.limpar_console()
 
     # ---------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
-    system('rm /media/isaias/ParticaoAlternat/Bases/Cache/CasadorDefinicoes/*')
-
     if len(argv) < 2:
         print('\nParametrizacao errada!')
         print('Tente py ./main <dir_config_file>\n\n')
@@ -56,7 +114,7 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    teste_desambiguador(configs)
+    TesteDesambiguadores(configs)
     exit(0)
 
     validador_se2007 = ValidadorRankingSemEval2007(configs)

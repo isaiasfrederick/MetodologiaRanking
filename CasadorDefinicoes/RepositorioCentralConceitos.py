@@ -4,6 +4,8 @@ from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
 from ModuloUtilitarios.Utilitarios import Utilitarios
 from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from pywsd.utils import lemmatize, porter, lemmatize_sentence
+from nltk.corpus import stopwords, wordnet
 import re
 import json
 
@@ -37,6 +39,7 @@ class CasadorConceitos:
         except:
             return None
 
+    # salva o resultado de um casamento no cache
     def salvar_casamento(self, lema, pos, resultado):
         try:
             dir_cache = self.configs['aplicacao']['dir_cache_casador_definicoes']
@@ -46,9 +49,11 @@ class CasadorConceitos:
             obj.write(json.dumps(resultado, indent=4))
 
             obj.close()
+
             return True
         except: return False
 
+    # salva o resultado de um casamento no cache
     def iniciar_casamento(self, lema, pos):
         obj_cache = self.cache_contem(lema, pos)
 
@@ -56,33 +61,37 @@ class CasadorConceitos:
             return obj_cache
 
         todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
-        todos_synsets = wn.synsets(lema, pos[0].lower())
+
+        try:
+            todos_synsets = wn.synsets(lema, pos[0].lower())
+        except:
+            import traceback
+            traceback.print_stack()
 
         # definicoes sem identação por definicoes        
         todas_definicoes_oxford = self.retirar_indentacao_coleta_oxford(lema, todas_definicoes_oxford)
         # filtrando por POS-tags
         todas_definicoes_oxford = [tupla[1:2][0] for tupla in todas_definicoes_oxford if pos in tupla[0]]
 
-        print('\n\n')
-
         casamentos_autoreferenciados = self.casar_autoreferenciados(lema, pos, todas_definicoes_oxford)
-        casamentos_hiperonimos = self.casar_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
-        casamentos_meronimos = self.casar_meronimos(lema, todos_synsets, todas_definicoes_oxford)
+        casamentos_hiperonimos = self.casar_hiperonimos(lema, pos, todos_synsets, todas_definicoes_oxford)
+        casamentos_meronimos = self.casar_meronimos(lema, pos, todos_synsets, todas_definicoes_oxford)
+        casamentos_hiponimos = self.casar_hiponimos(lema, pos, todos_synsets, todas_definicoes_oxford)
 
         resultado_final = dict()
 
         print('\nCasamento autoreferenciados:')
         for cas in casamentos_autoreferenciados:
-            print('-> ' + str(cas))
-            def_oxford, hiper, dist_cosseno = cas
+            print('-@ ' + str(cas))
+            def_oxford, synset_autoreferenciado, dist_cosseno = cas
             if not def_oxford in resultado_final:
-                if not hiper.name() in resultado_final.values():
-                    resultado_final[def_oxford] = hiper.name()
+                if not synset_autoreferenciado.name() in resultado_final.values():
+                    resultado_final[def_oxford] = synset_autoreferenciado.name()
         print('\n-------')
 
         print('\nCasamento hiperonimos:')
         for cas in casamentos_hiperonimos:
-            print('-# ' + str(cas))
+            print('-@ ' + str(cas))
             def_oxford, hiper_name, dist_cosseno = cas
             if not def_oxford in resultado_final:
                 if not hiper_name in resultado_final.values():
@@ -99,9 +108,17 @@ class CasadorConceitos:
                     resultado_final[def_oxford] = hiper_name
         print('\n-------')
 
-        print('\n\n\n')
-        raw_input(resultado_final)
-        print('\n\n\n')
+        print('\nCasamento hiponimos:')
+        for cas in casamentos_hiponimos:
+            print('-@ ' + str(cas))
+            def_oxford, hiper_name, dist_cosseno = cas
+            def_oxford, hiper_name, dist_cosseno = cas
+            if not def_oxford in resultado_final:
+                if not hiper_name in resultado_final.values():
+                    resultado_final[def_oxford] = hiper_name
+        print('\n-------')
+
+        print('Salvando casamento...')
         self.salvar_casamento(lema, pos, resultado_final)
 
         return resultado_final
@@ -117,6 +134,29 @@ class CasadorConceitos:
         resultado.sort(key=lambda k: k[1], reverse=True)
                 
         return resultado
+
+    # busca nas definicoes de Oxford todos hiponimos de conceitos acessiveis por lema
+    def busca_todos_hiponimos(self, lema, todos_synsets, definicoes_oxford):
+        substantivos_oxford = dict()
+
+        hiponimos_filtrados_oxford = dict()
+
+        for def_oxford in definicoes_oxford:
+            for substantivo in self.extrair_substantivos(def_oxford):
+                if not substantivo in substantivos_oxford:
+                    substantivos_oxford[substantivo] = list()
+
+                substantivos_oxford[substantivo].append(def_oxford)
+
+        for lema_hipo_oxf in substantivos_oxford:
+            for hipo_oxf in wn.synsets(lema_hipo_oxf):
+                for def_oxford in substantivos_oxford[lema_hipo_oxf]:
+                    for caminho in hipo_oxf.hypernym_paths():
+                        intersecao = set(caminho[:-1]) & set(todos_synsets)
+                        for hiperonimo in intersecao:
+                            hiponimos_filtrados_oxford[lema_hipo_oxf] = (def_oxford, hipo_oxf, hiperonimo)
+
+        return hiponimos_filtrados_oxford
 
     # retorna todos hiperonimos para os significados dados por lema
     def busca_todos_hiperonimos(self, lema, todos_synsets, definicoes_oxford):
@@ -164,11 +204,15 @@ class CasadorConceitos:
             if incluir_definicao:
                 assinatura += ' ' + re.sub(sep, ' ', s.definition())
 
-        if len(conjunto):
-            print('\t- Conjunto: ' + str(conjunto))
-            print("\t\t- Assinatura: '%s'" % assinatura)
-
         return assinatura
+
+    def assinatura_definicao_lema(self, synset):
+        todos_lemas = Utilitarios.juntar_tokens(synset.lemma_names())
+        todos_lemas = ' '.join(todos_lemas)
+
+        definicao = synset.definition() + ' ' + todos_lemas
+
+        return definicao
 
     def assinatura_synset(self, s, usar_relacoes=True, \
         stem=True, remover_duplicatas=True, incluir_def_relacionados=False):
@@ -256,7 +300,8 @@ class CasadorConceitos:
                     todos_lemas_unitarios_wordnet[l] = 0
                 todos_lemas_unitarios_wordnet[l] += 1
 
-        todos_lemas_unitarios_wordnet = [e for e in todos_lemas_unitarios_wordnet if todos_lemas_unitarios_wordnet[e] == 1]
+        todos_lemas_unitarios_wordnet = \
+        [e for e in todos_lemas_unitarios_wordnet if todos_lemas_unitarios_wordnet[e] == 1]
 
         for lema in todos_lemas_unitarios_wordnet:
             for subs in todos_substantivos:
@@ -266,7 +311,12 @@ class CasadorConceitos:
                     synset = list(set(s1) & set(s2))[0]
 
                     for h in synset.hypernyms():
-                        resultado_parcial.append(h)
+                        assinatura_synset = self.assinatura_definicao_lema(synset)
+                        dist_cosseno = Utilitarios.cosseno(definicao_oxford.lower(), assinatura_synset.lower())
+
+                        print((definicao_oxford, assinatura_synset))
+                        raw_input('Conceito autoreferenciado = ' + str((definicao_oxford, synset, dist_cosseno)))
+                        resultado_parcial.append((definicao_oxford, synset, dist_cosseno))
 
         return resultado_parcial
 
@@ -276,74 +326,119 @@ class CasadorConceitos:
 
         for def_oxford in todas_definicoes_oxford:
             ca_tmp = self.buscar_conceitos_autorefenciados(lema, pos, def_oxford)
-            for synset in ca_tmp:
-                todos_lemas = Utilitarios.juntar_tokens(synset.lemma_names())
-                todos_lemas = ' '.join(todos_lemas)
-                def_wordnet = synset.definition() + ' ' + todos_lemas
-                print('Auto-referenciado:')
-                raw_input((def_oxford, synset))
-                dist_cosseno = Utilitarios.cosseno(def_oxford.lower(), def_wordnet.lower())                
+            for d, synset, dist_cosseno in ca_tmp:
+                assinatura_synset = self.assinatura_definicao_lema(synset)
+                dist_cosseno = Utilitarios.cosseno(def_oxford.lower(), assinatura_synset.lower())
                 casamentos_autoreferenciado.append((def_oxford, synset, dist_cosseno))
 
         return sorted(casamentos_autoreferenciado, key=lambda x: x[2], reverse=True)
 
+
     # metodo que acha todos conceitos (Oxford, Wordnet) que compartilham mesmo hiperonimo
-    def casar_hiperonimos(self, lema, todos_synsets, todas_definicoes_oxford):
-        hiper_oxford, hiper_wordnet = self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
-        hiper_wordnet_unitarios = [h for h in hiper_wordnet if len(hiper_wordnet[h]) == 1]
+    def casar_hiperonimos(self, lema, pos, todos_synsets, todas_definicoes_oxford):
+        todos_hiper_oxford, todos_hiper_wordnet = \
+        self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
 
         casamentos_hiperonimos = []
 
-        for h in hiper_oxford:
-            if len(hiper_oxford[h]) == 1:
-                for h_wn in hiper_wordnet_unitarios:
-                    synset = wn.synset(h_wn)
-                    if h in synset.lemma_names():
-                        def_oxford = hiper_oxford[h][0]
-                        todos_lemas = Utilitarios.juntar_tokens(wn.synset(h_wn).lemma_names())
-                        def_wordnet = synset.definition() + ' ' + ' '.join(todos_lemas)
-                        print('Hiperonimos:')
-                        raw_input((def_oxford, synset))
-                        cosseno = Utilitarios.cosseno(def_wordnet, def_oxford)
-                        casamentos_hiperonimos.append((def_oxford, h_wn, cosseno))
+        for hiper_oxf in todos_hiper_oxford:
+            if todos_hiper_oxford[hiper_oxf].__len__() == 1:
+                for lema_hiperonimo_wn in todos_hiper_wordnet:
+                    if todos_hiper_wordnet[lema_hiperonimo_wn].__len__() == 1:
+                        synset_hiper = wn.synset(lema_hiperonimo_wn)
+                        if hiper_oxf in synset_hiper.lemma_names():
+                            synset_hipo = todos_hiper_wordnet[lema_hiperonimo_wn][0]
+
+                            def_oxford = todos_hiper_oxford[hiper_oxf][0]         
+                            raw_input('Hiponimo: ' + str(synset_hipo))
+                            assinatura_wordnet = self.assinatura_definicao_lema(synset_hipo)
+
+                            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+                            casamentos_hiperonimos.append((def_oxford, synset_hipo.name(), cosseno))
 
         return sorted(casamentos_hiperonimos, key=lambda x: x[2], reverse=True)
 
+
     # metodo que acha todos conceitos (Oxford, Wordnet) que compartilham mesmo hiperonimo
-    def casar_meronimos(self, lema, todos_synsets, todas_definicoes_oxford):
-        hiper_oxford, hiper_wordnet = self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
-        todos_synsets = wn.synsets(lema)
-        casamentos_meronimos = []
+    def casar_meronimos(self, lema, pos, todos_synsets, todas_definicoes_oxford):
+        todos_hiper_oxford, todos_hiper_wordnet = \
+        self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
 
-        hiper_oxford_filtrados = []
-        hiper_wordnet_filtrados = []
+        casamentos_hiperonimos = []
 
-        for l in hiper_oxford:
-            for h in wn.synsets(l):
-                for s in todos_synsets:
-                    if self.e_hiperonimo(s, h):
-                        hiper_oxford_filtrados.append(l)
+        for hiper_oxf in todos_hiper_oxford:
+            for lema_hiperonimo_wn in todos_hiper_wordnet:
+                synset_hiper = wn.synset(lema_hiperonimo_wn)
+                if hiper_oxf in synset_hiper.lemma_names():
+                    for synset_hipo in todos_hiper_wordnet[lema_hiperonimo_wn]:
+                        for def_oxford in todos_hiper_oxford[hiper_oxf]:
+                            assinatura_wordnet = self.assinatura_definicao_lema(synset_hipo)
 
-        for h in hiper_oxford_filtrados:
-            for h_wn in hiper_wordnet:
-                if h in wn.synset(h_wn).lemma_names():
-                    hiper_wordnet_filtrados.append(h_wn)
+                            resultado = self.maximizar_caminho(synset_hipo, synset_hiper, def_oxford)
 
-        hiper_oxford_filtrados = list(set(hiper_oxford_filtrados))
-        hiper_wordnet_filtrados = list(set(hiper_wordnet_filtrados))
+                            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+                            casamentos_hiperonimos.append((def_oxford, synset_hipo.name(), cosseno))
 
-        for h in hiper_oxford_filtrados:
-            for h_wn in hiper_wordnet_filtrados:
-                synset = wn.synset(h_wn)
-                for hiponimo in todos_synsets:
-                    def_oxford = hiper_oxford[h][0]
-
-                    todos_lemas = Utilitarios.juntar_tokens(wn.synset(h_wn).lemma_names())
-                    def_wordnet = synset.definition() + ' ' + ' '.join(todos_lemas)
-
-                    cosseno = Utilitarios.cosseno(def_wordnet, def_oxford)
-                    casamentos_meronimos.append((def_oxford, h_wn, cosseno))
+        raw_input('\n<enter>')
+        return sorted(casamentos_hiperonimos, key=lambda x: x[2], reverse=True)
 
 
-        raw_input('\n\n\n<ENTER>')
-        return sorted(casamentos_meronimos, key=lambda x: x[2], reverse=True)
+    def maximizar_caminho(self, hiponimo, hiperonimo, def_oxford):
+        contadores = []
+        todos_caminhos = hiponimo.hypernym_paths()
+
+        for caminho_tmp in todos_caminhos:
+            try:
+                caminho = list(caminho_tmp)
+                caminho.reverse()
+                index = caminho.index(hiperonimo) + 1 
+
+                caminho = caminho[0:index]
+
+                ass = ""
+
+                for synset in caminho:
+                    ass += self.assinatura_synset(synset, usar_relacoes=True)
+
+                sobreposicoes = self.lesk(def_oxford, ass)
+                contadores.append((caminho, sobreposicoes))
+            except:
+                pass
+
+        return sorted(contadores, key=lambda x: x[1], reverse=True)[0]
+
+
+    def lesk(self, definicao, assinatura):
+        assinatura = assinatura.split(' ')
+
+        definicao = " ".join(lemmatize_sentence(definicao))        
+        definicao = definicao.split(' ')
+
+        if True:
+            definicao = [i for i in definicao if i not in stopwords.words('english')]
+        if True:
+            definicao = [lemmatize(i) for i in definicao]
+        if True:
+            definicao = [porter.stem(i) for i in definicao]
+
+        intersecao = list(set(definicao) & set(assinatura))
+        resultado = intersecao, len(definicao), len(assinatura)
+
+        return intersecao, len(definicao), len(assinatura)
+
+    # metodo que acha todos conceitos (Oxford, Wordnet) que compartilham mesmo hiperonimo
+    def casar_hiponimos(self, lema, pos, todos_synsets, todas_definicoes_oxford):
+        casamento_hiponimos = list()
+        resultado_hiponimos = self.busca_todos_hiponimos(lema, todos_synsets, todas_definicoes_oxford)
+
+        for lema_hiponimo_oxford in resultado_hiponimos:
+            registro = resultado_hiponimos[lema_hiponimo_oxford]
+
+            def_oxford, hiponimo, hiperonimo = registro
+
+            assinatura_wordnet = self.assinatura_definicao_lema(hiperonimo)
+            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+
+            casamento_hiponimos.append((def_oxford, hiperonimo.name(), cosseno))
+
+        return casamento_hiponimos

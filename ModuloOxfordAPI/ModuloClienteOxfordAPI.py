@@ -259,7 +259,6 @@ class ColetorOxfordWeb(object):
     def scrap_frame_definicoes(self, frame):
         resultado = {}
         pos = frame.find("h3[@class='ps pos']/span[@class='pos']").text.capitalize()
-        raw_input(pos)
         frame_definicoes = frame.findall('ul/li')
 
         resultado = dict()
@@ -392,28 +391,64 @@ class BaseUnificadaObjetosOxford(object):
                     for def_sec in obj_col[pos][def_primaria]['def_secs']:
                         sinonimos = self.obter_sinonimos_por_definicao(pos, def_sec, obj_cli)
                         obj_col[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
+
         except:
             return None
 
         return obj_col
 
+    def obter_sinonimos(self, pos, definicao, obj_col):
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
-    def obter_sinonimos_por_definicao(self,pos, definicao, obj_cli):
+        try:
+            for def_primaria in obj_col[pos]:
+                if definicao == def_primaria:
+                    return obj_col[pos][def_primaria]['sinonimos']
+
+                for def_sec in obj_col[pos][def_primaria]['def_secs']:
+                    if def_sec == definicao:
+                        return obj_col[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
+        except:
+            pass
+
+        return []
+
+    def obter_sinonimos_por_definicao(self, pos, definicao, obj_cli):
+        if not obj_cli:
+            obj_cli = self.iniciar_consulta(palavra)
+
         # retirando o ponto final e colocando em caixa baixa
         definicao = definicao[:-1].lower()
+        pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
         try:
             for regs in obj_cli[pos]:
                 if definicao in regs['definitions']:
-                    try: return regs['synonyms']
-                    except: return []
+                    try:
+                        if 'team' in definicao and False:
+                            print('Definicao: "' + definicao + '"')
+                            print('Retornando: ' + str(regs['synonyms']))
+                            print('\n')
+
+                        return regs['synonyms']
+                    except:
+                        pass
 
                 for subsense in regs['subsenses']:
                     if definicao in subsense['definitions']:
-                        try: return subsense['synonyms']
-                        except: return []
-        except: pass
-            
+                        try:
+                            if 'team' in definicao and False:
+                                print('Definicao: ' + definicao)
+                                print('Retornando: ' + str(subsense['synonyms']))
+                                print('\n')
+
+                            return subsense['synonyms']
+                        except:
+                            pass
+        except:
+            pass
+
         return []
 
 
@@ -428,5 +463,5 @@ class BaseUnificadaObjetosOxford(object):
         obj_integrado_oxford = unificador_oxford.iniciar_consulta(obj_cli, obj_col)
 
         print('\n\n')
-        raw_input(obj_integrado_oxford)
+        #raw_input(obj_integrado_oxford)
         raw_input('\n<enter>')
