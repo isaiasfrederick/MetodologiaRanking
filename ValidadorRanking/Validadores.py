@@ -53,15 +53,32 @@ class ValidadorRankingSemEval2007(object):
 
         return obj
 
-    def ordenar_scores(self, lista_scores, valor):
+    def ordenar_scores(self, lista_scores, medida):
         if len(lista_scores) > 1:
             try:
-                lista_scores.sort(key=operator.itemgetter(valor))                
-                lista_scores.reverse()
+                ordem = dict()
+                
+                for e in lista_scores:
+                    if not medida in e:
+                        e[medida] = 0
+
+                    if not e[medida] in ordem:
+                        ordem[e[medida]] = []
+
+                    ordem[e[medida]].append(e)
+
             except:
                 pass
 
-        return lista_scores
+        pontuacoes = ordem.keys()
+        pontuacoes.sort(reverse=True)
+
+        lista_final = []
+
+        for e in pontuacoes:
+            lista_final += ordem[e]
+
+        return lista_final
 
     def listar_arq(self, dir_arquivos):
         return [f for f in listdir(dir_arquivos) if isfile(join(dir_arquivos, f))]
@@ -161,7 +178,7 @@ class GeneralizedAveragePrecisionMelamud(object):
     evaluated_vector: a vector of pairs (key, score) representing the results retrieved by the evaluated method
     gold_vector and evaluated vector don't need to include the same keys or be in the same length
     '''
-    def calc(self, gold_vector, evaluated_vector, random=False):  
+    def calcular(self, gold_vector, evaluated_vector, random=False):  
         gold_map = {}
         for [key, value] in gold_vector:
             gold_map[key]=value

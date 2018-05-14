@@ -39,13 +39,21 @@ class Utilitarios(object):
         return pos
 
     @staticmethod
+    def conversor_pos_semeval_wn(pos):
+        if pos == 'a': return 's'
+        
+        return pos
+
+    @staticmethod
     def conversor_pos_oxford_wn(pos):
         if pos in ['Noun', 'Verb', 'Adjective']:
             return pos[0].lower()
         elif pos == 'Adverb':
             return 'r'
-        else:
-            return pos
+        elif pos == 'Conjunction':
+            return 'r'
+
+        return pos
 
     @staticmethod
     def multipalavra(palavra):

@@ -19,7 +19,47 @@ class DesambiguadorUnificado(object):
         self.base_unificada_oxford = base_unificada_oxford
         self.casador_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
-    def assinaturas_significados(self, inventario, usar_exemplos=False, usar_ontologia=False):
+    # obtem hiperonimo ja casado entre as diferentes
+    # fontes para compor a assinatura ho hiponimo
+    def obter_assinatura_definicao_casada(self, configs, lema, pos, synset_lema):
+        assinatura = []
+
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
+
+        casador_conceitos = CasadorConceitos(configs, self.base_unificada_oxford)
+        casamentos = casador_conceitos.iniciar_casamento(lema, pos)
+        def_oxford_definitiva = None;
+
+        for def_oxford in casamentos:
+            if synset_lema.name() == casamentos[def_oxford]:
+                def_oxford_definitiva = def_oxford
+
+        todas_definicoes = self.base_unificada_oxford.iniciar_consulta(lema)
+
+        for sense in todas_definicoes[pos]:
+            exemplos = []
+
+            if sense == def_oxford_definitiva:
+                try:
+                    exemplos = todas_definicoes[pos][sense]['exemplos']
+                except: exemplos = []
+
+            try:
+                if not len(exemplos):
+                    for subsense in todas_definicoes[pos][sense]['def_secs']:
+                        exemplos = todas_definicoes[pos][sense]['def_secs'][subsense]['exemplos']
+            except: pass
+
+            assinatura += list(chain(*[self.retornar_valida(ex).split() for ex in exemplos]))
+            assinatura += [p for p in word_tokenize(def_oxford_definitiva.lower()) if not p in [',', ';', '.']]
+
+        return assinatura
+
+    def assinaturas_significados(self, inventario, usar_exemplos, usar_ontologia):
+        if not inventario:
+            return None
+
         assinaturas = []
 
         for registro in inventario:
@@ -28,18 +68,20 @@ class DesambiguadorUnificado(object):
             try:
                 lista_exemplos = registro['exemplos']
             except:
+                lista_exemplos = []
                 traceback.print_exc()
-                raw_input('<enter>')
 
-            for e in registro['definicoes']: ass_tmp += ' ' + re.sub('[-_]', ' ', e)
+            for assinatura_hiper in registro['definicoes']: ass_tmp += ' ' + re.sub('[-_]', ' ', assinatura_hiper)
 
             if usar_ontologia:
-                for e in registro['hiperonimos']:
-                    ass_tmp += ' ' + re.sub('[_-]', ' ', e.definition())
-                    raw_input('\nAdicionando hiperonimo: ' + ass_tmp)
-                    ass_tmp += ' ' + ' '.join(e.lemma_names())
+                for hiperonimo in registro['hiperonimos']:
+                    lema = hiperonimo.lemma_names()[0]
+                    ass_tmp += ' ' + re.sub('[_-]', ' ', hiperonimo.definition())
+                    assinatura_hiper = self.obter_assinatura_definicao_casada(self.configs, lema, registro['pos'], hiperonimo)
+                    
+                    ass_tmp += ' ' + ' '.join(assinatura_hiper)
 
-            ass_tmp += ' '.join([re.sub('[_-]', ' ', e) for e in registro['lemas']])
+            ass_tmp += ' '.join([re.sub('[_-]', ' ', assinatura_hiper) for assinatura_hiper in registro['lemas']])
 
             ass_tmp = re.sub('[,.;]', ' ', ass_tmp)
             ass_tmp = ass_tmp.replace(')', ' ')
@@ -53,6 +95,7 @@ class DesambiguadorUnificado(object):
                 ass_tmp += list(chain(*[self.retornar_valida(ex).split() for ex in lista_exemplos]))
 
             ass_tmp = [palavra.lower() for palavra in ass_tmp]
+            ass_tmp = [p for p in ass_tmp if p != ""]
 
             assinaturas.append((registro['definicoes'], ass_tmp))
 
@@ -61,11 +104,37 @@ class DesambiguadorUnificado(object):
     def retornar_valida(self, frase):
         return Utilitarios.retornar_valida(frase)
 
+    def extrair_sinonimos(self, frase, palavra, pos=None, usar_exemplos=False):
+        max_sinonimos = 10
+        
+        resultado = self.adapted_cosine_lesk(frase, palavra, pos, usar_exemplos=usar_exemplos)
+        sinonimos = []
+
+        for item in resultado:
+            try:
+                definicao, pontuacao = item[0], item[1]
+            except:
+                definicao, pontuacao = item[0][0], item[1]           
+
+            if sinonimos.__len__() < max_sinonimos:
+                obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
+                sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
+
+                if not sinonimos_tmp:                    
+                    sinonimos_tmp = self.base_unificada_oxford.extrair_sinonimos_candidatos_definicao(pos, definicao)
+
+                for s in [s for s in sinonimos_tmp if Utilitarios.multipalavra(s) == False]:
+                    sinonimos.append(s)
+
+        return sinonimos[:max_sinonimos]
+
     def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True, \
         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
         inventario_unificado = self.construir_inventario_unificado(ambigua, pos)
-        todas_assinaturas = self.assinaturas_significados(inventario_unificado, usar_exemplos=usar_exemplos)
+
+        todas_assinaturas = self.assinaturas_significados(inventario_unificado, usar_ontologia=usar_ontologia, \
+        usar_exemplos=usar_exemplos)
 
         frase = [p for p in word_tokenize(frase.lower()) if not p in [',', ';', '.']]        
 
@@ -103,8 +172,16 @@ class DesambiguadorUnificado(object):
         # indexado (synset_name, def_oxford)
         casamentos_invertidos = dict()
 
-        todas_definicoes_oxford = {pos: self.base_unificada_oxford.iniciar_consulta(palavra)[pos]}
-        todas_definicoes_oxford = self.desindentar_coleta_oxford(palavra, todas_definicoes_oxford)
+        if not casamentos:
+            raw_input('Objeto de casamentos e nulo! Abortando a funcao...')
+            return 
+
+        try:
+            todas_definicoes_oxford = { pos: self.base_unificada_oxford.iniciar_consulta(palavra)[pos] }
+            todas_definicoes_oxford = self.desindentar_coleta_oxford(palavra, todas_definicoes_oxford)
+        except:
+            print('Excecao na construcao do inventario unificado de dicionarios!')
+            raw_input('\n<ENTER>')
 
         for def_oxford in casamentos:
             casamentos_invertidos[casamentos[def_oxford]] = def_oxford
@@ -118,6 +195,7 @@ class DesambiguadorUnificado(object):
             registro['exemplos'] = synset.examples()
             registro['hiperonimos'] = synset.hypernyms()
             registro['lemas'] = synset.lemma_names()
+            registro['pos'] = pos[0].lower()
 
             # inserindo o casamento no inventario
             if synset.name() in casamentos_invertidos:
@@ -139,6 +217,7 @@ class DesambiguadorUnificado(object):
                 registro['fontes'] = ['oxford']
                 registro['definicoes'] = [def_oxford]
                 registro['exemplos'] = exemplos
+                registro['pos'] = pos[0].lower()
 
                 if not usar_ontologia:
                     registro['hiperonimos'] = []

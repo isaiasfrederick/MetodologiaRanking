@@ -1,11 +1,12 @@
 #! coding: utf-8
+from CasadorDefinicoes.RepositorioCentralConceitos import BaseUnificadaObjetosOxford
 from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
-from ModuloExtrator.ExtratorSinonimos import ExtratorSinonimos
+from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
 from ModuloUtilitarios.Utilitarios import Utilitarios
-from ValidadorRanking.Validadores import *
+from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
 from pywsd.lesk import cosine_lesk as cosine_lesk
+from ValidadorRanking.Validadores import *
 from nltk.corpus import wordnet as wordnet
 from sys import argv
 import traceback
@@ -13,48 +14,58 @@ import re
 
 # Aplicar o SemEval2007 por método de extração
 def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
-    respostas_semeval = dict()
-
+    base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
+    
     configs_se2007 = configs['semeval2007']
     todas_metricas = configs_se2007['metricas']['limites'].keys()
+
+    respostas_semeval = dict()
+
+    for metrica in todas_metricas:
+        respostas_semeval[metrica] = dict()
 
     dir_contadores = configs['leipzig']['dir_contadores']
 
     cli_babelnet = ClienteBabelAPI(configs)
     cli_oxford = ClienteOxfordAPI(configs)
 
-    extrator_sinonimos = ExtratorSinonimos(configs, cli_oxford, cli_babelnet, dir_contadores)
+    extrator_sinonimos = InterfaceAbordagens(configs, cli_oxford, cli_babelnet, dir_contadores, base_unificada_oxford)
     validador_se2007 = ValidadorRankingSemEval2007(configs)
 
     dir_arquivo_teste = configs_se2007["dir_arquivo_teste"]
     casos_entrada = validador_se2007.ler_entrada_teste(dir_arquivo_teste)
 
-    for metrica in todas_metricas:
-        respostas_semeval[metrica] = dict()
+    for lema in casos_entrada:
+        respostas_semeval[metrica][lema] = dict()
 
-    for lemma in casos_entrada:
-        respostas_semeval[metrica][lemma] = dict()
+        for id_entrada in casos_entrada[lema]:
+            palavra, pos = lema.split('.')
 
-        for id_entrada in casos_entrada[lemma]:
-            palavra, pos = lemma.split('.')
+            frase, codigo = id_entrada['frase'], id_entrada['codigo']
 
-            frase = id_entrada['frase']
-            codigo = id_entrada['codigo']
+            try:
+                sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
+            except:
+                sinonimos = []
+                print('\n\n')
+                print('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, contexto))
+                traceback.print_stack()
+                print('\n\n')
 
-            sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
-
-            if ordenar:
+            if ordenar and sinonimos:
                 sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
 
-            try: sinonimos.remove(palavra)
+            try:
+                sinonimos.remove(palavra)
             except: pass
 
             for metrica in todas_metricas:
-                if not lemma in respostas_semeval[metrica]:
-                    respostas_semeval[metrica][lemma] = dict()
+                if not lema in respostas_semeval[metrica]:
+                    respostas_semeval[metrica][lema] = dict()
 
                 limite_superior = int(configs_se2007['metricas']['limites'][metrica])
-                respostas_semeval[metrica][lemma][codigo] = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
+                sinonimos = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
+                respostas_semeval[metrica][lema][codigo] = sinonimos
         
     return respostas_semeval
 
@@ -120,16 +131,13 @@ def gerar_submissoes_para_gap(configs, medida_ranking_completo = 'oot'):
     total_anotadores = configs['semeval2007']['total_anotadores']
     max_sugestoes = configs['semeval2007']['max_sugestoes']
     limite_sugestoes = total_anotadores * max_sugestoes
-
-    for lexema in gold_rankings:
-        print(lexema)
-
-# Realizar o SemEval2007
-def realizar_se2007(configs, validador_se2007):
+ 
+# Realizar o SemEval2007 exclusivamente para os métodos que desenvolvi
+def realizar_se2007_metodos_desenvolvidos(configs, validador_se2007):
     # gerar todas minhas abordagens de baseline
     minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)
 
-    # para cada metrica (OOT e Best)
+    # para cada metrica (oot e best)
     for metrica in minhas_submissoes_geradas.keys():
         submissao_gerada = minhas_submissoes_geradas[metrica]
         resultados_participantes = validador_se2007.obter_score_participantes_originais(metrica)

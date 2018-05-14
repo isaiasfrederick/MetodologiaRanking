@@ -58,12 +58,9 @@ class DesambiguadorOxford(object):
 
         return assinatura
 
-
-    """Metodo Cosseno feito para o dicionario de Oxford"""
+    """ Metodo Cosseno feito para o dicionario de Oxford """
     def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True,\
-         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
-
-        self.rep_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
+        lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
         assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usar_exemplos)
         assinaturas = [a for a in assinaturas if pos in a[0]]
@@ -155,3 +152,67 @@ class DesambiguadorOxford(object):
 
     def retornar_valida(self, frase):
         return Utilitarios.retornar_valida(frase)
+
+    def metodos_baseline(self, frase, palavra, pos=None, limite=None, usar_exemplos=False):
+        limite = 10000 if limite == None else limite
+
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
+
+        resultado = self.base_unificada_oxford.iniciar_consulta(palavra)
+
+        if not resultado:
+            return []
+
+        definicoes_selecionadas = [ ]
+        sinonimos_selecionados = set()
+
+        for definicao in resultado[pos].keys()[:limite]:            
+            definicoes_selecionadas.append(definicao)
+        for definicao in resultado[pos]:
+            for def_sec in resultado[pos][definicao]['def_secs']:
+                if definicao.__len__() < limite:
+                    definicoes_selecionadas.append(def_sec)
+
+        for definicao in definicoes_selecionadas:
+            obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
+            sinonimos = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
+
+            if not sinonimos:
+                print('Definicao pra tirar sinonimos: ' + str(definicao))
+                sinonimos = self.base_unificada_oxford.extrair_sinonimos_candidatos_definicao(definicao, pos)
+                print('Sinonimos retirados: ' + str(sinonimos) + '\n\n')
+
+                if not palavra in BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao:
+                    BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao[palavra] = {}                
+                BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao[palavra][definicao] = sinonimos
+
+            for sin in sinonimos:
+                if Utilitarios.multipalavra(sin) == False:
+                    sinonimos_selecionados.add(sin)
+
+        sinonimos_selecionados = list(sinonimos_selecionados)
+
+        return sinonimos_selecionados
+
+    def extrair_sinonimos(self, frase, palavra, pos=None, usar_exemplos=False):
+        max_sinonimos = 10
+        
+        resultado = self.adapted_cosine_lesk(frase, palavra, pos, usar_exemplos=usar_exemplos)
+        sinonimos = []
+
+        for item in resultado:
+            definicao, pontuacao = item[0][1], item[1]
+
+            if sinonimos.__len__() < max_sinonimos:
+                obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
+
+                sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
+
+                if sinonimos_tmp == None:
+                    sinonimos_tmp = []
+
+                for s in [s for s in sinonimos_tmp if Utilitarios.multipalavra(s) == False]:
+                    sinonimos.append(s)
+
+        return sinonimos[:max_sinonimos]
