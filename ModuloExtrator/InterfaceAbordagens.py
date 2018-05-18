@@ -34,7 +34,7 @@ class InterfaceAbordagens(object):
         topk = 2
 
         flag_wordnet = True
-        flag_oxford = False
+        flag_oxford = True
         flag_unificado = False
 
         pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)

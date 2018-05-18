@@ -121,6 +121,12 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
+    if True:
+        from Abordagens import BaselineOrdenadorFrequencia
+        bof = BaselineOrdenadorFrequencia.BaselineOrdenadorFrequencia()
+        bof.iniciar(configs, None)
+        exit(0)
+
     if False:
     #    def obter_obj_cli_api(self, palavra):
     #    def obter_obj_col_web(self, palavra):

@@ -19,6 +19,8 @@ import requests
 
 
 class Utilitarios(object):
+    configs = None
+
     @staticmethod
     def requisicao_http(url, headers=None):
         if headers:
@@ -70,6 +72,8 @@ class Utilitarios(object):
         obj = json.loads(arq.read())
         arq.close()
         
+        Utilitarios.configs = obj
+
         return obj
 
     @staticmethod

@@ -71,31 +71,52 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
 
 # Exibir todos participantes do SemEval2007
 def exibir_todos_resultados(todos_participantes, validador_se2007):
+    Utilitarios.limpar_console()
+
     lista_todos_participantes = todos_participantes.values()
-    todas_dimensoes = ['Attempted', 'Precision', 'TotalWithMode', 'Recall', 'Total']
+    todas_dimensoes = []
 
     participantes_ordenados = {}
 
+    for participante in lista_todos_participantes:
+        try:
+            if participante.keys().__len__() > todas_dimensoes:
+                todas_dimensoes = participante.keys()
+        except: pass
+
+    todas_dimensoes = ['Total', 'Attempted', 'Precision', 'Recall']
+    todas_dimensoes += ['TotalWithMode', 'Attempted', 'ModePrecision', 'ModeRecall']
+
+    try:
+        todas_dimensoes.remove('nome')
+    except: pass
+
     for dimensao in todas_dimensoes:
-        participantes_ordenados[dimensao] = dict()
+        try:
+            participantes_ordenados[dimensao] = dict()
 
-        for participante in lista_todos_participantes:
-            try:
-                participante = participante['nome']
-                pontuacao = participante[dimensao]
+            for participante in lista_todos_participantes:
+                try:
+                    nome_participante = participante['nome']
+                    pontuacao = participante[dimensao]
 
-                if not pontuacao in participantes_ordenados[dimensao]:
-                    participantes_ordenados[dimensao][pontuacao].append(participante)
-            except: pass
+                    if not pontuacao in participantes_ordenados[dimensao]:
+                        participantes_ordenados[dimensao][pontuacao] = []
 
-    indice = 0
+                    participantes_ordenados[dimensao][pontuacao].append(nome_participante)
+
+                except Exception, e: pass
+        except: pass
+
     for dimensao in participantes_ordenados:
         print('DIMENSAO: ' + dimensao)
-
+        indice = 1
         for pontuacao in sorted(participantes_ordenados[dimensao], reverse=True):
-            indice += 1
             for participante in participantes_ordenados[dimensao][pontuacao]:
-                print('%d\t-\t%s\t%f' % (indice, participante, pontuacao))
+                print('%d  -  %s\t%.2f' % (indice, participante, pontuacao))
+                indice += 1
+
+        print('\n')
 
 # Obter frases do caso de entrada do caso do SemEval2007
 def obter_frases_da_base(validador_se2007, configs):
