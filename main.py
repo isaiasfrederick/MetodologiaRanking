@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     # Realiza o SemEval2007 para as minhas abordagens implementadas (baselines)
     print('\nPressione <enter> para realizar o Semantic Evaluation 2007!')
-    realizar_se2007_metodos_desenvolvidos(configs, validador_se2007)
+    realizar_se2007_metodos_desenvolvidos(configs)
     print('\n\nSemEval2007 realizado!\n\n')
 
     # Obtem os gabaritos informados por ambos

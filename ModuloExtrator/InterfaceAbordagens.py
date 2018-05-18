@@ -34,8 +34,8 @@ class InterfaceAbordagens(object):
         topk = 2
 
         flag_wordnet = True
-        flag_oxford = True
-        flag_unificado = True
+        flag_oxford = False
+        flag_unificado = False
 
         pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)
         pos_ox = pos
@@ -64,7 +64,7 @@ class InterfaceAbordagens(object):
         elif metodo == 'desambiguador_oxford' and flag_oxford:
             return self.desambiguador_oxford.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False)
         elif metodo == 'desambiguador_oxford_exemplos' and flag_oxford:
-            return self.desambiguador_oxford.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=True)
+            return self.desambiguador_oxford.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False)
         # METODOS DE DADOS UNIFICADOS
         elif metodo == 'desambiguador_unificado' and flag_unificado:
             return self.desambiguador_unificado.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False)
@@ -94,7 +94,7 @@ class InterfaceAbordagens(object):
 
         if len(resultado) == 0:
             print((palavra, pos))
-            raw_input('Resultado: ' + str(resultado))
+            print('Resultado: ' + str(resultado))
 
         return resultado
 

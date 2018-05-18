@@ -72,21 +72,30 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
 # Exibir todos participantes do SemEval2007
 def exibir_todos_resultados(todos_participantes, validador_se2007):
     lista_todos_participantes = todos_participantes.values()
-    todas_dimensoes = todos_participantes[todos_participantes.keys()[0]].keys()
-    
-    for dimensao in todas_dimensoes:
-        print('DIMENSAO: ' + dimensao)
-        validador_se2007.ordenar_scores(lista_todos_participantes, dimensao)
+    todas_dimensoes = ['Attempted', 'Precision', 'TotalWithMode', 'Recall', 'Total']
 
-        indice = 1
+    participantes_ordenados = {}
+
+    for dimensao in todas_dimensoes:
+        participantes_ordenados[dimensao] = dict()
+
         for participante in lista_todos_participantes:
             try:
-                print(str(indice) + ' - ' + participante['nome'] + '  -  ' + str(participante[dimensao]))
+                participante = participante['nome']
+                pontuacao = participante[dimensao]
+
+                if not pontuacao in participantes_ordenados[dimensao]:
+                    participantes_ordenados[dimensao][pontuacao].append(participante)
             except: pass
 
-            indice += 1
+    indice = 0
+    for dimensao in participantes_ordenados:
+        print('DIMENSAO: ' + dimensao)
 
-        print('\n')
+        for pontuacao in sorted(participantes_ordenados[dimensao], reverse=True):
+            indice += 1
+            for participante in participantes_ordenados[dimensao][pontuacao]:
+                print('%d\t-\t%s\t%f' % (indice, participante, pontuacao))
 
 # Obter frases do caso de entrada do caso do SemEval2007
 def obter_frases_da_base(validador_se2007, configs):
@@ -123,17 +132,10 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
             resultados[metrica].append(resultados_minha_abordagem)
 
     return resultados
-
-# Gerando submissões para a métrica GAP
-def gerar_submissoes_para_gap(configs, medida_ranking_completo = 'oot'):
-    gold_rankings = obter_gold_rankings(configs)
-
-    total_anotadores = configs['semeval2007']['total_anotadores']
-    max_sugestoes = configs['semeval2007']['max_sugestoes']
-    limite_sugestoes = total_anotadores * max_sugestoes
  
 # Realizar o SemEval2007 exclusivamente para os métodos que desenvolvi
-def realizar_se2007_metodos_desenvolvidos(configs, validador_se2007):
+def realizar_se2007_metodos_desenvolvidos(configs):
+    validador_se2007 = ValidadorRankingSemEval2007(configs)
     # gerar todas minhas abordagens de baseline
     minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)
 

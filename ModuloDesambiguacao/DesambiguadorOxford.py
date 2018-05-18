@@ -17,18 +17,6 @@ class DesambiguadorOxford(object):
         self.base_unificada_oxford = base_unificada_oxford
         self.rep_conceitos = CasadorConceitos(self.configs, self.base_unificada_oxford)
 
-    # Retira relacoes semanticas a partir da Wordnet
-    def extrair_relacao_semantica(self, lemma, palavras_arg):
-        palavras = list(palavras_arg)
-        casamentos = dict()
-
-        for p in palavras:
-            casamentos[p] = dict()
-
-        for synset in wordnet.synsets(lemma):
-            pass
-
-        return []
 
     """ Gera a assinatura a partir de um significado Oxford a partir dos parametros """
     def assinatura_significado_aux(self, lema, pos, definicao, lista_exemplos, extrair_relacao_semantica=False):
@@ -59,42 +47,31 @@ class DesambiguadorOxford(object):
         return assinatura
 
     """ Metodo Cosseno feito para o dicionario de Oxford """
-    def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True,\
+    def adapted_cosine_lesk(self, ctx, ambigua, pos, nbest=True,\
         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
+
         assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usar_exemplos)
-        assinaturas = [a for a in assinaturas if pos in a[0]]
+        assinaturas = [a for a in assinaturas if pos == a[0].split('.')[1]]
 
-        frase = [p for p in word_tokenize(frase.lower()) if not p in [',', ';', '.']]        
-
-        if stem:
-            frase = [i for i in frase if i not in stopwords.words('english')]
-        if lematizar:
-            frase = [lemmatize(i) for i in frase]
-        if stem:
-            frase = [porter.stem(i) for i in frase]
+        ctx = [p for p in word_tokenize(ctx.lower()) if not len(p) > 1]
+        ctx = Utilitarios.processar_contexto(ctx, stop=stop, lematizar=lematizar, stem=stem)
 
         pontuacao = []
 
         for a in assinaturas:
-            ass_tmp = a[3]
-
-            if stop:
-                ass_tmp = [i for i in ass_tmp if i not in stopwords.words('english')]
-            if lematizar:
-                ass_tmp = [lemmatize(i) for i in ass_tmp]
-            if stem:
-                ass_tmp = [porter.stem(i) for i in ass_tmp]
-
-            pontuacao.append((cos_sim(" ".join(frase), " ".join(ass_tmp)), a[0:3]))
+            ass_definicao = Utilitarios.processar_contexto(a[3], stop=stop, lematizar=lematizar, stem=stem)
+            pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), a[0:3]))
 
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
-        return resultado if nbest else [resultado[0]]
+        return resultado
 
-    """Gera uma assinatura de um significado Oxford para aplicar Cosseno"""
+    """ Gera uma assinatura de um significado Oxford para aplicar Cosseno """
     def assinatura_significado(self, lema, lematizar=True, stem=False, stop=True, extrair_relacao_semantica=False, usar_exemplos=False):
-        resultado = self.base_unificada_oxford.iniciar_consulta(lema)
+        resultado = self.base_unificada_oxford.obter_obj_unificado(lema)
 
         if not resultado:
             resultado = {}
@@ -117,12 +94,12 @@ class DesambiguadorOxford(object):
                     exemplos = []
 
                 # nome, definicao, exemplos, assinatura
-                synset_corrente = [nome_sig, s, exemplos, []]
-                assinaturas_significados.append(synset_corrente)
+                definicao_corrente = [nome_sig, s, exemplos, []]
+                assinaturas_significados.append(definicao_corrente)
 
                 # Colocando exemplos na assinatura
-                synset_corrente[3] += self.assinatura_significado_aux(lema, pos, s, exemplos, extrair_relacao_semantica)
-
+                definicao_corrente[3] += self.assinatura_significado_aux(lema, pos, s, exemplos)
+        
                 sig_secundarios = resultado[pos][s]['def_secs']
 
                 for ss in sig_secundarios:
@@ -133,10 +110,10 @@ class DesambiguadorOxford(object):
                     else:
                         exemplos_secundarios = []
 
-                    synset_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
-                    assinaturas_significados.append(synset_corrente_sec)
+                    definicao_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
+                    assinaturas_significados.append(definicao_corrente_sec)
 
-                    synset_corrente_sec[3] += self.assinatura_significado_aux(lema, pos, ss, exemplos_secundarios, extrair_relacao_semantica)
+                    definicao_corrente_sec[3] += self.assinatura_significado_aux(lema, pos, ss, exemplos_secundarios)
 
                     indice += 1
 
@@ -159,7 +136,7 @@ class DesambiguadorOxford(object):
         if pos.__len__() == 1:
             pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
-        resultado = self.base_unificada_oxford.iniciar_consulta(palavra)
+        resultado = self.base_unificada_oxford.obter_obj_unificado(palavra)
 
         if not resultado:
             return []
@@ -175,7 +152,7 @@ class DesambiguadorOxford(object):
                     definicoes_selecionadas.append(def_sec)
 
         for definicao in definicoes_selecionadas:
-            obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
+            obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)            
             sinonimos = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
 
             if not sinonimos:
@@ -184,7 +161,8 @@ class DesambiguadorOxford(object):
                 print('Sinonimos retirados: ' + str(sinonimos) + '\n\n')
 
                 if not palavra in BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao:
-                    BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao[palavra] = {}                
+                    BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao[palavra] = {}       
+
                 BaseUnificadaObjetosOxford.sinonimos_extraidos_definicao[palavra][definicao] = sinonimos
 
             for sin in sinonimos:
@@ -195,10 +173,14 @@ class DesambiguadorOxford(object):
 
         return sinonimos_selecionados
 
-    def extrair_sinonimos(self, frase, palavra, pos=None, usar_exemplos=False):
+    def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False):
         max_sinonimos = 10
-        
-        resultado = self.adapted_cosine_lesk(frase, palavra, pos, usar_exemplos=usar_exemplos)
+
+        try:
+            resultado = self.adapted_cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos)
+        except Exception, e:
+            resultado = []
+
         sinonimos = []
 
         for item in resultado:
@@ -208,6 +190,12 @@ class DesambiguadorOxford(object):
                 obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
 
                 sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
+
+                print('DESAMBIGUADOR OXFORD:')
+                print('Palavra: ' + palavra)
+                print('Contexto: ' + ctx)
+                print('Definicao: ' + str(definicao))
+                print('Sinonimos Obtidos: ' + str(sinonimos_tmp) + '\n\n')
 
                 if sinonimos_tmp == None:
                     sinonimos_tmp = []

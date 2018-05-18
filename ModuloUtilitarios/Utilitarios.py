@@ -6,6 +6,7 @@ import json
 import os
 import re, math
 from collections import Counter
+from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from unicodedata import normalize
 from sys import version_info
 import random, string
@@ -164,6 +165,17 @@ class Utilitarios(object):
         frase = frase.replace("\n", " ")
 
         return frase.strip().lower()
+
+    @staticmethod
+    def processar_contexto(ctx, stop=True, lematizar=True, stem=True):
+        if stop:
+            ctx = [i for i in ctx if i not in stopwords.words('english')]
+        if lematizar:
+            ctx = [lemmatize(i) for i in ctx]
+        if stem:
+            ctx = [porter.stem(i) for i in ctx]
+
+        return ctx
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):

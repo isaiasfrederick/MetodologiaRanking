@@ -121,7 +121,7 @@ class DesambiguadorUnificado(object):
                 sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
 
                 if not sinonimos_tmp:                    
-                    sinonimos_tmp = self.base_unificada_oxford.extrair_sinonimos_candidatos_definicao(pos, definicao)
+                    sinonimos_tmp = self.base_unificada_oxford.extrair_sinonimos_candidatos_definicao(definicao, pos)
 
                 for s in [s for s in sinonimos_tmp if Utilitarios.multipalavra(s) == False]:
                     sinonimos.append(s)
@@ -173,15 +173,16 @@ class DesambiguadorUnificado(object):
         casamentos_invertidos = dict()
 
         if not casamentos:
-            raw_input('Objeto de casamentos e nulo! Abortando a funcao...')
+            print('Objeto de casamentos e nulo! Abortando a funcao...')
+            print('Palavra: %s\tPOS: %s' % (palavra, pos))
+            
             return 
 
         try:
             todas_definicoes_oxford = { pos: self.base_unificada_oxford.iniciar_consulta(palavra)[pos] }
             todas_definicoes_oxford = self.desindentar_coleta_oxford(palavra, todas_definicoes_oxford)
         except:
-            print('Excecao na construcao do inventario unificado de dicionarios!')
-            raw_input('\n<ENTER>')
+            print('Excecao na construcao do inventario unificado de dicionarios!')            
 
         for def_oxford in casamentos:
             casamentos_invertidos[casamentos[def_oxford]] = def_oxford

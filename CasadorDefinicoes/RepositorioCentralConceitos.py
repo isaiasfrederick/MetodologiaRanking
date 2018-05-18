@@ -9,13 +9,11 @@ from nltk.corpus import stopwords, wordnet
 import re
 import json
 
-# esta classe funcionara como um "casador" de definicoes de diferentes fontes da abordagem
+# Esta classe funcionara como um "casador"
+# de definicoes de diferentes fontes da abordagem
 class CasadorConceitos:
     def __init__(self, configs, base_unificada_oxford):
         self.base_unificada_oxford = base_unificada_oxford
-
-        # retirar esta linha
-        self.base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
 
         self.stemmer = PorterStemmer()
         self.configs = configs
@@ -62,57 +60,59 @@ class CasadorConceitos:
 
         todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
 
-        if not todas_definicoes_oxford:
-            raw_input('\n\nA definicao para a palavra %s nao funcionou!\n' % lema)
-            return
-
         try:
             todos_synsets = wn.synsets(lema, pos[0].lower())
         except:
             import traceback
             traceback.print_stack()
 
-        # definicoes sem identação por definicoes        
-        todas_definicoes_oxford = self.retirar_indentacao_coleta_oxford(lema, todas_definicoes_oxford)
-        # filtrando por POS-tags
-        todas_definicoes_oxford = [tupla[1:2][0] for tupla in todas_definicoes_oxford if pos in tupla[0]]
+        if todas_definicoes_oxford:            
+            # definicoes sem identação por definicoes        
+            todas_definicoes_oxford = self.retirar_indentacao_coleta_oxford(lema, todas_definicoes_oxford)
+            # filtrando por POS-tags
+            todas_definicoes_oxford = [tupla[1:2][0] for tupla in todas_definicoes_oxford if pos in tupla[0]]
 
-        casamentos_autoreferenciados = self.casar_autoreferenciados(lema, pos, todas_definicoes_oxford)
-        casamentos_hiperonimos = self.casar_hiperonimos(lema, pos, todos_synsets, todas_definicoes_oxford)
-        casamentos_meronimos = self.casar_meronimos(lema, pos, todos_synsets, todas_definicoes_oxford)
-        casamentos_hiponimos = self.casar_hiponimos(lema, pos, todos_synsets, todas_definicoes_oxford)
+            casamentos_autoreferenciados = self.casar_autoreferenciados(lema, pos, todas_definicoes_oxford)
+            casamentos_hiperonimos = self.casar_hiperonimos(lema, pos, todos_synsets, todas_definicoes_oxford)
+            casamentos_meronimos = self.casar_meronimos(lema, pos, todos_synsets, todas_definicoes_oxford)
+            casamentos_hiponimos = self.casar_hiponimos(lema, pos, todos_synsets, todas_definicoes_oxford)
 
-        resultado_final = dict()
+            resultado_final = dict()
 
-        for cas in casamentos_autoreferenciados:
-            def_oxford, synset_autoreferenciado, dist_cosseno = cas
-            if not def_oxford in resultado_final:
-                if not synset_autoreferenciado.name() in resultado_final.values():
-                    resultado_final[def_oxford] = synset_autoreferenciado.name()
+            for cas in casamentos_autoreferenciados:
+                def_oxford, synset_autoreferenciado, dist_cosseno = cas
+                if not def_oxford in resultado_final:
+                    if not synset_autoreferenciado.name() in resultado_final.values():
+                        resultado_final[def_oxford] = synset_autoreferenciado.name()
 
-        for cas in casamentos_hiperonimos:
-            def_oxford, hiper_name, dist_cosseno = cas
-            if not def_oxford in resultado_final:
-                if not hiper_name in resultado_final.values():
-                    resultado_final[def_oxford] = hiper_name
+            for cas in casamentos_hiperonimos:
+                def_oxford, hiper_name, dist_cosseno = cas
+                if not def_oxford in resultado_final:
+                    if not hiper_name in resultado_final.values():
+                        resultado_final[def_oxford] = hiper_name
 
-        for cas in casamentos_meronimos:
-            def_oxford, hiper_name, dist_cosseno = cas
-            def_oxford, hiper_name, dist_cosseno = cas
-            if not def_oxford in resultado_final:
-                if not hiper_name in resultado_final.values():
-                    resultado_final[def_oxford] = hiper_name
+            for cas in casamentos_meronimos:
+                def_oxford, hiper_name, dist_cosseno = cas
+                def_oxford, hiper_name, dist_cosseno = cas
+                if not def_oxford in resultado_final:
+                    if not hiper_name in resultado_final.values():
+                        resultado_final[def_oxford] = hiper_name
 
-        for cas in casamentos_hiponimos:
-            def_oxford, hiper_name, dist_cosseno = cas
-            def_oxford, hiper_name, dist_cosseno = cas
-            if not def_oxford in resultado_final:
-                if not hiper_name in resultado_final.values():
-                    resultado_final[def_oxford] = hiper_name
+            for cas in casamentos_hiponimos:
+                def_oxford, hiper_name, dist_cosseno = cas
+                def_oxford, hiper_name, dist_cosseno = cas
+                if not def_oxford in resultado_final:
+                    if not hiper_name in resultado_final.values():
+                        resultado_final[def_oxford] = hiper_name
 
-        self.salvar_casamento(lema, pos, resultado_final)
+            self.salvar_casamento(lema, pos, resultado_final)
+    
+        else:
+            print('\n\nA definicao para a palavra %s nao funcionou!\n' % lema)
+            return None
 
         return resultado_final
+
 
     # dado um conceito central através de um lema, retorne um conceito mais indicado
     def buscador_conceitos_centrais(self, lema, pos, doc):
