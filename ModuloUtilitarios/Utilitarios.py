@@ -20,6 +20,8 @@ import requests
 
 class Utilitarios(object):
     configs = None
+    # Contadores Corpus
+    contadores = None
 
     @staticmethod
     def requisicao_http(url, headers=None):
@@ -171,15 +173,15 @@ class Utilitarios(object):
         return frase.strip().lower()
 
     @staticmethod
-    def processar_contexto(ctx, stop=True, lematizar=True, stem=True):
+    def processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True):
         if stop:
-            ctx = [i for i in ctx if i not in stopwords.words('english')]
+            lista_ctx = [i for i in lista_ctx if i not in stopwords.words('english')]
         if lematizar:
-            ctx = [lemmatize(i) for i in ctx]
+            lista_ctx = [lemmatize(i) for i in lista_ctx]
         if stem:
-            ctx = [porter.stem(i) for i in ctx]
+            lista_ctx = [porter.stem(i) for i in lista_ctx]
 
-        return ctx
+        return lista_ctx
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
@@ -238,3 +240,36 @@ class Utilitarios(object):
     @staticmethod
     def is_stop_word(p):
         return p in stopwords.words('english')
+
+    @staticmethod
+    def ordenar_palavras(todas_palavras):
+        dir_contadores = Utilitarios.configs['leipzig']['dir_contadores']
+
+        if Utilitarios.contadores == None:
+            contadores = Utilitarios.carregar_json(dir_contadores)
+            Utilitarios.contadores = contadores
+        else:
+            contadores = Utilitarios.contadores
+
+        palavras_indexadas = dict()
+        palavras_ordenadas = []
+        
+        for palavra in todas_palavras:
+            try:
+                if not contadores[palavra] in palavras_indexadas:
+                    palavras_indexadas[contadores[palavra]] = []
+            except:
+                palavras_indexadas[0] = []
+
+            try:
+                palavras_indexadas[contadores[palavra]].append(palavra)
+            except:
+                palavras_indexadas[0].append(palavra)
+
+        chaves = palavras_indexadas.keys()
+        chaves.sort(reverse=True)
+
+        for chave in chaves:
+            palavras_ordenadas += list(set(palavras_indexadas[chave]))
+
+        return palavras_ordenadas

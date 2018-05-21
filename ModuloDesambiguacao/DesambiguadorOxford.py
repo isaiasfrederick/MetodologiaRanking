@@ -65,6 +65,13 @@ class DesambiguadorOxford(object):
             ass_definicao = Utilitarios.processar_contexto(a[3], stop=stop, lematizar=lematizar, stem=stem)
             pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), a[0:3]))
 
+            intersecao = list(set(ctx) & set(ass_definicao))
+            if intersecao:
+                print('Intersecao: ' + str(intersecao))
+                print('\n')
+
+        print('\n')
+
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
         return resultado
@@ -118,12 +125,7 @@ class DesambiguadorOxford(object):
                     indice += 1
 
         for s in assinaturas_significados:
-            if stop == True:
-                s[3] = [i for i in s[3] if i not in stopwords.words('english')]
-            if lematizar == True:
-                s[3] = [lemmatize(i) for i in s[3]]
-            if stem == True:
-                s[3] = [porter.stem(i) for i in s[3]]
+            s[3] = Utilitarios.processar_contexto(s[3], stop=True, lematizar=True, stem=True)
 
         return [tuple(a) for a in assinaturas_significados]
 
@@ -190,15 +192,7 @@ class DesambiguadorOxford(object):
                 obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
 
                 sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
-
-                print('DESAMBIGUADOR OXFORD:')
-                print('Palavra: ' + palavra)
-                print('Contexto: ' + ctx)
-                print('Definicao: ' + str(definicao))
-                print('Sinonimos Obtidos: ' + str(sinonimos_tmp) + '\n\n')
-
-                if sinonimos_tmp == None:
-                    sinonimos_tmp = []
+                sinonimos_tmp = [] if not sinonimos_tmp else sinonimos_tmp
 
                 for s in [s for s in sinonimos_tmp if Utilitarios.multipalavra(s) == False]:
                     sinonimos.append(s)

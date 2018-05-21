@@ -128,7 +128,7 @@ class DesambiguadorUnificado(object):
 
         return sinonimos[:max_sinonimos]
 
-    def adapted_cosine_lesk(self, frase, ambigua, pos, nbest=True, \
+    def adapted_cosine_lesk(self, lista_ctx, ambigua, pos, nbest=True, \
         lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
 
         inventario_unificado = self.construir_inventario_unificado(ambigua, pos)
@@ -136,28 +136,16 @@ class DesambiguadorUnificado(object):
         todas_assinaturas = self.assinaturas_significados(inventario_unificado, usar_ontologia=usar_ontologia, \
         usar_exemplos=usar_exemplos)
 
-        frase = [p for p in word_tokenize(frase.lower()) if not p in [',', ';', '.']]        
-
-        if stem:
-            frase = [i for i in frase if i not in stopwords.words('english')]
-        if lematizar:
-            frase = [lemmatize(i) for i in frase]
-        if stem:
-            frase = [porter.stem(i) for i in frase]
+        lista_ctx = [p for p in word_tokenize(lista_ctx.lower()) if not p in [',', ';', '.']]        
+        lista_ctx = Utilitarios.processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True)
 
         pontuacao = []
 
         for a in todas_assinaturas:
             ass_tmp = a[1]
+            ass_tmp = Utilitarios.processar_contexto(ass_tmp, stop=True, lematizar=True, stem=True)
 
-            if stop:
-                ass_tmp = [i for i in ass_tmp if i not in stopwords.words('english')]
-            if lematizar:
-                ass_tmp = [lemmatize(i) for i in ass_tmp]
-            if stem:
-                ass_tmp = [porter.stem(i) for i in ass_tmp]
-
-            pontuacao.append((cos_sim(" ".join(frase), " ".join(ass_tmp)), a[0]))
+            pontuacao.append((cos_sim(" ".join(lista_ctx), " ".join(ass_tmp)), a[0]))
 
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
@@ -179,10 +167,12 @@ class DesambiguadorUnificado(object):
             return 
 
         try:
-            todas_definicoes_oxford = { pos: self.base_unificada_oxford.iniciar_consulta(palavra)[pos] }
+            todas_definicoes_oxford = { pos: self.base_unificada_oxford.obter_obj_unificado(palavra)[pos] }
             todas_definicoes_oxford = self.desindentar_coleta_oxford(palavra, todas_definicoes_oxford)
-        except:
-            print('Excecao na construcao do inventario unificado de dicionarios!')            
+        except Exception, e:
+            traceback.print_exc()
+            print(e)
+            raw_input('Excecao na construcao do inventario unificado de dicionarios!')            
 
         for def_oxford in casamentos:
             casamentos_invertidos[casamentos[def_oxford]] = def_oxford

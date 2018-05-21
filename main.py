@@ -121,9 +121,9 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    if True:
-        from Abordagens import BaselineOrdenadorFrequencia
-        bof = BaselineOrdenadorFrequencia.BaselineOrdenadorFrequencia()
+    if False:
+        from Abordagens.BaselineOrdenadorFrequencia import BaselineOrdenadorFrequencia
+        bof = BaselineOrdenadorFrequencia()
         bof.iniciar(configs, None)
         exit(0)
 
@@ -146,49 +146,52 @@ if __name__ == '__main__':
 
     # Criando validadores par as métricas avaliadas
     validador_se2007 = ValidadorRankingSemEval2007(configs)
-    validador_gap = GeneralizedAveragePrecisionMelamud(configs)
 
     # Realiza o SemEval2007 para as minhas abordagens implementadas (baselines)
-    print('\nPressione <enter> para realizar o Semantic Evaluation 2007!')
+    print('\nIniciando o Semantic Evaluation 2007!')
     realizar_se2007_metodos_desenvolvidos(configs)
     print('\n\nSemEval2007 realizado!\n\n')
 
-    # Obtem os gabaritos informados por ambos
-    # anotadores no formato <palavra.pos.id -> gabarito>
-    gold_rankings_se2007 = obter_gold_rankings(configs)
+    aplicar_metrica_gap = True
 
-    # Lista todos aquivos .best ou .oot do SemEval2007
-    lista_todas_submissoes_se2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])
+    if aplicar_metrica_gap:
+        validador_gap = GeneralizedAveragePrecisionMelamud(configs)
+        # Obtem os gabaritos informados por ambos
+        # anotadores no formato <palavra.pos.id -> gabarito>
+        gold_rankings_se2007 = obter_gabarito_rankings(configs)
 
-    # Usa, originalmente, oot
-    lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]
-    submissoes_se2007_carregadas = dict()
+        # Lista todos aquivos .best ou .oot do SemEval2007
+        lista_todas_submissoes_se2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])
 
-    resultados_gap = dict()
+        # Usa, originalmente, oot
+        lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]
+        submissoes_se2007_carregadas = dict()
 
-    for dir_submissao_se2007 in lista_todas_submissoes_se2007:
-        submissao_carregada = carregar_arquivo_submissao_se2007(configs, dir_submissao_se2007)
-        nome_abordagem = dir_submissao_se2007.split('/').pop()
+        resultados_gap = dict()
 
-        submissoes_se2007_carregadas[nome_abordagem] = submissao_carregada
-        resultados_gap[nome_abordagem] = dict()
+        for dir_submissao_se2007 in lista_todas_submissoes_se2007:
+            submissao_carregada = carregar_arquivo_submissao_se2007(configs, dir_submissao_se2007)
+            nome_abordagem = dir_submissao_se2007.split('/').pop()
 
-    for nome_abordagem in submissoes_se2007_carregadas:
-        minha_abordagem = submissoes_se2007_carregadas[nome_abordagem]
-        
-        for lema in gold_rankings_se2007:
-            ranking_gold = [(k, gold_rankings_se2007[lema][k]) for k in gold_rankings_se2007[lema]]
-            if lema in minha_abordagem:
-                meu_ranking = [(k, minha_abordagem[lema][k]) for k in minha_abordagem[lema]]
-                pontuacao_gap = validador_gap.calcular(ranking_gold, meu_ranking)
+            submissoes_se2007_carregadas[nome_abordagem] = submissao_carregada
+            resultados_gap[nome_abordagem] = dict()
 
-                resultados_gap[nome_abordagem][lema] = pontuacao_gap
+        for nome_abordagem in submissoes_se2007_carregadas:
+            minha_abordagem = submissoes_se2007_carregadas[nome_abordagem]
+            
+            for lema in gold_rankings_se2007:
+                ranking_gold = [(k, gold_rankings_se2007[lema][k]) for k in gold_rankings_se2007[lema]]
+                if lema in minha_abordagem:
+                    meu_ranking = [(k, minha_abordagem[lema][k]) for k in minha_abordagem[lema]]
+                    pontuacao_gap = validador_gap.calcular(ranking_gold, meu_ranking)
 
-        # GAP medio
-        resultados_gap[nome_abordagem] = statistics.mean(resultados_gap[nome_abordagem].values())
+                    resultados_gap[nome_abordagem][lema] = pontuacao_gap
 
-    for nome_abordagem in resultados_gap:
-        gap_medio = resultados_gap[nome_abordagem]
-        print('%s\t\tGAP Medio: %s' % (nome_abordagem, str(gap_medio)))
+            # GAP medio
+            resultados_gap[nome_abordagem] = statistics.mean(resultados_gap[nome_abordagem].values())
 
-    print('\n\n\nFim do __main__')
+        for nome_abordagem in resultados_gap:
+            gap_medio = resultados_gap[nome_abordagem]
+            print('%s\t\tGAP Medio: %s' % (nome_abordagem, str(gap_medio)))
+
+        print('\n\n\nFim do __main__')

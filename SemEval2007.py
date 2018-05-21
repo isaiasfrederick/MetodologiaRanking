@@ -1,4 +1,5 @@
 #! coding: utf-8
+from Experimentacao.ValidadorResultados import ValidadorInventarioWordnet
 from CasadorDefinicoes.RepositorioCentralConceitos import BaseUnificadaObjetosOxford
 from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
@@ -16,13 +17,15 @@ import re
 def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
     base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
     
+    gabaritos = obter_gabarito_rankings(configs)
+
     configs_se2007 = configs['semeval2007']
     todas_metricas = configs_se2007['metricas']['limites'].keys()
 
     respostas_semeval = dict()
 
-    for metrica in todas_metricas:
-        respostas_semeval[metrica] = dict()
+    for tarefa in todas_metricas:
+        respostas_semeval[tarefa] = dict()
 
     dir_contadores = configs['leipzig']['dir_contadores']
 
@@ -36,7 +39,7 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
     casos_entrada = validador_se2007.ler_entrada_teste(dir_arquivo_teste)
 
     for lema in casos_entrada:
-        respostas_semeval[metrica][lema] = dict()
+        respostas_semeval[tarefa][lema] = dict()
 
         for id_entrada in casos_entrada[lema]:
             palavra, pos = lema.split('.')
@@ -46,26 +49,38 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
             try:
                 sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
             except:
+                if 'wordnet' in metodo_extracao:
+                    if 'desam' in metodo_extracao:
+                        traceback.print_exc()
                 sinonimos = []
                 print('\n\n')
-                print('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, contexto))
-                traceback.print_stack()
+                print('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, frase))
                 print('\n\n')
-
-            if ordenar and sinonimos:
-                sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
 
             try:
                 sinonimos.remove(palavra)
             except: pass
 
-            for metrica in todas_metricas:
-                if not lema in respostas_semeval[metrica]:
-                    respostas_semeval[metrica][lema] = dict()
+            if ordenar and sinonimos:
+                print('Ordenando sinonimos: ' + str(sinonimos))
+                sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
+                print('Sinonimos ordenados: %s\n' % str(sinonimos))
 
-                limite_superior = int(configs_se2007['metricas']['limites'][metrica])
+            try:
+                if True:
+                    resposta_certa = gabaritos[lema + ' ' + codigo]
+                    ValidadorInventarioWordnet.caso_entrada(palavra, resposta_certa, sinonimos)
+            except: pass
+            
+            for tarefa in todas_metricas:
+                if not lema in respostas_semeval[tarefa]:
+                    respostas_semeval[tarefa][lema] = dict()
+
+                limite_superior = int(configs_se2007['metricas']['limites'][tarefa])
                 sinonimos = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
-                respostas_semeval[metrica][lema][codigo] = sinonimos
+                respostas_semeval[tarefa][lema][codigo] = sinonimos
+
+            print('Entrada: %s - %s - %s - %s: %s' % (metodo_extracao, tarefa, lema, codigo, str(sinonimos)))
         
     return respostas_semeval
 
@@ -143,7 +158,6 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
     for metodo in metodos_extracao:
         todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
         for metrica in todas_metricas_se2007:
-            print('\n\nCalculando metrica "%s" para o metodo "%s"' % (metrica, metodo))
             submissao_gerada = todas_submissoes_geradas[metrica]
 
             nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
@@ -169,10 +183,9 @@ def realizar_se2007_metodos_desenvolvidos(configs):
             resultados_participantes[minha_abordagem['nome']] = minha_abordagem
 
         exibir_todos_resultados(resultados_participantes, validador_se2007)
-        print('\n\n')
 
 # Carregar gold file
-def obter_gold_rankings(configs):
+def obter_gabarito_rankings(configs):
     dir_gold_file = configs['semeval2007']['trial']['gold_file']
 
     arquivo_gold = open(dir_gold_file, 'r')
