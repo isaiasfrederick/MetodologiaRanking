@@ -33,9 +33,9 @@ class InterfaceAbordagens(object):
     def buscar_sinonimos(self, palavra, pos, metodo, fontes = ['wordnet'], multiword=False, contexto=None, ordenar=True):
         topk = 2
 
-        flag_wordnet = False
-        flag_oxford = False
-        flag_unificado = True
+        flag_wordnet = True
+        flag_oxford = True
+        flag_unificado = False
 
         pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)
         pos_ox = pos

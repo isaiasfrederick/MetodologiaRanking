@@ -1,0 +1,1000 @@
+CORRETOS: []
+BEST CORRETAS: ['refuse', 'reject']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1271: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'lessen': 1, 'decrease': 2, 'reject': 1, 'fall': 2, 'weaken': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease', 'fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1272: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'decrease': 3, 'fall': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease', 'fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1273: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'deteriorate': 1, 'decrease': 2, 'fall': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1274: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'deteriorate': 1, 'decrease': 2, 'fall': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1275: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'decrease': 2, 'fall': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease', 'fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1276: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'decrease': 3, 'get worse': 1, 'fall': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1277: []
+PALAVRA: decline
+GABARITO: {'deteriorate': 2, 'decrease': 2, 'fall': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1278: []
+PALAVRA: decline
+GABARITO: {'drop': 1, 'decrease': 3, 'fall': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease', 'fall']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1279: []
+PALAVRA: decline
+GABARITO: {'reduce': 1, 'decrease': 3, 'fall': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['decrease']
+
+
+Entrada: desambiguador_unificado - best - decline.v - 1280: []
+PALAVRA: figure
+GABARITO: {'organisation': 1, 'individual': 1, 'character': 1, 'representative': 1, 'entity': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['organisation', 'individual', 'character', 'representative', 'entity']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1841: []
+PALAVRA: figure
+GABARITO: {'numeral': 1, 'number': 4, 'statistic': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['number']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1842: []
+PALAVRA: figure
+GABARITO: {'amount': 2, 'number': 3, 'statistic': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['number']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1843: []
+PALAVRA: figure
+GABARITO: {'diagram': 2, 'picture': 2, 'image': 1, 'illustration': 1, 'people': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['diagram', 'picture']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1844: []
+PALAVRA: figure
+GABARITO: {'account': 1, 'number': 3, 'value': 1, 'statistic': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['number']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1845: []
+PALAVRA: figure
+GABARITO: {'character': 1, 'person': 1, 'individual': 1, 'representative': 1, 'leader': 1, 'person of authority': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['character', 'person', 'individual', 'representative', 'leader', 'person of authority']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1846: []
+PALAVRA: figure
+GABARITO: {'calculation': 1, 'amount': 1, 'number': 3, 'statistic': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['number']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1847: []
+PALAVRA: figure
+GABARITO: {'person': 1, 'image': 1, 'character': 3, 'personage': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['character']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1848: []
+PALAVRA: figure
+GABARITO: {'total': 1, 'data': 1, 'number': 3, 'statistic': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['number']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1849: []
+PALAVRA: figure
+GABARITO: {'diagram': 4, 'picture': 1, 'illustration': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['diagram']
+
+
+Entrada: desambiguador_unificado - best - figure.n - 1850: []
+PALAVRA: bull
+GABARITO: {'cow': 1, 'male bovine': 1, 'bovine animal': 1, 'male cow': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['cow', 'male bovine', 'bovine animal', 'male cow']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 581: []
+PALAVRA: bull
+GABARITO: {'growing': 1, 'booming': 1, 'rising': 2, 'bovine animal': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['rising']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 582: []
+PALAVRA: bull
+GABARITO: {'male': 4, 'adult male': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['male']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 583: []
+PALAVRA: bull
+GABARITO: {'nonsense': 1, 'rubbish': 5}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['rubbish']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 584: []
+PALAVRA: bull
+GABARITO: {'fearlessly tackled the problem': 1, 'grasped the nettle': 1, 'adult male cow': 1, 'act decisively': 1, 'animal': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['fearlessly tackled the problem', 'grasped the nettle', 'adult male cow', 'act decisively', 'animal']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 585: []
+PALAVRA: bull
+GABARITO: {'edict': 2, 'document': 1, 'warrant': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['edict']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 586: []
+PALAVRA: bull
+GABARITO: {'be accurate': 1, 'target': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['target']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 587: []
+PALAVRA: bull
+GABARITO: {'stag': 1, 'male': 1, 'powerful male': 1, 'suitor': 1, 'stud': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['stag', 'male', 'powerful male', 'suitor', 'stud']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 588: []
+PALAVRA: bull
+GABARITO: {'bulls eye': 1, 'centre circle': 1, 'centre': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['centre']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 589: []
+PALAVRA: bull
+GABARITO: {'load of rubbish': 1, 'crap': 1, 'nonsense': 1, 'rubbish': 4}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['rubbish']
+
+
+Entrada: desambiguador_unificado - best - bull.n - 590: []
+PALAVRA: charge
+GABARITO: {'control': 2, 'command': 2, 'authority': 1, 'power': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['control', 'command']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1811: []
+PALAVRA: charge
+GABARITO: {'accusation': 2, 'offence': 1, 'indictment': 1, 'allegation': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['accusation', 'allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1812: []
+PALAVRA: charge
+GABARITO: {'accusation': 2, 'criticism': 1, 'allegation': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1813: []
+PALAVRA: charge
+GABARITO: {'accusation': 2, 'indictment': 1, 'issue': 1, 'allegation': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['accusation', 'allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1814: []
+PALAVRA: charge
+GABARITO: {'fee': 1, 'cost': 4, 'payment': 1, 'expense': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['cost']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1815: []
+PALAVRA: charge
+GABARITO: {'accusation': 1, 'offence': 1, 'indictment': 1, 'prosecution': 1, 'allegation': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1816: []
+PALAVRA: charge
+GABARITO: {'cost': 3, 'tariff': 1, 'payment': 1, 'expense': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['cost']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1817: []
+PALAVRA: charge
+GABARITO: {'indictment': 1, 'prosecution': 1, 'allegation': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['indictment', 'prosecution', 'allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1818: []
+PALAVRA: charge
+GABARITO: {'fee': 1, 'cost': 4, 'tariff': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['cost']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1819: []
+PALAVRA: charge
+GABARITO: {'accusation': 1, 'offence': 2, 'indictment': 1, 'allegation': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['offence', 'allegation']
+
+
+Entrada: desambiguador_unificado - best - charge.n - 1820: []
+PALAVRA: dry
+GABARITO: {'drought': 1, 'parched': 1, 'rainless': 1, 'arid': 4}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['arid']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 401: []
+PALAVRA: dry
+GABARITO: {'become empty': 1, 'run out': 2, 'empty': 1, 'evaporate': 1, 'out': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['run out']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 402: []
+PALAVRA: dry
+GABARITO: {'arid': 5, 'waterless': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['arid']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 403: []
+PALAVRA: dry
+GABARITO: {'impassive': 1, 'facetious': 1, 'droll': 1, 'understated': 1, 'low key': 1, 'wry': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['wry']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 404: []
+PALAVRA: dry
+GABARITO: {'boring': 2, 'uninteresting': 2, 'unsympathetic': 1, 'dull': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['boring', 'uninteresting']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 405: []
+PALAVRA: dry
+GABARITO: {'boring': 3, 'uninteresting': 2, 'dull': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['boring']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 406: []
+PALAVRA: dry
+GABARITO: {'impassive': 1, 'deadpan': 1, 'droll': 1, 'understated': 1, 'tongue in cheek': 1, 'wry': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['wry']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 407: []
+PALAVRA: dry
+GABARITO: {'boring': 1, 'soulless': 1, 'uninteresting': 1, 'dull': 2, 'flat': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['dull']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 408: []
+PALAVRA: dry
+GABARITO: {'teetotal': 1, 'alcohol free': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['alcohol free']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 409: []
+PALAVRA: dry
+GABARITO: {'unmoistened': 1, 'parched': 2, 'desiccated': 1, 'stodgy': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['parched']
+
+
+Entrada: desambiguador_unificado - best - dry.a - 410: []
+PALAVRA: straight
+GABARITO: {'accurate': 1, 'candid': 1, 'forthright': 1, 'direct': 1, 'honest': 4}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['honest']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 771: []
+PALAVRA: straight
+GABARITO: {'genuine': 1, 'unadulterated': 1, 'plain': 1, 'standard': 1, 'pure': 1, 'undiluted': 1, 'true': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['genuine', 'unadulterated', 'plain', 'standard', 'pure', 'undiluted', 'true']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 772: []
+Entrada: desambiguador_unificado - best - straight.a - 773: []
+PALAVRA: straight
+GABARITO: {'heterosexual': 5}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['heterosexual']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 774: []
+PALAVRA: straight
+GABARITO: {'vertical': 1, 'level': 1, 'nondeviating': 1, 'undistorted': 1, 'unbent': 1, 'uncurving': 1, 'undeviating': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['vertical', 'level', 'nondeviating', 'undistorted', 'unbent', 'uncurving', 'undeviating']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 775: []
+PALAVRA: straight
+GABARITO: {'right': 1, 'clear': 2, 'in order': 1, 'orderly': 1, 'sorted': 2, 'correct': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['clear', 'sorted']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 776: []
+PALAVRA: straight
+GABARITO: {'linear': 1, 'uncrooked': 1, 'direct': 2, 'unbending': 1, 'unswerving': 1, 'unbent': 1, 'undeviating': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['direct']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 777: []
+PALAVRA: straight
+GABARITO: {'in a row': 1, 'consecutive': 4, 'uninterrupted': 1, 'successive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['consecutive']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 778: []
+PALAVRA: straight
+GABARITO: {'truthful': 1, 'candid': 2, 'forthright': 1, 'direct': 1, 'honest': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['honest']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 779: []
+PALAVRA: straight
+GABARITO: {'continuous': 1, 'smooth': 1, 'direct': 1, 'unbending': 1, 'uncurved': 1, 'undeviating': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['continuous', 'smooth', 'direct', 'unbending', 'uncurved', 'undeviating']
+
+
+Entrada: desambiguador_unificado - best - straight.a - 780: []
+PALAVRA: post
+GABARITO: {'position': 3, 'job': 2, 'role': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['position']
+
+
+Entrada: desambiguador_unificado - best - post.n - 701: []
+PALAVRA: post
+GABARITO: {'date': 1, 'mail': 2, 'postal service': 1, 'post office': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['mail']
+
+
+Entrada: desambiguador_unificado - best - post.n - 702: []
+PALAVRA: post
+GABARITO: {'upright': 1, 'pole': 3, 'stake': 1, 'support': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['pole']
+
+
+Entrada: desambiguador_unificado - best - post.n - 703: []
+PALAVRA: post
+GABARITO: {'upright': 1, 'support': 2, 'stake': 2, 'pole': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['support', 'stake', 'pole']
+
+
+Entrada: desambiguador_unificado - best - post.n - 704: []
+PALAVRA: post
+GABARITO: {'mail': 4, 'mail carrier': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['mail']
+
+
+Entrada: desambiguador_unificado - best - post.n - 705: []
+PALAVRA: post
+GABARITO: {'electronic mail': 1, 'mail': 1, 'message': 2, 'electronic bulletin': 1, 'announcement': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['message']
+
+
+Entrada: desambiguador_unificado - best - post.n - 706: []
+PALAVRA: post
+GABARITO: {'position': 3, 'job': 1, 'employment': 1, 'the job': 2}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['position']
+
+
+Entrada: desambiguador_unificado - best - post.n - 707: []
+PALAVRA: post
+GABARITO: {'target': 1, 'support': 2, 'upright': 1, 'pole': 1, 'marker': 1, 'boundary': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['support']
+
+
+Entrada: desambiguador_unificado - best - post.n - 708: []
+PALAVRA: post
+GABARITO: {'position': 3, 'job': 2, 'role': 1, 'appointment': 1, 'situation': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['position']
+
+
+Entrada: desambiguador_unificado - best - post.n - 709: []
+PALAVRA: post
+GABARITO: {'crossing': 3, 'lookout': 1, 'station': 2, 'fence': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['crossing']
+
+
+Entrada: desambiguador_unificado - best - post.n - 710: []
+PALAVRA: often
+GABARITO: {'regularly': 1, 'frequently': 5}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 461: []
+PALAVRA: often
+GABARITO: {'frequently': 4, 'generally': 1, 'recurrently': 1, 'commonly': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 462: []
+PALAVRA: often
+GABARITO: {'frequently': 3, 'sometimes': 1, 'generally': 1, 'at times': 1, 'commonly': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 463: []
+PALAVRA: often
+GABARITO: {'regularly': 1, 'frequently': 5, 'sometimes': 1, 'commonly': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 464: []
+PALAVRA: often
+GABARITO: {'regularly': 1, 'sometimes': 1, 'generally': 1, 'occasionally': 1, 'usually': 1, 'frequently': 3}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 465: []
+PALAVRA: often
+GABARITO: {'regularly': 3, 'frequently': 2, 'habitually': 1}
+PREDITO: []
+TOTAL [3;J[H[2JCORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['regularly']
+
+
+Entrada: desambiguador_unificado - best - often.r - 466: []
+PALAVRA: often
+GABARITO: {'usually': 4, 'frequently': 1, 'generally': 1, 'regularly': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['usually']
+
+
+Entrada: desambiguador_unificado - best - often.r - 467: []
+PALAVRA: often
+GABARITO: {'regularly': 1, 'frequently': 4, 'much': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 468: []
+PALAVRA: often
+GABARITO: {'usually': 2, 'frequently': 2, 'sometimes': 1, 'generally': 2, 'commonly': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['usually', 'frequently', 'generally']
+
+
+Entrada: desambiguador_unificado - best - often.r - 469: []
+PALAVRA: often
+GABARITO: {'regularly': 1, 'frequently': 5}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['frequently']
+
+
+Entrada: desambiguador_unificado - best - often.r - 470: []
+PALAVRA: letter
+GABARITO: {'correspondence': 1, 'communication': 1, 'memo': 1, 'dispatch': 1, 'message': 1, 'missive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['correspondence', 'communication', 'memo', 'dispatch', 'message', 'missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1421: []
+PALAVRA: letter
+GABARITO: {'correspondence': 1, 'correspondence ': 1, 'communication': 1, 'epistle': 1, 'message': 1, 'missive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['correspondence', 'correspondence ', 'communication', 'epistle', 'message', 'missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1422: []
+PALAVRA: letter
+GABARITO: {'alphabetic character': 1, 'glyph': 1, 'character': 2, 'alphabet': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['character']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1423: []
+PALAVRA: letter
+GABARITO: {'correspondence': 1, 'communication': 1, 'document': 1, 'alphabetic character': 1, 'missive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['correspondence', 'communication', 'document', 'alphabetic character', 'missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1424: []
+PALAVRA: letter
+GABARITO: {'alphabetic character': 1, 'character': 2, 'glyph': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['character']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1425: []
+PALAVRA: letter
+GABARITO: {'alphabetic character': 1, 'character': 2, 'glyph': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['character']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1426: []
+PALAVRA: letter
+GABARITO: {'correspondence': 2, 'communication': 1, 'epistle': 1, 'mail': 1, 'document': 1, 'missive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['correspondence']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1427: []
+PALAVRA: letter
+GABARITO: {'communication': 1, 'note': 1, 'epistle': 1, 'mail': 1, 'message': 1, 'missive': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['communication', 'note', 'epistle', 'mail', 'message', 'missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1428: []
+PALAVRA: letter
+GABARITO: {'correspondence': 1, 'communication': 1, 'document': 1, 'missive': 2, 'dispatch': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1429: []
+PALAVRA: letter
+GABARITO: {'communication': 2, 'mail': 1, 'missive': 2, 'epistle': 1}
+PREDITO: []
+TOTAL CORRETOS: 0
+CORRETOS: []
+BEST CORRETAS: ['communication', 'missive']
+
+
+Entrada: desambiguador_unificado - best - letter.n - 1430: []
+DIMENSAO: ModeRecall
+
+
+DIMENSAO: Attempted
+1  -  MR-desambiguador_oxford.oot	1230.00
+2  -  HIT.oot	1230.00
+3  -  UNT.oot	1230.00
+4  -  TOR.oot	1230.00
+5  -  IRST1.oot	1230.00
+6  -  MR-desambiguador_wordnet_ontologia.oot	1230.00
+7  -  IRST2.oot	1230.00
+8  -  MR-desambiguador_oxford_exemplos.oot	1230.00
+9  -  KU.oot	1230.00
+10  -  usyd.oot	1191.00
+11  -  SWAG.oot	1137.00
+12  -  SWAG2.oot	[3;J[H[2J1128.00
+
+
+DIMENSAO: ModePrecision
+
+
+DIMENSAO: Precision
+1  -  UNT.oot	66.26
+2  -  KU.oot	61.30
+3  -  IRST2.oot	58.54
+4  -  IRST1.oot	55.28
+5  -  SWAG2.oot	50.18
+6  -  SWAG.oot	47.41
+7  -  HIT.oot	46.91
+8  -  usyd.oot	43.66
+9  -  MR-desambiguador_wordnet_ontologia.oot	35.61
+10  -  MR-desambiguador_oxford.oot	27.40
+11  -  MR-desambiguador_oxford_exemplos.oot	27.40
+12  -  TOR.oot	14.63
+
+
+DIMENSAO: TotalWithMode
+1  -  MR-desambiguador_oxford.oot	1230.00
+2  -  HIT.oot	1230.00
+3  -  usyd.oot	1230.00
+4  -  UNT.oot	1230.00
+5  -  TOR.oot	1230.00
+6  -  IRST1.oot	1230.00
+7  -  SWAG.oot	1230.00
+8  -  MR-desambiguador_wordnet_ontologia.oot	1230.00
+9  -  SWAG2.oot	1230.00
+10  -  IRST2.oot	1230.00
+11  -  MR-desambiguador_oxford_exemplos.oot	1230.00
+12  -  KU.oot	1230.00
+
+
+DIMENSAO: Recall
+1  -  UNT.oot	66.26
+2  -  KU.oot	61.30
+3  -  IRST2.oot	58.54
+4  -  IRST1.oot	55.28
+5  -  HIT.oot	46.91
+6  -  SWAG2.oot	46.02
+7  -  SWAG.oot	43.82
+8  -  usyd.oot	42.28
+9  -  MR-desambiguador_wordnet_ontologia.oot	35.61
+10  -  MR-desambiguador_oxford.oot	27.40
+11  -  MR-desambiguador_oxford_exemplos.oot	27.40
+12  -  TOR.oot	14.63
+
+
+DIMENSAO: Total
+1  -  MR-desambiguador_oxford.oot	1696.00
+2  -  HIT.oot	1696.00
+3  -  usyd.oot	1696.00
+4  -  UNT.oot	1696.00
+5  -  TOR.oot	1696.00
+6  -  IRST1.oot	1696.00
+7  -  SWAG.oot	1696.00
+8  -  MR-desambiguador_wordnet_ontologia.oot	1696.00
+9  -  SWAG2.oot	1696.00
+10  -  IRST2.oot	1696.00
+11  -  MR-desambiguador_oxford_exemplos.oot	1696.00
+12  -  KU.oot	1696.00
+
+
+DIMENSAO: ModeRecall
+1  -  UNT.best	20.73
+2  -  KU.best	20.65
+3  -  MELB.best	20.41
+4  -  IRST2.best	20.33
+5  -  HIT.best	18.86
+6  -  usyd.best	17.64
+7  -  IRST1.best	13.09
+8  -  MR-desambiguador_oxford.best	8.37
+9  -  MR-desambiguador_oxford_exemplos.best	8.37
+10  -  MR-desambiguador_wordnet_ontologia.best	8.13
+11  -  TOR.best	4.72
+
+
+DIMENSAO: Attempted
+1  -  MR-desambiguador_oxford.best	1230.00
+2  -  MELB.best	1230.00
+3  -  IRST1.best	1230.00
+4  -  IRST2.best	1230.00
+5  -  HIT.best	1230.00
+6  -  TOR.best	1230.00
+7  -  MR-desambiguador_wordnet_ontologia.best	1230.00
+8  -  UNT.best	1230.00
+9  -  MR-desambiguador_oxford_exemplos.best	1230.00
+10  -  KU.best	1230.00
+11  -  usyd.best	1191.00
+
+
+DIMENSAO: ModePrecision
+1  -  UNT.best	20.73
+2  -  KU.best	20.65
+3  -  MELB.best	20.41
+4  -  IRST2.best	20.33
+5  -  HIT.best	18.86
+6  -  usyd.best	18.22
+7  -  IRST1.best	13.09
+8  -  MR-desambiguador_oxford.best	8.37
+9  -  MR-desambiguador_oxford_exemplos.best	8.37
+10  -  MR-desambiguador_wordnet_ontologia.best	8.13
+11  -  TOR.best	4.72
+
+
+DIMENSAO: Precision
+1  -  KU.best	12.90
+2  -  UNT.best	12.77
+3  -  MELB.best	12.68
+4  -  HIT.best	11.35
+5  -  usyd.best	11.23
+6  -  IRST1.best	8.06
+7  -  IRST2.best	6.95
+8  -  MR-desambiguador_wordnet_ontologia.best	5.30
+9  -  MR-desambiguador_oxford.best	5.11
+10  -  MR-desambiguador_oxford_exemplos.best	5.11
+11  -  TOR.best	2.98
+
+
+DIMENSAO: TotalWithMode
+1  -  MR-desambiguador_oxford.best	1230.00
+2  -  MELB.best	1230.00
+3  -  IRST1.best	1230.00
+4  -  IRST2.best	1230.00
+5  -  HIT.best	1230.00
+6  -  usyd.best	1230.00
+7  -  TOR.best	1230.00
+8  -  MR-desambiguador_wordnet_ontologia.best	1230.00
+9  -  UNT.best	1230.00
+10  -  MR-desambiguador_oxford_exemplos.best	1230.00
+11  -  KU.best	1230.00
+
+
+DIMENSAO: Recall
+1  -  KU.best	12.90
+2  -  UNT.best	12.77
+3  -  MELB.best	12.68
+4  -  HIT.best	11.35
+5  -  usyd.best	10.88
+6  -  IRST1.best	8.06
+7  -  IRST2.best	6.94
+8  -  MR-desambiguador_wordnet_ontologia.best	5.24
+9  -  MR-desambiguador_oxford.best	5.05
+10  -  MR-desambiguador_oxford_exemplos.best	5.05
+11  -  TOR.best	2.98
+
+
+DIMENSAO: Total
+1  -  MR-desambiguador_oxford.best	1696.00
+2  -  MELB.best	1696.00
+3  -  IRST1.best	1696.00
+4  -  IRST2.best	1696.00
+5  -  HIT.best	1696.00
+6  -  usyd.best	1696.00
+7  -  TOR.best	1696.00
+8  -  MR-desambiguador_wordnet_ontologia.best	1696.00
+9  -  UNT.best	1696.00
+10  -  MR-desambiguador_oxford_exemplos.best	1696.00
+11  -  KU.best	1696.00
+
+
+
+
+SemEval2007 realizado!
+
+
+MR-desambiguador_oxford.oot		GAP Medio: 0.0941410825616
+MR-buscar_todos_significados_oxford.oot		GAP Medio: 0.0
+MR-desambiguador_wordnet_ontologia.oot		GAP Medio: 0.113308251976
+MR-simples_oxford.oot		GAP Medio: 0.0
+MR-desambiguador_oxford_exemplos.oot		GAP Medio: 0.0941410825616
+MR-simples_wordnet.oot		GAP Medio: 0.0
+MR-topk_wordnet.oot		GAP Medio: 0.0
+MR-topk_oxford.oot		GAP Medio: 0.0
+MR-desambiguador_unificado_exemplos.oot		GAP Medio: 0.0
+MR-desambiguador_unificado.oot		GAP Medio: 0.0
+MR-baseline_wordnet.oot		GAP Medio: 0.0
+MR-todos_wordnet.oot		GAP Medio: 0.0
+MR-baseline_oxford.oot		GAP Medio: 0.0
+MR-todos_oxford.oot		GAP Medio: 0.0
+
+
+
+Fim do __main__

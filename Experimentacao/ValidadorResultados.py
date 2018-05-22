@@ -18,7 +18,6 @@ class ValidadorInventarioWordnet(object):
         except: best_correto = False
 
         print('PALAVRA: ' + palavra)
-        print('GABARITO: ' + str(gabarito.keys()))
         print('GABARITO: ' + str(gabarito))
         print('PREDITO: ' + str(top10))
         print('TOTAL CORRETOS: ' + str(len(total_corretos)))
@@ -29,4 +28,3 @@ class ValidadorInventarioWordnet(object):
             print('BEST PREDITAS: ' + str(best_preditas))
 
         print('\n')
-
