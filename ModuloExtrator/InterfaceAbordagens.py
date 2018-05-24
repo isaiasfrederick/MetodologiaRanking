@@ -34,46 +34,63 @@ class InterfaceAbordagens(object):
         topk = 2
 
         flag_wordnet = True
-        flag_oxford = True
+        flag_oxford = False
         flag_unificado = False
 
         pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)
         pos_ox = pos
 
-        if metodo == 'simples_wordnet' and flag_wordnet:
-            pass
+#        if metodo == 'simples_wordnet' and flag_wordnet:
 #            return self.buscar_sinonimos_simples_wordnet(palavra, pos_wn, fontes, False)
-        elif metodo == 'baseline_wordnet' and flag_wordnet:
-            pass
+#        elif metodo == 'baseline_wordnet' and flag_wordnet:
 #            return self.buscar_sinonimos_baseline_semeval_wordnet(palavra, pos_wn, fontes, multiword=False)
-        elif metodo == 'topk_wordnet' and flag_wordnet:
-            pass
+#        elif metodo == 'topk_wordnet' and flag_wordnet:
 #            return self.buscar_topk_wordnet(palavra, pos_wn, fontes, multiword, topk)
-        elif metodo == 'todos_wordnet' and flag_wordnet:
-            pass
+#        elif metodo == 'todos_wordnet' and flag_wordnet:
 #           return self.buscar_todos_significados_wordnet(palavra, pos_wn, fontes, multiword, 10000)
-        elif metodo == 'buscar_sinonimos_principal_synset_wordnet' and flag_wordnet:
-            pass
+#        elif metodo == 'buscar_sinonimos_principal_synset_wordnet' and flag_wordnet:
 #            return self.buscar_sinonimos_principal_synset_wordnet(palavra, pos_wn, fontes, multiword=False)
-        elif metodo == 'desambiguador_wordnet_ontologia' and flag_wordnet:            
-            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn)
+
+# def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False, busca_ampla=False, repetir=True, coletar_todos=True)
+
+        if metodo == 'Wordnet_ontologia_SemBuscaAmpla_SemRepetir_ColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=False, repetir=False, coletar_todos=True)
+
+        elif metodo == 'Wordnet_ontologia_BuscaAmpla_SemRepetir_ColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=True, repetir=False, coletar_todos=True)
+
+        if metodo == 'Wordnet_ontologia_SemBuscaAmpla_SemRepetir_SemColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=False, repetir=False, coletar_todos=False)
+
+        elif metodo == 'Wordnet_ontologia_BuscaAmpla_SemRepetir_SemColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=True, repetir=False, coletar_todos=False)
+
+        elif metodo == 'Wordnet_ontologia_SemBuscaAmpla_Repetir_ColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=False, repetir=True, coletar_todos=True)
+
+        elif metodo == 'Wordnet_ontologia_BuscaAmpla_Repetir_ColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=True, repetir=True, coletar_todos=True)
+
+        elif metodo == 'Wordnet_ontologia_SemBuscaAmpla_Repetir_SemColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=False, repetir=True, coletar_todos=False)
+            
+        elif metodo == 'Wordnet_ontologia_BuscaAmpla_Repetir_SemColetarTodos' and flag_wordnet:
+            return self.desambiguador_wordnet.extrair_sinonimos(contexto, palavra, pos=pos_wn, busca_ampla=True, repetir=True, coletar_todos=False)
+
         # METODOS DO DICIONARIO DE OXFORD
         if metodo == 'simples_oxford' and flag_oxford:
-            pass
-#            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=10000, usar_exemplos=False)
+            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=10000, usar_exemplos=False)
         elif metodo == 'topk_oxford' and flag_oxford:
-            pass
-#            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=topk, usar_exemplos=False)
+            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=topk, usar_exemplos=False)
         elif metodo == 'todos_oxford' and flag_oxford:
-            pass
-#            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=10000, usar_exemplos=False)
+            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=10000, usar_exemplos=False)
         elif metodo == 'buscar_sinonimos_principal_significado_oxford' and flag_oxford:
-            pass
-#            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=1, usar_exemplos=False)
+            return self.desambiguador_oxford.metodos_baseline(contexto, palavra, pos=pos, limite=1, usar_exemplos=False)
         elif metodo == 'desambiguador_oxford' and flag_oxford:
             return self.desambiguador_oxford.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False)
         elif metodo == 'desambiguador_oxford_exemplos' and flag_oxford:
             return self.desambiguador_oxford.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=True)
+
         # METODOS DE DADOS UNIFICADOS
         elif metodo == 'desambiguador_unificado' and flag_unificado:
             return self.desambiguador_unificado.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False)

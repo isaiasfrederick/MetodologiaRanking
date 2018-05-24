@@ -115,10 +115,26 @@ class BaseUnificadaObjetosOxford(object):
                 for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
                     if def_sec == definicao:
                         return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
-        except:
-            pass
+        except: pass
 
         return None
+
+    def obter_todas_definicoes_obj_unificado(self, obj_unificado):
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
+
+        todas_definicoes = []
+
+        try:
+            for pos in obj_unificado:
+                for def_primaria in obj_unificado[pos]:
+                    todas_definicoes.append(def_primaria)
+
+                    for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
+                        todas_definicoes.append(def_sec)
+        except: pass
+
+        return todas_definicoes
 
     def existe_intersecao(self, s1, s2):
         return bool(set(s1) & set(s2))

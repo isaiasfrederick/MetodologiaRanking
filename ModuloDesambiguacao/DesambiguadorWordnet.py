@@ -29,8 +29,8 @@ class DesambiguadorWordnet(object):
 
     def __init__(self, configs): pass
 
-    def adapted_cosine_lesk(self, contexto, palavra, pos=None):
-        resultado = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+    def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
+        resultado = cosine_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
 
         return resultado
 
@@ -38,37 +38,60 @@ class DesambiguadorWordnet(object):
     # que usa da medida de cosseno como critério de ordenação
     # A partir disto, realiza a coleta de palavras correlatas
     # ao significado sugerido
-    def extrair_sinonimos(self, contexto, palavra, pos=None, usar_exemplos=False):
+    def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False, busca_ampla=False, repetir=True, coletar_todos=True):
         max_sinonimos = 10
+        usar_heuristica = False
 
         print('Executando desambiguador Wordnet...')
-        resultado = self.adapted_cosine_lesk(contexto, palavra, pos)
+        resultado = self.adapted_cosine_lesk(ctx, palavra, pos, busca_ampla=busca_ampla)
         print('Desambiguador executado...\n')
 
         sinonimos = []
 
-        for item in resultado:
-            synset, pontuacao = item
+        try:
+            usar_heuristica = True if resultado[0][1] == 0 else False
+        except: pass
 
-            if sinonimos.__len__() < max_sinonimos:
-                sinonimos += [p for p in synset.lemma_names() if not Utilitarios.multipalavra(p)]
-                sinonimos = list(set(sinonimos))
+        continuar = True
+        while len(sinonimos) < max_sinonimos and continuar:
+            qtde = len(sinonimos)
+
+            for item in resultado:
+                synset, pontuacao = item
+
+                if pontuacao > 0 or usar_heuristica:
+                    if len(sinonimos) < max_sinonimos:
+                        try:
+                            if coletar_todos == False:
+                                sinonimos += [p for p in synset.lemma_names() if not Utilitarios.multipalavra(p)]
+                            else:
+                                sinonimos += [[p for p in synset.lemma_names() if not Utilitarios.multipalavra(p)][0]]
+
+                            sinonimos = list(set(sinonimos))
+                        except: pass
+
+            continuar = not (len(sinonimos) == qtde)
+            if repetir == False:
+				continuar = continuar
 
         return sinonimos[:max_sinonimos]
 
-def todos_synsets(lema, pos=None):
-	resultado = set()
+def criar_inventario_desambiguador_wordnet(lema, pos=None, busca_ampla=False):
+	inventario_tmp = set()
+	inventario = set()
 
-	for s in wn.synsets(lema, pos):
-		resultado.add(s)
+	for synset in wn.synsets(lema, pos):
+		inventario_tmp.add(synset)
 
-	if False:
-		for s in resultado:
-			for h in s.hypernyms():
-				for hipo in h.hyponyms():
-					resultado.add(hipo)
+	if busca_ampla == True:
+		for synset in inventario_tmp:
+			for hiper in synset.hypernyms():
+				for hipo in hiper.hyponyms():
+					inventario.add(hipo)
 
-	return list(set(resultado))
+	inventario.update(inventario_tmp)
+
+	return list(inventario)
 
 def compare_overlaps_greedy(context, synsets_signatures):
 	"""
@@ -142,7 +165,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 	"""
 	synsets_signatures = {}
 	#for ss in wn.synsets(ambiguous_word):
-	for ss in todos_synsets(ambiguous_word):
+	for ss in criar_inventario_desambiguador_wordnet(ambiguous_word, pos=pos):
 		try: # If POS is specified.
 			if pos and str(ss.pos()) != pos:
 				continue
@@ -282,7 +305,7 @@ def adapted_lesk(context_sentence, ambiguous_word, \
 def cosine_lesk(context_sentence, ambiguous_word, \
 				pos=None, lemma=True, stem=True, hyperhypo=True, \
 				stop=True, context_is_lemmatized=False, \
-				nbest=False, synsets_signatures=None):
+				nbest=False, synsets_signatures=None, busca_ampla=False):
 	"""
 	In line with vector space models, we can use cosine to calculate overlaps
 	instead of using raw overlap counts. Essentially, the idea of using
@@ -295,7 +318,7 @@ def cosine_lesk(context_sentence, ambiguous_word, \
 
 	# If ambiguous word not in WordNet return None
 	#if not wn.synsets(ambiguous_word):
-	if not todos_synsets(ambiguous_word):
+	if not criar_inventario_desambiguador_wordnet(ambiguous_word, busca_ampla=busca_ampla):
 		return None
 
 	if context_is_lemmatized:
@@ -305,7 +328,7 @@ def cosine_lesk(context_sentence, ambiguous_word, \
 
 	scores = []
 
-	chave_assinatura = "%s.%s.%s.%s.%s" % (ambiguous_word, pos, lemma, stem, hyperhypo)
+	chave_assinatura = "%s.%s.%s.%s.%s.%s" % (ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla)
 
 	if not chave_assinatura in DesambiguadorWordnet.cache_assinaturas:
 		synsets_signatures = simple_signature(ambiguous_word, pos, lemma, stem, hyperhypo)
@@ -317,15 +340,8 @@ def cosine_lesk(context_sentence, ambiguous_word, \
 			# Removes punctuation.
 			signature = [i for i in word_tokenize(signature) \
 						if i not in string.punctuation]
-			# Optional: remove stopwords.
-			if stop:
-				signature = [i for i in signature if i not in EN_STOPWORDS]
-			# Optional: Lemmatize the tokens.
-			if lemma == True:
-				signature = [lemmatize(i) for i in signature]
-			# Optional: stem the tokens.
-			if stem:
-				signature = [porter.stem(i) for i in signature]
+
+			signature = Utilitarios.processar_contexto(signature, stop=stop, lematizar=lemma, stem=stem)
 
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))
 

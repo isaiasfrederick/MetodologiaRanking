@@ -49,12 +49,11 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
             try:
                 sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
             except:
-                if 'wordnet' in metodo_extracao:
-                    if 'desam' in metodo_extracao:
-                        traceback.print_exc()
+                traceback.print_exc()
                 sinonimos = []
                 print('\n\n')
-                print('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, frase))
+                print(metodo_extracao)
+                raw_input('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, frase))
                 print('\n\n')
 
             try:
@@ -62,15 +61,16 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
             except: pass
 
             if ordenar and sinonimos:
-                print('Ordenando sinonimos: ' + str(sinonimos))
                 sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
-                print('Sinonimos ordenados: %s\n' % str(sinonimos))
 
             try:
                 if True:
                     resposta_certa = gabaritos[lema + ' ' + codigo]
                     ValidadorInventarioWordnet.caso_entrada(palavra, resposta_certa, sinonimos)
-            except: pass
+            except KeyError, ke: pass
+            except:
+                traceback.print_exc()
+                raw_input('\n\n<enter>')
             
             for tarefa in todas_metricas:
                 if not lema in respostas_semeval[tarefa]:
@@ -156,15 +156,16 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
-        for metrica in todas_metricas_se2007:
-            submissao_gerada = todas_submissoes_geradas[metrica]
+        if 'Ampla' in metodo:
+            todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
+            for metrica in todas_metricas_se2007:
+                submissao_gerada = todas_submissoes_geradas[metrica]
 
-            nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
-            nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
+                nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
+                nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
 
-            resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
-            resultados[metrica].append(resultados_minha_abordagem)
+                resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
+                resultados[metrica].append(resultados_minha_abordagem)
 
     return resultados
  
