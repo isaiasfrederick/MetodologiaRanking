@@ -49,28 +49,21 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
             try:
                 sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
             except:
+                print('\n')
                 traceback.print_exc()
                 sinonimos = []
-                print('\n\n')
-                print(metodo_extracao)
-                raw_input('Erro para a extracao de sinonimos para:\n(%s, %s, %s)\n' % (palavra, pos, frase))
-                print('\n\n')
+                print('\n')
 
             try:
                 sinonimos.remove(palavra)
             except: pass
 
             if ordenar and sinonimos:
-                sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
-
-            try:
-                if True:
-                    resposta_certa = gabaritos[lema + ' ' + codigo]
-                    ValidadorInventarioWordnet.caso_entrada(palavra, resposta_certa, sinonimos)
-            except KeyError, ke: pass
-            except:
-                traceback.print_exc()
-                raw_input('\n\n<enter>')
+                try:
+                    sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
+                except:
+                    print(sinonimos)
+                    raw_input('EXCECAO no metodo ' + metodo_extracao)
             
             for tarefa in todas_metricas:
                 if not lema in respostas_semeval[tarefa]:
@@ -156,7 +149,10 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        if 'Ampla' in metodo:
+#        if 'Wordnet' in metodo or 'Oxford':
+        if 'Wordnet' in  metodo:
+#        if 'Wordnet' in metodo:
+#        if True:
             todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
             for metrica in todas_metricas_se2007:
                 submissao_gerada = todas_submissoes_geradas[metrica]
@@ -171,6 +167,8 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
  
 # Realizar o SemEval2007 exclusivamente para os métodos que desenvolvi
 def realizar_se2007_metodos_desenvolvidos(configs):
+    system('clear ' + configs['dir_saidas_rankeador'])
+
     validador_se2007 = ValidadorRankingSemEval2007(configs)
     # gerar todas minhas abordagens de baseline
     minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)

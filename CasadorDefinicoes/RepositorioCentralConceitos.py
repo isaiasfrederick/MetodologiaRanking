@@ -58,7 +58,8 @@ class CasadorConceitos:
         if obj_cache:
             return obj_cache
 
-        todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
+        #todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
+        todas_definicoes_oxford = self.base_unificada_oxford.obter_obj_unificado(lema)
 
         try:
             todos_synsets = wn.synsets(lema, pos[0].lower())

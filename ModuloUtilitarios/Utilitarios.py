@@ -61,12 +61,12 @@ class Utilitarios(object):
         return pos
 
     @staticmethod
-    def multipalavra(palavra):
+    def representa_multipalavra(palavra):
         return '-' in palavra or ' ' in palavra or '_' in palavra
 
     @staticmethod
     def remover_multipalavras(lista):
-        return [e for e in lista if Utilitarios.multipalavra(e) == False]
+        return [e for e in lista if Utilitarios.representa_multipalavra(e) == False]
 
     @staticmethod
     def carregar_configuracoes(dir_configs):

@@ -93,7 +93,6 @@ class BaseUnificadaObjetosOxford(object):
                         obj_coletado[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
             traceback.print_exc()
-            #raw_input("Excecao para a palavra " + palavra)
             BaseUnificadaObjetosOxford.objs_unificados[palavra] = None
             return None
 
@@ -113,9 +112,11 @@ class BaseUnificadaObjetosOxford(object):
                     return obj_unificado[pos][def_primaria]['sinonimos']
 
                 for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
-                    if def_sec == definicao:
+                    if definicao == def_sec:
                         return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
-        except: pass
+
+        except:
+            print("A palavra %s e definicao '%s' retornou 0 sinonimos!" % (palavra, definicao))
 
         return None
 
@@ -249,6 +250,7 @@ class ClienteOxfordAPI(object):
             self.obj_urls_invalidas_sinonimos = dict()
         if not self.obj_urls_invalidas_definicoes:
             self.obj_urls_invalidas_definicoes = dict()
+
     # retorna todas informacoes da API de Oxford
     def iniciar_coleta(self, palavra):
         definicoes_tmp = self.obter_definicoes(palavra) # Objeto 1
@@ -267,6 +269,7 @@ class ClienteOxfordAPI(object):
         if not sinonimos_tmp:
             print('Objeto de SINONIMOS para %s obtido na coleta do ClienteOxford nao funcionou!' % palavra)
             print('\n\n')
+
 
         if definicoes_tmp:
             # a API nao prove sinonimos e definicoes de forma unificada, entao junte as duas
@@ -450,12 +453,12 @@ class ClienteOxfordAPI(object):
                         sense_id = sig['thesaurusLinks'][0]['sense_id']
 
                         try:
-                            reg['synonyms'] = sinonimos_tmp[sense_id]
+                            sig['synonyms'] = sinonimos_tmp[sense_id]
                         except Exception, e:
                             sig['synonyms'] = []
 
                         try:
-                            reg['examples'] = exemplos_tmp[sense_id]
+                            sig['examples'] = exemplos_tmp[sense_id]
                         except:
                             sig['examples'] = []
                 except:

@@ -23,6 +23,7 @@ from pywsd.utils import lemmatize, porter, lemmatize_sentence, synset_properties
 
 EN_STOPWORDS = stopwords.words('english')
 
+import traceback
 
 class DesambiguadorWordnet(object):    
     cache_assinaturas = dict()
@@ -30,9 +31,7 @@ class DesambiguadorWordnet(object):
     def __init__(self, configs): pass
 
     def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
-        resultado = cosine_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
-
-        return resultado
+        return isaias_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
 
     # Realiza o processo de desambiguacao gerando um Ranking 
     # que usa da medida de cosseno como critério de ordenação
@@ -40,7 +39,6 @@ class DesambiguadorWordnet(object):
     # ao significado sugerido
     def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False, busca_ampla=False, repetir=True, coletar_todos=True):
         max_sinonimos = 10
-        usar_heuristica = False
 
         print('Executando desambiguador Wordnet...')
         resultado = self.adapted_cosine_lesk(ctx, palavra, pos, busca_ampla=busca_ampla)
@@ -49,47 +47,59 @@ class DesambiguadorWordnet(object):
         sinonimos = []
 
         try:
-            usar_heuristica = True if resultado[0][1] == 0 else False
-        except: pass
+			if resultado[0][1] == 0:
+				resultado = [resultado[0]]				
+				repetir = False
 
-        continuar = True
+				if False:
+					sinonimos = []
+					try:
+						for synset in [s[0] for s in resultado]:
+							for lema in synset.lemma_names():
+								if not l in sinonimos:
+									sinonimos.append(l)
+					except: pass
+
+					return sinonimos[:max_sinonimos]
+			else:
+				resultado = [item for item in resultado if item[1] > 0]
+        except:
+			resultado = []
+
+        continuar = bool(resultado)
+        
         while len(sinonimos) < max_sinonimos and continuar:
-            qtde = len(sinonimos)
+            len_sinonimos = len(sinonimos)
 
             for item in resultado:
                 synset, pontuacao = item
 
-                if pontuacao > 0 or usar_heuristica:
-                    if len(sinonimos) < max_sinonimos:
-                        try:
-                            if coletar_todos == False:
-                                sinonimos += [p for p in synset.lemma_names() if not Utilitarios.multipalavra(p)]
-                            else:
-                                sinonimos += [[p for p in synset.lemma_names() if not Utilitarios.multipalavra(p)][0]]
+                if len(sinonimos) < max_sinonimos:
+                    try:
+                        sinonimos_tmp = [s for s in synset.lemma_names() if not Utilitarios.representa_multipalavra(s)]
+                        sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
 
-                            sinonimos = list(set(sinonimos))
-                        except: pass
+                        if coletar_todos: sinonimos += sinonimos_tmp
+                        elif sinonimos_tmp: sinonimos += [sinonimos_tmp[0]]
 
-            continuar = not (len(sinonimos) == qtde)
-            if repetir == False:
-				continuar = continuar
+                    except: pass
+                else:
+                    continuar = False
+
+            if repetir == False: continuar = False
+            elif len_sinonimos == len(sinonimos): continuar = False
 
         return sinonimos[:max_sinonimos]
 
 def criar_inventario_desambiguador_wordnet(lema, pos=None, busca_ampla=False):
-	inventario_tmp = set()
 	inventario = set()
-
-	for synset in wn.synsets(lema, pos):
-		inventario_tmp.add(synset)
+	inventario.update(wn.synsets(lema, pos))
 
 	if busca_ampla == True:
-		for synset in inventario_tmp:
+		for synset in wn.synsets(lema, pos):
 			for hiper in synset.hypernyms():
 				for hipo in hiper.hyponyms():
 					inventario.add(hipo)
-
-	inventario.update(inventario_tmp)
 
 	return list(inventario)
 
@@ -155,7 +165,7 @@ def original_lesk(context_sentence, ambiguous_word, dictionary=None):
 	return best_sense
 
 def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
-					 hyperhypo=False, stop=True):
+					 hyperhypo=True, stop=True, busca_ampla=False):
 	"""
 	Returns a synsets_signatures dictionary that includes signature words of a
 	sense from its:
@@ -165,7 +175,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 	"""
 	synsets_signatures = {}
 	#for ss in wn.synsets(ambiguous_word):
-	for ss in criar_inventario_desambiguador_wordnet(ambiguous_word, pos=pos):
+	for ss in criar_inventario_desambiguador_wordnet(ambiguous_word, pos=pos, busca_ampla=busca_ampla):
 		try: # If POS is specified.
 			if pos and str(ss.pos()) != pos:
 				continue
@@ -198,10 +208,10 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 		signature+= ss_lemma_names
 
 		# Optional: includes lemma_names of hypernyms and hyponyms.
-		if hyperhypo == True:
+		if hyperhypo:
 			ss_hyponyms = synset_properties(ss, 'hyponyms')
 			ss_hypernyms = synset_properties(ss, 'hypernyms')
-			#ss_hypohypernyms = ss_hypernyms+ss_hyponyms
+			ss_hypohypernyms = ss_hypernyms+ss_hyponyms
 			ss_hypohypernyms = ss_hypernyms
 			signature+= list(chain(*[i.lemma_names() for i in ss_hypohypernyms]))
 
@@ -302,7 +312,7 @@ def adapted_lesk(context_sentence, ambiguous_word, \
 									normalizescore=normalizescore)
 	return best_sense
 
-def cosine_lesk(context_sentence, ambiguous_word, \
+def isaias_lesk(context_sentence, ambiguous_word, \
 				pos=None, lemma=True, stem=True, hyperhypo=True, \
 				stop=True, context_is_lemmatized=False, \
 				nbest=False, synsets_signatures=None, busca_ampla=False):
@@ -331,7 +341,8 @@ def cosine_lesk(context_sentence, ambiguous_word, \
 	chave_assinatura = "%s.%s.%s.%s.%s.%s" % (ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla)
 
 	if not chave_assinatura in DesambiguadorWordnet.cache_assinaturas:
-		synsets_signatures = simple_signature(ambiguous_word, pos, lemma, stem, hyperhypo)
+		synsets_signatures = simple_signature(ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla=busca_ampla)
+
 		DesambiguadorWordnet.cache_assinaturas[chave_assinatura] = []
 
 		for ss, signature in synsets_signatures.items():

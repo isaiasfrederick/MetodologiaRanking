@@ -47,8 +47,7 @@ class DesambiguadorOxford(object):
         return assinatura
 
     """ Metodo Cosseno feito para o dicionario de Oxford """
-    def adapted_cosine_lesk(self, ctx, ambigua, pos, nbest=True,\
-        lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False):
+    def adapted_cosine_lesk(self, ctx, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False, busca_ampla=False):
 
         if pos.__len__() == 1:
             pos = Utilitarios.conversor_pos_wn_oxford(pos)
@@ -63,14 +62,8 @@ class DesambiguadorOxford(object):
 
         for a in assinaturas:
             ass_definicao = Utilitarios.processar_contexto(a[3], stop=stop, lematizar=lematizar, stem=stem)
-            pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), a[0:3]))
-
-            intersecao = list(set(ctx) & set(ass_definicao))
-            if intersecao:
-                print('Intersecao: ' + str(intersecao))
-                print('\n')
-
-        print('\n')
+            registro_definicao = a[0:3]
+            pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), registro_definicao))
 
         resultado = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
@@ -175,26 +168,53 @@ class DesambiguadorOxford(object):
 
         return sinonimos_selecionados
 
-    def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False):
+
+    def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False, busca_ampla=False, repetir=False, coletar_todos=True):
         max_sinonimos = 10
 
+        obter_objeto_unificado_oxford = self.base_unificada_oxford.obter_obj_unificado
+        obter_sinonimos_oxford = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado
+
         try:
-            resultado = self.adapted_cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos)
+            resultado = self.adapted_cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla)
         except Exception, e:
             resultado = []
 
         sinonimos = []
 
-        for item in resultado:
-            definicao, pontuacao = item[0][1], item[1]
+        try:
+            if resultado[0][1] == 0:
+                resultado = [resultado[0]]
+                repetir = False
+            else:
+                resultado = [item for item in resultado if item[1] > 0]
+        except:
+            resultado = []
 
-            if sinonimos.__len__() < max_sinonimos:
-                obj_unificado = self.base_unificada_oxford.obter_obj_unificado(palavra)
+        continuar = bool(resultado)
 
-                sinonimos_tmp = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_unificado)
-                sinonimos_tmp = [] if not sinonimos_tmp else sinonimos_tmp
+        while len(sinonimos) < max_sinonimos and continuar:
+            len_sinonimos = len(sinonimos)
 
-                for s in [s for s in sinonimos_tmp if Utilitarios.multipalavra(s) == False]:
-                    sinonimos.append(s)
+            for item in resultado:
+                definicao, pontuacao = item[0][1], item[1]
+
+                if len(sinonimos) < max_sinonimos:
+                    try:                        
+                        obj_unificado = obter_objeto_unificado_oxford(palavra)
+
+                        sinonimos_tmp = obter_sinonimos_oxford(pos, definicao, obj_unificado)
+                        sinonimos_tmp = [s for s in sinonimos_tmp if not Utilitarios.representa_multipalavra(s)]
+                        sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
+
+                        if coletar_todos: sinonimos += sinonimos_tmp
+                        elif sinonimos_tmp: sinonimos += [sinonimos_tmp[0]]
+
+                    except: pass
+                else:
+                    continuar = False
+
+            if repetir == False: continuar = False
+            elif len_sinonimos == len(sinonimos): continuar = False
 
         return sinonimos[:max_sinonimos]
