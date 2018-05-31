@@ -59,6 +59,8 @@ class CasadorConceitos:
             return obj_cache
 
         #todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
+        raw_input(self.base_unificada_oxford)
+        raw_input(type(lema))
         todas_definicoes_oxford = self.base_unificada_oxford.obter_obj_unificado(lema)
 
         try:

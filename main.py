@@ -15,102 +15,22 @@ from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
 from nltk.corpus import wordnet as wn
 # Fim pacotes da Experimentacao
 
+def testar_casamento(configs):
+    base_unificada = BaseUnificadaObjetosOxford(configs)
+    casador = CasadorConceitos(configs, base_unificada)
 
-def testar_desambiguadores(configs):
-    base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
+    palavra = raw_input('Palavra: ')
+    pos = raw_input('POS: ')
 
-    desambiguador_oxford = DesambiguadorOxford(configs, base_unificada_oxford)
-    desambiguador_unificado = DesambiguadorUnificado(configs, base_unificada_oxford)
-    desambiguador_wordnet = DesambiguadorWordnet(configs)
+    r = casador.iniciar_casamento(palavra, pos)
+    print('\n')
 
-    #repositorio_definicoes = CasadorConceitos(configs, base_unificada_oxford)
-
-    lema = 'side'
-
-    frase = "On Sunday at Craven Cottage, Jose Mourinho and his all stars exhibited all "
-    frase += "of the above symptoms and they were made to pay the price by a Fulham side that had "
-    frase += "in previous weeks woken up after matches with their heads kicked in .".lower()
-
-    pos = 'n'
-
-    frase = 'General Update #3 Wednesday , 24th September , 2003 : : 03:56 EDT - Sidenotes - perplexed A little more of the general boring scrap , nothing to get too excited about .'
-    frase = frase.lower()
-
-    lema = 'scrap'
-
-    if False:
-        casador = CasadorConceitos(configs, base_unificada_oxford)
-        casador.iniciar_casamento(raw_input('Lema: '), raw_input('POS: '))
-
-
-    # ---------------------------------------------------------------------------
-
-    if False:
-        print('\n\nDESAMBIGUADOR OXFORD')
-        resultado = desambiguador_oxford.adapted_cosine_lesk(frase, lema, pos, usar_ontologia=True, usar_exemplos=True)
-        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
-      
-        for elemento in resultado:
-            nome_definicao, definicao, pontuacao = elemento[0][0], elemento[0][1], elemento[1]
-
-            # consulta repositorio pra obter dados
-            obj_retorno = base_unificada_oxford.iniciar_consulta(lema)
-            # busca sinonimos por definicao
-            sinonimos = base_unificada_oxford.obter_sinonimos_fonte_obj_unificado(pos, definicao, obj_retorno)
-
-            print((nome_definicao, definicao, pontuacao, sinonimos))
-            print('\n')
-            
+    for e in r:
+        print(e)
+        print(r[e])
         print('\n\n\n')
-        #raw_input('\n<ENTER>')
-        #Utilitarios.limpar_console()
 
-    # ---------------------------------------------------------------------------
-
-    if True:
-        resultado = desambiguador_unificado.adapted_cosine_lesk(frase, lema, pos, usar_ontologia=True, usar_exemplos=True)
-        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
-
-        print('\n\nDESAMBIGADOR UNIFICADO (USANDO EXEMPLOS)\n')
-        for elemento in resultado:
-            print(elemento)
-
-        print('\n\n\n')
-        raw_input('\n<enter>')
-        #Utilitarios.limpar_console()
-
-    # ---------------------------------------------------------------------------
-
-    if False:
-        resultado = desambiguador_unificado.adapted_cosine_lesk(frase, lema, pos, usar_exemplos=False, usar_ontologia=True)
-        resultado = [(elemento[0][0:2], elemento[1]) for elemento in resultado]
-
-        print('\n\nDESAMBIGADOR UNIFICADO (SEM UTILIZAR EXEMPLOS)\n')
-        for elemento in resultado:
-            print(elemento)
-
-        print('\n\n\n')
-        raw_input('\n<enter>')
-        #Utilitarios.limpar_console()
-
-    # ---------------------------------------------------------------------------
-
-    if False:
-        print('DESAMBIGADOR WORDNET')
-        resultado = desambiguador_wordnet.adapted_cosine_lesk(frase, lema, pos=pos)
-
-        for elemento in resultado:
-            synset, pontuacao = elemento
-            print((synset.name(), synset.definition(), pontuacao))
-
-        print('\n\n\n')
-        #raw_input('\n<enter>')
-        #Utilitarios.limpar_console()
-
-    exit(0)
-
-    # ---------------------------------------------------------------------------
-
+    print('\n\nCheguei aqui...')
 
 if __name__ == '__main__':
     if len(argv) < 2:
@@ -121,28 +41,8 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    if False:
-        from Abordagens.BaselineOrdenadorFrequencia import BaselineOrdenadorFrequencia
-        bof = BaselineOrdenadorFrequencia()
-        bof.iniciar(configs, None)
-        exit(0)
-
-    if False:
-    #    def obter_obj_cli_api(self, palavra):
-    #    def obter_obj_col_web(self, palavra):
-    #    def obter_obj_unificado(self, palavra)
-
-        base_unificada = BaseUnificadaObjetosOxford(configs)
-        obj = base_unificada.iniciar_consulta('informal')
-
-        definicao = 'Bits of uneaten food left after a meal.'
-
-        sinonimos = base_unificada.obter_sinonimos_fonte_obj_unificado('n', definicao, obj)
-        #sinonimos = base_unificada.obter_sinonimos_fonte_obj_api('n', definicao, obj)
-
-        testar_desambiguadores(configs)
-
-        exit(0)
+#    testar_casamento(configs)
+#    exit(0)
 
     # Criando validadores par as métricas avaliadas
     validador_se2007 = ValidadorRankingSemEval2007(configs)

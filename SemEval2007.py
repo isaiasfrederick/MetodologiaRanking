@@ -149,8 +149,8 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-#        if 'Wordnet' in metodo or 'Oxford':
-        if 'Wordnet' in  metodo:
+        if 'Wordnet' in metodo or 'Oxford':
+#        if 'Wordnet' in  metodo:
 #        if 'Wordnet' in metodo:
 #        if True:
             todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
