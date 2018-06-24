@@ -32,6 +32,18 @@ def testar_casamento(configs):
 
     print('\n\nCheguei aqui...')
 
+def testar_wander(configs):
+    from Abordagens.Wander import PonderacaoSinonimia
+
+    ponderacao_sinonimia = PonderacaoSinonimia.Ponderador(configs)
+    print('\n\n')
+    termo = raw_input('Digite a palavra: ')
+    pos = raw_input('POS: ')
+    contexto = 'i have been at war with other men'
+    ponderacao_sinonimia.iniciar_processo(termo, pos, contexto)
+    exit(0)
+
+
 if __name__ == '__main__':
     if len(argv) < 2:
         print('\nParametrizacao errada!')
@@ -40,6 +52,8 @@ if __name__ == '__main__':
 
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
+
+    #testar_wander(configs)
 
 #    testar_casamento(configs)
 #    exit(0)

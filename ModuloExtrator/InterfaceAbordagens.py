@@ -7,6 +7,9 @@ from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 
+# Abordagem do Wander
+from Abordagens.Wander import PonderacaoSinonimia
+
 import itertools
 
 from nltk.corpus import wordnet as wn
@@ -29,12 +32,13 @@ class InterfaceAbordagens(object):
         self.cli_babelnet_api = cli_babelnet
 
         self.contadores = Utilitarios.carregar_json(dir_contadores)
+        self.ponderador_wander = PonderacaoSinonimia.Ponderador(self.configs)
 
     def buscar_sinonimos(self, palavra, pos, metodo, contexto=None, ordenar=True):
         topk = 2
 
-        flag_wordnet = True
-        flag_oxford = True
+        flag_wordnet = False
+        flag_oxford = False
         flag_unificado = False
 
         pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)
@@ -131,6 +135,8 @@ class InterfaceAbordagens(object):
             return self.desambiguador_unificado.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False, busca_ampla=False, repetir=True, coletar_todos=False)
         elif metodo == 'Unificado_BuscaAmpla_Repetir_SemColetarTodos' and flag_unificado:
             return self.desambiguador_unificado.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False, busca_ampla=True, repetir=True, coletar_todos=False)
+        elif metodo == 'Wander':
+            return self.ponderador_wander.iniciar_processo(palavra, pos, contexto)
 
         # METODOS DE DADOS UNIFICADOS
 
