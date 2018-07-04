@@ -136,7 +136,7 @@ class InterfaceAbordagens(object):
         elif metodo == 'Unificado_BuscaAmpla_Repetir_SemColetarTodos' and flag_unificado:
             return self.desambiguador_unificado.extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False, busca_ampla=True, repetir=True, coletar_todos=False)
         elif metodo == 'Wander':
-            return self.ponderador_wander.iniciar_processo(palavra, pos, contexto)
+            return self.ponderador_wander.iniciar_processo(palavra, pos, contexto, anotar_manualmente_exemplos=True)
 
         # METODOS DE DADOS UNIFICADOS
 

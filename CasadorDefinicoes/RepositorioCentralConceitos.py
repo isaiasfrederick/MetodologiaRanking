@@ -255,25 +255,25 @@ class CasadorConceitos:
         return resultados
 
     # retira do obj json a estrutura de aninhamento entre definicoes
-    def retirar_indentacao_coleta_oxford(self, lema, obj_entrada):
-        if not obj_entrada:
+    def retirar_indentacao_coleta_oxford(self, lema, obj_entrada_unificado):
+        if not obj_entrada_unificado:
             return None
 
         resultado = []
         cont = 1
-        for pos in obj_entrada.keys():
-            for definicao_prim in obj_entrada[pos].keys():
+        for pos in obj_entrada_unificado.keys():
+            for definicao_prim in obj_entrada_unificado[pos].keys():
                 nome_def = "%s.%s.%d" % (lema, pos, cont)
-                exemplos = obj_entrada[pos][definicao_prim]['exemplos']
+                exemplos = obj_entrada_unificado[pos][definicao_prim]['exemplos']
 
                 d = (nome_def, definicao_prim, exemplos)
                 resultado.append(d)
 
                 cont += 1
 
-                for definicao_sec in obj_entrada[pos][definicao_prim]['def_secs']:
+                for definicao_sec in obj_entrada_unificado[pos][definicao_prim]['def_secs']:
                     nome_def = "%s.%s.%d" % (lema, pos, cont)
-                    obj_def_sec = obj_entrada[pos][definicao_prim]['def_secs'][definicao_sec]
+                    obj_def_sec = obj_entrada_unificado[pos][definicao_prim]['def_secs'][definicao_sec]
                     exemplos = obj_def_sec['exemplos']
                     d = (nome_def, definicao_sec, exemplos)
                     resultado.append(d)

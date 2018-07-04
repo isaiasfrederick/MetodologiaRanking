@@ -43,6 +43,13 @@ def testar_wander(configs):
     ponderacao_sinonimia.iniciar_processo(termo, pos, contexto)
     exit(0)
 
+def testar_casamento_manual(configs):
+    from CasadorDefinicoes.CasadorManual import CasadorManual
+
+    casador = CasadorManual(configs, configs['dir_base_casada_manualmente'])
+    casador.iniciar_casamento(raw_input('Digite o termo: '), raw_input('POS: '))       
+
+
 
 if __name__ == '__main__':
     if len(argv) < 2:
@@ -53,6 +60,8 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
+#    testar_casamento_manual(configs)
+#    exit(0)
     #testar_wander(configs)
 
 #    testar_casamento(configs)

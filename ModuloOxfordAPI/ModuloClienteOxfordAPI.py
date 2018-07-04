@@ -330,7 +330,7 @@ class ClienteOxfordAPI(object):
         inicio = time.time()
         resultado = Utilitarios.requisicao_http(url, self.headers)
         fim = time.time()
-        raw_input('Tempo gasto para a URL %s: %s' + (url, str(fim-inicio)))
+        print('Tempo gasto para a URL %s: %s' + (url, str(fim-inicio)))
         return resultado
 
     def obter_frequencia(self, palavra):
@@ -356,7 +356,7 @@ class ClienteOxfordAPI(object):
             obj = Utilitarios.requisicao_http(url, self.headers).json()
             fim = time.time()
 
-            raw_input('Tempo gasto: ' + str(fim-inicio))
+            print('Tempo gasto: ' + str(fim-inicio))
 
             saida_tmp = []
             saida = {}
@@ -375,7 +375,7 @@ class ClienteOxfordAPI(object):
         except:
             traceback.print_exc()
             self.obj_urls_invalidas_definicoes[palavra] = ""
-            raw_input('ClienteOxford: URL errada: ' + url + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL errada: ' + url + '\t\tHeaders: ' + str(self.headers))
             return None
 
     def obter_sinonimos(self, palavra):

@@ -48,6 +48,9 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
 
             try:
                 sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
+
+                if None in sinonimos:
+                    raw_input('Ha um objeto nulo!')
             except:
                 print('\n')
                 traceback.print_exc()
@@ -70,7 +73,12 @@ def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
                     respostas_semeval[tarefa][lema] = dict()
 
                 limite_superior = int(configs_se2007['metricas']['limites'][tarefa])
-                sinonimos = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]
+                try:
+                    sinonimos = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]                
+                except:
+                    print('Sinonimos recuperados para o termo ' + palavra + ': ' + str(sinonimos))
+                    sinonimos = []
+                    
                 respostas_semeval[tarefa][lema][codigo] = sinonimos
 
             print('Entrada: %s - %s - %s - %s: %s' % (metodo_extracao, tarefa, lema, codigo, str(sinonimos)))
@@ -149,7 +157,7 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        if 'Wordnet' in metodo or 'Oxford':
+        if 'Wander' in metodo:
 #        if 'Wordnet' in  metodo:
 #        if 'Wordnet' in metodo:
 #        if True:
