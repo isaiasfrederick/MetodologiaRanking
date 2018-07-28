@@ -60,6 +60,10 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
+    #from Abordagens.RepresentacaoDistribuida import RepresentacaoDistribuida
+    #rdistribuida = RepresentacaoDistribuida(configs)
+    #rdistribuida.exibir_todos_modelos()
+
 #    testar_casamento_manual(configs)
 #    exit(0)
     #testar_wander(configs)

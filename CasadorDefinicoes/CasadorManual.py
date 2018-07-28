@@ -15,6 +15,9 @@ class CasadorManual(object):
         self.base_casada_manualmente = Utilitarios.Utilitarios.carregar_json(self.diretorio_base_casada_manualmente)
         self.base_unificada_oxford = BaseUnificadaObjetosOxford(self.configs)
 
+        if self.base_casada_manualmente == None:
+            self.base_casada_manualmente = {}
+
     def ler_inteiros(self, msg):
         try:
             valores = raw_input(msg)
@@ -42,36 +45,35 @@ class CasadorManual(object):
             try:
                 obj_oxford = obj_oxford[pos_oxford]
             except TypeError:
-                print('A POS %s para o termo %s nao foi encontrada!' % (termo, pos_oxford))
+                print('A POS %s para o termo %s nao foi encontrada!' % (pos_oxford, termo))
                 return 
 
             for synset in wn.synsets(unicode(termo), pos):
                 self.base_casada_manualmente[termo][synset.name()] = []
-                print('\t' + termo + ' - ' + pos)
-                if 'bang' in termo:
-                    del self.base_casada_manualmente[termo][synset.name()]
-                    return
-                    
+
+                print('\n\n')
+                print('\t' + str((str(termo), str(pos))))
                 print('\t' + synset.definition().upper() + '\n')
                 
                 indice = 1
                 definicoes_indexadas = []
                 for definicao in obj_oxford:
                     definicoes_indexadas.append(definicao)
-                    print('\n\t\t' + str(indice) + ' - ' + unicode(definicao))
+                    print('\n\t\t' + str(indice) + ' - ' + repr(definicao) + '\n')
                     indice += 1
                     for def_sec_iter in obj_oxford[definicao]['def_secs']:
                         def_sec = def_sec_iter.encode('utf8')
                         definicoes_indexadas.append(def_sec)
-                        print('\t\t' + str(indice) + ' - ' + unicode(def_sec))
+                        print('\t\t' + str(indice) + ' - ' + repr(def_sec))
                         indice += 1
 
-                if indice > 6:
+                if indice > 10:
                     del self.base_casada_manualmente[termo][synset.name()]
                     return
 
                 valores = self.ler_inteiros('\n\tINDICES: ')
                 print('\tAnotacao > ' + str(valores))
+                print('\n\n')
 
                 for v in valores:
                     try:
@@ -95,9 +97,7 @@ class CasadorManual(object):
         try:
             definicoes_oxford = self.base_casada_manualmente[termo][nome_synset]
         except:
-            import traceback
-            traceback.print_exc()
-            print('Excecao!')
+            print('Excecao! Nao foram encontradas definicoes para o (%s, %s) na base casada manualmente!' % (termo, nome_synset))
             definicoes_oxford = None
 
         if definicoes_oxford:

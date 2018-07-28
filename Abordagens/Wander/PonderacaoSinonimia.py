@@ -10,21 +10,38 @@ wn = wordnet
 
 class Ponderador(object):
     def __init__(self, configs):
+        dir_base_sinonimia = self.solicitar_diretorio_base_sinonimia()
+
         self.configs = configs
-        self.base_sinonimia = Utilitarios.carregar_json(self.configs['base_wander'])
+        self.base_sinonimia = Utilitarios.carregar_json(dir_base_sinonimia)
         self.casador_manual = CasadorManual(self.configs)
 
+    def solicitar_diretorio_base_sinonimia(self):
+        cont = 0
+        bases = Utilitarios.listar_arquivos("/media/isaias/ParticaoAlternat/Bases/")
+        
+        print('\n\n\tLISTAR BASES\n')
+        for l in bases:
+            print('\t%d\t%s' % (cont, l))
+            cont += 1
+        
+        print('\n\n')
+        return bases[int(raw_input('\tINDICE >>> '))]
+
     # Retorna uma lista de palavras correlatas
-    def iniciar_processo(self, termo, pos, contexto, anotar_manualmente_exemplos=False):
+    def iniciar_processo(self, termo, pos, contexto, usar_fontes_secundarias=False, anotar_exemplos=False):
         representa_multipalavra = Utilitarios.representa_multipalavra
         
         conjunto_solucao = []
         pontuacoes_agregadas = dict()
 
-        resultado = self.processar_termo(termo, pos, anotar_manualmente_exemplos=anotar_manualmente_exemplos)
+        resultado = self.processar_termo(termo, pos, usar_fontes_secundarias=usar_fontes_secundarias, anotar_exemplos=anotar_exemplos)
 
         # Cria o ranking a partir do desambiguador
-        ponderacoes = cosine_lesk(contexto, termo, pos=pos, nbest=True)
+        # Desambiguador utilizado pelo Wander
+        ponderacoes = cosine_lesk(contexto, termo, nbest=True)
+        # FILTRAR PONDERACOES POR POS TAGS DE SEMEVAL
+        ponderacoes = Utilitarios.filtrar_ponderacoes(pos, ponderacoes)
 
         for significado_termo in self.base_sinonimia[termo]:
             for significado_sinonimo in self.base_sinonimia[termo][significado_termo]:
@@ -36,6 +53,7 @@ class Ponderador(object):
                         pontuacoes_agregadas[chave_par] = {}
 
                     pontuacoes_agregadas[chave_par][nova_frase] = pontuacao
+
         casamentos_por_ordenacao = dict()
 
         for chave_par in pontuacoes_agregadas:
@@ -52,31 +70,45 @@ class Ponderador(object):
 
         # Escolhe o synset mais bem avaliado. Caso score for ZERO, pegar o principal
         synset_desambiguado = None
-        
+
         try:
+            # SYNSET MAIS BEM PONTUADO
             if bool(ponderacoes[0][1]):
                 synset_desambiguado = ponderacoes[0][0]
             else:
+            # SYNSET MAIS USUAL
                 synset_desambiguado = wn.synsets(termo, pos)[0]
         except:
+            print('\n' + termo)
+            print('Excecao na selecao do SYNSET mais bem pontuado.')
             return []
 
+        # SE NAO FOR POR QUE A ABORDAGEM DO WANDER TRATA, PEGAR OS LEMAS DO SENTIDO MAIS USUAL
         if not pos in self.configs['pos_wander']:
             conjunto_solucao = [l for l in synset_desambiguado.lemma_names() if representa_multipalavra(l)]
             conjunto_solucao = self.coletar_lemas([s[0] for s in ponderacoes])
 
+            if conjunto_solucao == [termo] or not conjunto_solucao:
+                def_tmp = synset_desambiguado.definition()
+                conjunto_solucao = Utilitarios.extrair_sinonimos_candidatos_definicao(def_tmp, pos)
+
+            return conjunto_solucao
+        else:
+            for pt in pontuacoes_ordenadas:
+                # Se o nome do Synset escolhido faz parte do casamento
+                if synset_desambiguado.name() in casamentos_por_ordenacao[pt][0].split('#')[0]:
+                    nome_synset = casamentos_por_ordenacao[pt][0].split('#')[1]
+                    if self.extrair_lema(nome_synset):
+                        conjunto_solucao.append(self.extrair_lema(nome_synset))
+
+            # SE CONJUNTO SOLUCAO E VAZIO OU COM TERMO ORIGINAL
+            if conjunto_solucao == [termo] or not conjunto_solucao:
+                definicao_principal = ponderacoes[0][0].definition()
+                conjunto_solucao = Utilitarios.extrair_sinonimos_candidatos_definicao(definicao_principal, pos)
+                
             return conjunto_solucao
 
-        for pt in pontuacoes_ordenadas:
-            # Se o nome do Synset escolhido faz parte do casamento
-            if synset_desambiguado.name() in casamentos_por_ordenacao[pt][0].split('#')[0]:
-                nome_synset = casamentos_por_ordenacao[pt][0].split('#')[1]
-                if self.extrair_lema(nome_synset):
-                    conjunto_solucao.append(self.extrair_lema(nome_synset))
-
-        return conjunto_solucao
-
-    # Coleta os dez primeiros lemas dos synsets ponderados
+    # Coleta os dez primeiros lemas dos synsets Ordenados
     def coletar_lemas(self, synsets_ordenados):
         saida = []
 
@@ -95,7 +127,8 @@ class Ponderador(object):
         except:
             return None
 
-    def processar_termo(self, termo, pos, anotar_manualmente_exemplos=False):
+    # Este metodo, em especifico, realiza o metodo da substituicao 
+    def processar_termo(self, termo, pos, usar_fontes_secundarias=False, anotar_exemplos=False):
         if not termo in self.base_sinonimia:
             self.base_sinonimia[termo] = {}
 
@@ -104,7 +137,7 @@ class Ponderador(object):
                 # Recupera os synsets hiperonimos atraves do método do Wander
                 synsets_sinonimos = self.obter_synsets_sinonimos(synset, pos)
                 # Metodo da substituicao do Wander
-                resultado = self.comparar_termo(termo, pos, synsets_sinonimos, anotar_manualmente_exemplos=anotar_manualmente_exemplos)
+                resultado = self.comparar_termo(termo, pos, synsets_sinonimos, usar_fontes_secundarias=usar_fontes_secundarias, anotar_exemplos=anotar_exemplos)
                 self.base_sinonimia[termo][synset.name()] = resultado
 
             Utilitarios.salvar_json(self.configs['base_wander'], self.base_sinonimia)            
@@ -113,7 +146,7 @@ class Ponderador(object):
         else:
             return self.base_sinonimia[termo]
 
-    def comparar_termo(self, termo, pos, todos_synsets_sinonimos, anotar_manualmente_exemplos=False):
+    def comparar_termo(self, termo, pos, todos_synsets_sinonimos, usar_fontes_secundarias=False, anotar_exemplos=False):
         resultado = dict()
 
         for synset_sinonimo in todos_synsets_sinonimos:
@@ -124,10 +157,20 @@ class Ponderador(object):
             pontuacoes = []
             novos_exemplos = list(synset_sinonimo.examples())
 
-            if anotar_manualmente_exemplos == True:
+            if anotar_exemplos == True:
                 # Solicita a anotacao dos termos para casar as definicoes, caso nao existam
-                self.casador_manual.iniciar_casamento(synset_sinonimo.lemma_names()[0], synset_sinonimo.pos(), corrigir=False)
-                novos_exemplos += self.casador_manual.recuperar_exemplos(synset_sinonimo.name())
+                nome_synset_sinonimo = synset_sinonimo.lemma_names()[0]
+                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, synset_sinonimo.pos(), corrigir=False)
+
+            try:
+                if usar_fontes_secundarias == True:
+                    novos_exemplos += self.casador_manual.recuperar_exemplos(synset_sinonimo.name())
+                    print('Novos exemplos adicionados: ' + str(len(novos_exemplos)))
+                    print('Termo: ' + termo)
+                    print('Definicao: ' + synset_sinonimo.definition())
+                    print('\n')
+            except:
+                print('Nao foram encontrados exemplos para ' + synset_sinonimo.name())
 
             for exemplo in novos_exemplos:
                 ponderacoes = cosine_lesk(exemplo, termo, pos=pos, nbest=True)

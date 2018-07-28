@@ -16,6 +16,8 @@ import os
 from nltk.corpus import stopwords
 from collections import Counter
 import requests
+from nltk import pos_tag as pt, word_tokenize as wt
+from nltk.corpus import stopwords, wordnet
 
 
 class Utilitarios(object):
@@ -140,6 +142,17 @@ class Utilitarios(object):
         os.system('rm ' + configs['dir_temporarios'] + '/*')
 
     @staticmethod
+    def limpar_diretorio(configs, diretorio):
+        os.system('rm ' + diretorio + '/*')
+
+    # RETIRA AS PONDERACOES DE ACORDO COM A POS DESEJADA DA WORDNET
+    @staticmethod
+    def filtrar_ponderacoes(pos_semeval, ponderacoes):
+        lista_pos = ['s', 'a'] if pos_semeval == 'a' else [pos_semeval]
+
+        return [e for e in ponderacoes if e[0].pos() in lista_pos]
+
+    @staticmethod
     def salvar_json(diretorio, obj):
         try:
             arq = open(diretorio, 'w')
@@ -151,6 +164,63 @@ class Utilitarios(object):
         except:
             return False
 
+    @staticmethod
+    def extrair_sinonimos_candidatos_definicao(definicao, pos):
+        #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
+
+        if not type(pos) in [str, unicode]:
+            print('\n\n')
+            print('\nTipo POS: ' + str(type(pos)))
+
+            traceback.print_stack()
+            sys.exit(1)
+
+        wn = wordnet
+
+        if pos.__len__() > 1:
+            pos = Utilitarios.conversor_pos_oxford_wn(pos)
+
+        associacoes = dict()
+
+        associacoes['n'] = ['N']
+        associacoes['v'] = ['v', 'J']
+        associacoes['a'] = ['R', 'J']
+        associacoes['s'] = ['R', 'J']
+        associacoes['r'] = ['R', 'J']
+        associacoes = None
+        
+        try:
+            resultado_tmp =  [p for p in pt(wt(definicao.lower())) if not p[0] in stopwords.words('english')]
+        except:
+            raw_input('\nDefinicoes que geraram excecao: ' + str(definicao) + '\n')
+
+        resultado = []
+
+        try:
+            for l, pos_iter in resultado_tmp:
+                if wn.synsets(l, pos):
+                    resultado.append(l)
+
+        except:
+            # retirando pontuacao
+            tmp = [p[0] for p in resultado_tmp if len(p[0]) > 1]
+
+            for l in tmp:
+                try:
+                    if wn.synsets(l, pos):
+                        raw_input('Adicionando %s para %s' % (l, definicao))
+                        resultado.append(l)
+                except:
+                    resultado.append(l)
+
+        if not resultado:
+            # retirando pontuacao
+            tmp = [p[0] for p in resultado_tmp]
+            resultado = [p for p in tmp if len(p) > 1]
+
+        return resultado
+
+    # Retorna todos arquivos da pasta
     @staticmethod
     def listar_arquivos(diretorio):
         return glob.glob(diretorio + '/*')

@@ -100,8 +100,10 @@ def exibir_todos_resultados(todos_participantes, validador_se2007):
                 todas_dimensoes = participante.keys()
         except: pass
 
-    todas_dimensoes = ['Total', 'Attempted', 'Precision', 'Recall']
-    todas_dimensoes += ['TotalWithMode', 'Attempted', 'ModePrecision', 'ModeRecall']
+#    todas_dimensoes = ['Total', 'Attempted', 'Precision', 'Recall']
+#    todas_dimensoes += ['TotalWithMode', 'Attempted', 'ModePrecision', 'ModeRecall']
+    todas_dimensoes = ['Precision', 'Recall']
+    todas_dimensoes += ['ModePrecision', 'ModeRecall']
 
     try:
         todas_dimensoes.remove('nome')
@@ -148,6 +150,10 @@ def obter_frases_da_base(validador_se2007, configs):
 
 # Gerar todos os metodos de extracao direcionados ao SemEval2007
 def gerar_submissoes_para_se2007(configs, validador_se2007):
+    dir_saidas_rankeador = configs['dir_saidas_rankeador']
+    Utilitarios.limpar_diretorio(configs, dir_saidas_rankeador)
+
+
     metodos_extracao = configs['aplicacao']['metodos_extracao']
     todas_metricas_se2007 = configs['semeval2007']['metricas']['separadores'].keys()
 
@@ -157,10 +163,7 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        if 'Wander' in metodo:
-#        if 'Wordnet' in  metodo:
-#        if 'Wordnet' in metodo:
-#        if True:
+        if True:
             todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
             for metrica in todas_metricas_se2007:
                 submissao_gerada = todas_submissoes_geradas[metrica]
