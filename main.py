@@ -60,6 +60,17 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
+    from Abordagens.RepresentacaoDistribuida import RepresentacaoDistribuida
+    r = RepresentacaoDistribuida(configs)
+    r.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
+    print('Fim da funcao')
+    #result = r.modelo.most_similar(positive=['side'], negative=[], topn=10)
+    print('\n')
+    result = r.modelo.most_similar('car', topn=20)
+    for e in result:
+        print(e)
+    exit(0)
+
     #from Abordagens.RepresentacaoDistribuida import RepresentacaoDistribuida
     #rdistribuida = RepresentacaoDistribuida(configs)
     #rdistribuida.exibir_todos_modelos()
