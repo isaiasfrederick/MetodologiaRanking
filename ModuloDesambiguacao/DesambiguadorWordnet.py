@@ -1,5 +1,5 @@
 #! coding: utf-8
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from Utilitarios import Utilitarios
 
 
 #!/usr/bin/env python -*- coding: utf-8 -*-

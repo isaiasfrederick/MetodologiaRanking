@@ -1,11 +1,11 @@
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
-from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from Utilitarios import Utilitarios
 from nltk.tokenize import word_tokenize
 from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.lesk_isaias import cosine_lesk
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import *
 from nltk.corpus import stopwords, wordnet
 from nltk import pos_tag, word_tokenize
 from nltk.corpus import wordnet

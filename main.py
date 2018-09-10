@@ -1,19 +1,143 @@
 #! coding: utf-8
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from Utilitarios import Utilitarios
 from SemEval2007 import *
 from sys import argv
 import statistics
 import traceback
 import re
+from pywsd.lesk import cosine_lesk
 
 # Experimentacao
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
-from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
-from nltk.corpus import wordnet as wn
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from RepositorioCentralConceitos import CasadorConceitos
+from nltk.corpus import wordnet
 # Fim pacotes da Experimentacao
+
+# Testar Abordagem Alvaro
+from Abordagens.AbordagemAlvaro import AbordagemAlvaro
+from CasadorManual import CasadorManual
+
+wn = wordnet
+
+def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False):
+    contadores = Utilitarios.carregar_json("/media/isaias/ParticaoAlternat/Bases/contadores_leipzig_corpus.json")
+    
+    f = ['oxford']
+
+    flag_base = 'trial'
+
+    if flag_base == 'test':
+        # 301, 321, 331, 1091
+        casos_testes = Utilitarios.carregar_json('/home/isaias/casos_testes-test.json')
+        gabarito = Utilitarios.carregar_json('/home/isaias/gabarito-test.json')
+
+    else:
+        casos_testes = Utilitarios.carregar_json('/home/isaias/casos_testes-trial.json')
+        # 298, 281, 181, 255, 201, 11
+        gabarito = Utilitarios.carregar_json('/home/isaias/gabarito-trial.json')
+
+    indice = int(raw_input('\nDigite o indice (Maximo: %d): ' % (len(gabarito)-1)))
+
+    casador_manual = CasadorManual(configs)
+    base_unificada = BaseUnificadaObjetosOxford(configs)
+    abordagem_alvaro = AbordagemAlvaro(configs, base_unificada, casador_manual)
+
+    usar_gabarito = raw_input('Utilizar candidatos do gabarito? s/N: ').lower()
+
+    if usar_gabarito == 's':
+        candidatos = [e[0] for e in gabarito[indice]]
+    else:
+        candidatos = None
+
+    contexto, palavra, pos = casos_testes[indice]
+    resultado = abordagem_alvaro.iniciar_processo(palavra, pos, contexto, fontes=f, anotar_exemplos=True, usar_fontes_secundarias=True, usar_ctx=usar_ctx, candidatos=candidatos)
+
+    print('\n\n')
+    for e in resultado:
+        print(e)
+    print('\n\n')
+
+    agregacao = dict()
+    frases = set()
+
+    for reg in resultado:      
+        synset_sinonimo, significado, exemplo, pontuacao = reg
+
+        if not exemplo in frases:
+            frases.add(exemplo)
+            k = synset_sinonimo + '#' + significado
+
+            if not k in agregacao:
+                agregacao[k] = []
+
+            agregacao[k].append(pontuacao)
+
+    resultado_ordenado = []
+
+    for chave in agregacao:
+        media = sum(agregacao[chave]) / len(agregacao[chave])
+        resultado_ordenado.append((chave, media))
+
+    resultado_ordenado.sort(key=lambda x: x[1], reverse=True)
+
+    resultado = []
+
+    if usar_desambiguador == True:
+        synsets = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+        synsets = [r[0].name() for r in synsets]
+
+        synsets_processados = set()
+
+        for reg in resultado_ordenado:
+            for s in synsets:
+                if resultado.__len__() < 10:
+                    s1, s2 = reg[0].split('#')
+
+                    if not s1 in synsets_processados and s2 == s:
+                        synsets_processados.add(s1)
+
+                        for lema in wn.synset(s1).lemma_names():
+                            if Utilitarios.representa_multipalavra(lema) == False:
+                                if not lema in resultado:
+                                    resultado.append(lema)
+
+        resultado = resultado[:10]
+
+    else:
+        for reg in resultado_ordenado:
+            s1, s2 = reg[0].split('#')
+            s1, s2 = wn.synset(s1), wn.synset(s2)
+
+            lemmas = list(set(s2.lemma_names() + s1.lemma_names()))
+
+            for lema in lemmas:
+                if not lema in resultado:
+                    if Utilitarios.representa_multipalavra(lema) == False:
+                        resultado.append(lema)
+
+        resultado = resultado[:10]
+
+    if palavra in resultado:
+        resultado.remove(palavra)
+
+    resultado = [(p, contadores[p]) for p in resultado]
+
+    print('\n\nRESULTADO: ')
+    print(resultado)
+    print('\n')
+
+    print('\nGABARITO:\n')
+    print(gabarito[indice])
+    print('\n')
+
+    print('\nINTERSECAO:\n')
+    intersecao = set([e[0] for e in gabarito[indice]]) & set([e[0] for e in resultado])
+    print(list(intersecao))
+
+    return
 
 def testar_casamento(configs):
     base_unificada = BaseUnificadaObjetosOxford(configs)
@@ -22,12 +146,12 @@ def testar_casamento(configs):
     palavra = raw_input('Palavra: ')
     pos = raw_input('POS: ')
 
-    r = casador.iniciar_casamento(palavra, pos)
+    resultado = casador.iniciar_casamento(palavra, pos)
     print('\n')
 
-    for e in r:
+    for e in resultado:
         print(e)
-        print(r[e])
+        print(resultado[e])
         print('\n\n\n')
 
     print('\n\nCheguei aqui...')
@@ -44,12 +168,10 @@ def testar_wander(configs):
     exit(0)
 
 def testar_casamento_manual(configs):
-    from CasadorDefinicoes.CasadorManual import CasadorManual
+    from CasadorManual import CasadorManual
 
     casador = CasadorManual(configs, configs['dir_base_casada_manualmente'])
     casador.iniciar_casamento(raw_input('Digite o termo: '), raw_input('POS: '))       
-
-
 
 if __name__ == '__main__':
     if len(argv) < 2:
@@ -60,20 +182,39 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    from Abordagens.RepresentacaoDistribuida import RepresentacaoDistribuida
-    r = RepresentacaoDistribuida(configs)
-    r.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
-    print('Fim da funcao')
-    #result = r.modelo.most_similar(positive=['side'], negative=[], topn=10)
-    print('\n')
-    result = r.modelo.most_similar('car', topn=20)
-    for e in result:
-        print(e)
-    exit(0)
+    if True:
+        executar_abordagem_alvaro(configs, usar_desambiguador=True)
+        #raw_input('\n\n<ENTER>\n')
+        #testar_abordagem_alvaro(configs, usar_desambiguador=False)
+        #raw_input('\n\nUSANDO CONTEXTO:\n<ENTER>\n')
+        #testar_abordagem_alvaro(configs, usar_desambiguador=True, usar_ctx=True)
+        #raw_input('\n\n<ENTER>\n')
+        #testar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=True)
 
-    #from Abordagens.RepresentacaoDistribuida import RepresentacaoDistribuida
-    #rdistribuida = RepresentacaoDistribuida(configs)
-    #rdistribuida.exibir_todos_modelos()
+        print('\n\n\n')
+        exit(0)
+
+    if True:
+        from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
+        rep_vetorial = RepresentacaoVetorial(configs)
+        rep_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
+
+        while False:
+            res = rep_vetorial.palavra_diferente(raw_input("Digite as palavras separadas por espaços: "))
+            print(">>> " + res)
+
+        if True:
+            palavra = ""        
+            while palavra != "sair":
+                palavra = raw_input("DIGITAR PALAVRA: ")
+                if not palavra in ["sair", ""]:
+                    positivos = palavra + " " + raw_input("COLAR DEFINICAO DA PALAVRA: ")
+                    positivos = positivos.split(" ")
+                    
+                    for e in rep_vetorial.obter_palavras_relacionadas(positivos=positivos, topn=40):
+                        print(e)
+                    print('\n\n')
+        exit(0)
 
 #    testar_casamento_manual(configs)
 #    exit(0)

@@ -1,5 +1,5 @@
 from SemEval2007 import obter_gabarito_rankings
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from Utilitarios import Utilitarios
 from ValidadorRanking.Validadores import GeneralizedAveragePrecisionMelamud
 
 class BaselineOrdenadorFrequencia(object):

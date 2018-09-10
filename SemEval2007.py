@@ -1,13 +1,12 @@
 #! coding: utf-8
-from Experimentacao.ValidadorResultados import ValidadorInventarioWordnet
-from CasadorDefinicoes.RepositorioCentralConceitos import BaseUnificadaObjetosOxford
-from Abordagens.EdmondsEstatistico import IndexadorWhoosh, AbordagemEdmonds
-from ModuloBabelNetAPI.ModuloClienteBabelNetAPI import ClienteBabelAPI
+from RepositorioCentralConceitos import BaseUnificadaObjetosOxford
+from Abordagens import IndexadorWhoosh, AbordagemEdmonds
+from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
-from ModuloUtilitarios.Utilitarios import Utilitarios
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
+from Utilitarios import Utilitarios
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import *
 from pywsd.lesk import cosine_lesk as cosine_lesk
-from ValidadorRanking.Validadores import *
+from Validadores import *
 from nltk.corpus import wordnet as wordnet
 from sys import argv
 import traceback
@@ -163,7 +162,7 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        if True:
+        if 'WordEmbbedings' in metodo: # or 'Wander' in metodo:
             todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
             for metrica in todas_metricas_se2007:
                 submissao_gerada = todas_submissoes_geradas[metrica]

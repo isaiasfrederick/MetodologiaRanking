@@ -1,9 +1,8 @@
-from CasadorDefinicoes.RepositorioCentralConceitos import CasadorConceitos
+from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from Utilitarios import Utilitarios
 from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.lesk_isaias import cosine_lesk
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import *
 from nltk.corpus import stopwords, wordnet
 from nltk import pos_tag, word_tokenize
 from nltk.corpus import wordnet

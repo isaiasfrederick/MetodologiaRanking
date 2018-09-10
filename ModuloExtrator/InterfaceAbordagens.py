@@ -1,14 +1,16 @@
 #! coding: utf-8
-from ModuloOxfordAPI.ModuloClienteOxfordAPI import ClienteOxfordAPI
-from ModuloUtilitarios.Utilitarios import Utilitarios
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import ClienteOxfordAPI
+from Utilitarios import Utilitarios
 
 # importando desambiguadores
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 
+# Representacao Vetorial
+from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
 # Abordagem do Wander
-from Abordagens.Wander import PonderacaoSinonimia
+from Abordagens import PonderacaoSinonimia
 
 import itertools
 
@@ -30,6 +32,9 @@ class InterfaceAbordagens(object):
 
         self.cli_oxford_api = cli_oxford
         self.cli_babelnet_api = cli_babelnet
+
+        self.representacao_vetorial = RepresentacaoVetorial(configs)
+        self.representacao_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
 
         self.contadores = Utilitarios.carregar_json(dir_contadores)
 
@@ -138,6 +143,8 @@ class InterfaceAbordagens(object):
             return self.ponderador_wander.iniciar_processo(palavra, pos, contexto, usar_fontes_secundarias=True, anotar_exemplos=False)
         elif metodo == 'Wander_SemExemplos':            
             return self.ponderador_wander.iniciar_processo(palavra, pos, contexto, usar_fontes_secundarias=True, anotar_exemplos=False)
+        elif metodo == 'WordEmbbedings':
+            return self.representacao_vetorial.iniciar_processo(palavra, pos, contexto, topn=10)
 
         return []
 
