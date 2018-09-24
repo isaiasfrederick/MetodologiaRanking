@@ -97,7 +97,7 @@ class DesambiguadorOxford(object):
                 assinaturas_significados.append(definicao_corrente)
 
                 # Colocando exemplos na assinatura
-                definicao_corrente[3] += self.assinatura_significado_aux(lema, pos, s, exemplos)
+                definicao_corrente[len(definicao_corrente)-1] += self.assinatura_significado_aux(lema, pos, s, exemplos)
         
                 sig_secundarios = resultado[pos][s]['def_secs']
 
@@ -112,7 +112,7 @@ class DesambiguadorOxford(object):
                     definicao_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
                     assinaturas_significados.append(definicao_corrente_sec)
 
-                    definicao_corrente_sec[3] += self.assinatura_significado_aux(lema, pos, ss, exemplos_secundarios)
+                    definicao_corrente_sec[len(definicao_corrente)-1] += self.assinatura_significado_aux(lema, pos, ss, exemplos_secundarios)
 
                     indice += 1
 

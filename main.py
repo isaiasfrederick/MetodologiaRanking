@@ -25,7 +25,9 @@ wn = wordnet
 def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False):
     contadores = Utilitarios.carregar_json("/media/isaias/ParticaoAlternat/Bases/contadores_leipzig_corpus.json")
     
-    f = ['oxford']
+    f = [raw_input("Digite a fonte desejada ('oxford' ou 'wordnet'): ")]
+
+    usar_desambiguador = False
 
     flag_base = 'trial'
 
@@ -44,7 +46,7 @@ def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False)
     casador_manual = CasadorManual(configs)
     base_unificada = BaseUnificadaObjetosOxford(configs)
     abordagem_alvaro = AbordagemAlvaro(configs, base_unificada, casador_manual)
-
+    
     usar_gabarito = raw_input('Utilizar candidatos do gabarito? s/N: ').lower()
 
     if usar_gabarito == 's':
@@ -53,27 +55,37 @@ def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False)
         candidatos = None
 
     contexto, palavra, pos = casos_testes[indice]
-    resultado = abordagem_alvaro.iniciar_processo(palavra, pos, contexto, fontes=f, anotar_exemplos=True, usar_fontes_secundarias=True, usar_ctx=usar_ctx, candidatos=candidatos)
 
-    print('\n\n')
-    for e in resultado:
-        print(e)
-    print('\n\n')
+    candidatos_selecionados_tmp = abordagem_alvaro.selecionar_candidatos(palavra, pos, fontes=f)
+    gabarito_tmp = candidatos = [e[0] for e in gabarito[indice]]
+
+    print("\nGabarito:\n%s" % str(gabarito_tmp))
+    print("\nCandidatos temporarios:\n%s" % str(candidatos_selecionados_tmp))
+    intersecao_tmp = list(set(gabarito_tmp) & set(candidatos_selecionados_tmp))
+    print("\nIntersecao: %s" % str(intersecao_tmp))
+    raw_input("\nTotal de preditos corretamente: %d" % (len(intersecao_tmp)))
+
+    resultado = abordagem_alvaro.iniciar_processo(palavra, pos, contexto, fontes=f, anotar_exemplos=True, usar_fontes_secundarias=True, usar_ctx=usar_ctx, candidatos=candidatos)
 
     agregacao = dict()
     frases = set()
 
-    for reg in resultado:      
-        synset_sinonimo, significado, exemplo, pontuacao = reg
+    for reg in resultado:
+        if f == ['wordnet']:
+            label_sinonimo, significado, exemplo, pontuacao = reg
+        elif f == ['oxford']:
+            label_sinonimo = reg[0]
+            significado, exemplo, pontuacao = reg[1], reg[2], reg[3]
 
         if not exemplo in frases:
             frases.add(exemplo)
-            k = synset_sinonimo + '#' + significado
+            # (film.Noun.6;Cinema considered as an art or industry.#Cinema considered as an art or industry)
+            label = label_sinonimo + '#' + significado
 
-            if not k in agregacao:
-                agregacao[k] = []
+            if not label in agregacao:
+                agregacao[label] = []
 
-            agregacao[k].append(pontuacao)
+            agregacao[label].append(pontuacao)
 
     resultado_ordenado = []
 
@@ -82,50 +94,80 @@ def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False)
         resultado_ordenado.append((chave, media))
 
     resultado_ordenado.sort(key=lambda x: x[1], reverse=True)
-
     resultado = []
 
     if usar_desambiguador == True:
-        synsets = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
-        synsets = [r[0].name() for r in synsets]
+        if f == ['wordnet']:
+            resultado_desambiguacao = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+            resultado_desambiguacao = [r[0].name() for r in resultado_desambiguacao]
 
-        synsets_processados = set()
+        elif f == ['oxford']:
+            desambiguador_oxford = DesambiguadorOxford(configs, base_unificada)            
+            resultado_desambiguacao = desambiguador_oxford.adapted_cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+
+            resultado_desambiguacao = ["%s#%s" % (r[0][0], r[0][1]) for r in resultado_desambiguacao]
+
+        definicoes_processadas = set()
 
         for reg in resultado_ordenado:
-            for s in synsets:
-                if resultado.__len__() < 10:
-                    s1, s2 = reg[0].split('#')
+            for reg_desambiguacao in resultado_desambiguacao:
+                if len(resultado) < 10:
+                    if f == ['wordnet']:
+                        s1, s2 = reg[0].split('#')
+                    elif f == ['oxford']:
+                        s1 = reg[0].split('#')[0]
+                        s2 = reg[0].split('#')[1].split(";")[0]
 
-                    if not s1 in synsets_processados and s2 == s:
-                        synsets_processados.add(s1)
+                    if f == ['oxford']:
+                        flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao.split("#")[1]
+                    elif f == ['wordnet']:                    
+                        flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao
 
-                        for lema in wn.synset(s1).lemma_names():
-                            if Utilitarios.representa_multipalavra(lema) == False:
-                                if not lema in resultado:
-                                    resultado.append(lema)
+                    if flag == True:
+                        definicoes_processadas.add(s1)
+
+                        if f == ['wordnet']:
+                            todos_lemas = wn.synset(s1).lemma_names()
+                        elif f == ['oxford']:
+                            #(u'def_1.;lema_1#def_2.;lema_2', 0.0)
+                            def_s1, lema_s1 = s1.split(";")
+                            todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
 
         resultado = resultado[:10]
 
     else:
         for reg in resultado_ordenado:
-            s1, s2 = reg[0].split('#')
-            s1, s2 = wn.synset(s1), wn.synset(s2)
+            todos_lemas = []
+            if f == ['wordnet']:
+                s1, s2 = reg[0].split('#')
+                s1, s2 = wn.synset(s1), wn.synset(s2)
 
-            lemmas = list(set(s2.lemma_names() + s1.lemma_names()))
+                todos_lemas = list(set(s1.lemma_names() + s2.lemma_names()))
+            elif f == ['oxford']:
+                s1, s2 = reg[0].split('#')
 
-            for lema in lemmas:
+                def_s1, lema_s1 = s1.split(";")
+                def_s2, lema_s2 = re.split("[;.]+", s2)[:2]
+
+                todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
+
+    for lema in todos_lemas:
+        if not lema in resultado:
+            if Utilitarios.representa_multipalavra(lema) == False:
                 if not lema in resultado:
-                    if Utilitarios.representa_multipalavra(lema) == False:
-                        resultado.append(lema)
+                    resultado.append(lema)
 
         resultado = resultado[:10]
 
+    raw_input("\n\nRESULTADO: " + str(resultado))
     if palavra in resultado:
         resultado.remove(palavra)
 
     resultado = [(p, contadores[p]) for p in resultado]
 
-    print('\n\nRESULTADO: ')
+    print('\n\nRESULTADO +: ')
+    resultado.sort(key=lambda x: x[1], reverse=True)
+
     print(resultado)
     print('\n')
 

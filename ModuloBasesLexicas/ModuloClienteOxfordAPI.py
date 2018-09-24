@@ -35,6 +35,26 @@ class BaseUnificadaObjetosOxford(object):
     def obter_obj_col_web(self, palavra):
         return self.coletor_web_oxford.iniciar_coleta(palavra)
 
+    def obter_atributo(self, palavra, pos, definicao, atributo):
+        obj_unificado = self.obter_obj_unificado(palavra)
+
+        if pos.__len__() == 1:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
+
+        try:
+            for def_primaria in obj_unificado[pos]:
+                if definicao == def_primaria:
+                    return obj_unificado[pos][def_primaria][atributo]
+
+                for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
+                    if definicao == def_sec:
+                        return obj_unificado[pos][def_primaria]['def_secs'][def_sec][atributo]
+
+        except:
+            print("A palavra %s e definicao '%s' retornou 0 sinonimos!" % (palavra, definicao))
+
+        return None
+
     # Mescla objetos obtidos via coletor-web e objeto unificado ClienteAPI
     def obter_obj_unificado(self, palavra):
         BaseUnificadaObjetosOxford.objs_unificados = {}
@@ -102,19 +122,42 @@ class BaseUnificadaObjetosOxford(object):
 
         return obj_unificado
 
-    # Obtem sinonimos a partir do objeto unificado
-    def obter_sinonimos(self, pos, definicao, obj_unificado):
+    # Obtem sinonimos a partir da palavra, definicao, pos
+    def obter_sinonimos(self, palavra, definicao, pos=None):
+        obj_unificado = self.obter_obj_unificado(palavra)
+
+        if pos == None:
+            lista_pos = [pos for pos in obj_unificado.keys()]
+        elif pos.__len__() == 1:
+            lista_pos = [Utilitarios.conversor_pos_wn_oxford(pos)]
+
+        try:
+            for pos in lista_pos:
+                for def_primaria in obj_unificado[pos]:
+                    if definicao == def_primaria:
+                        return obj_unificado[pos][def_primaria]['sinonimos']
+
+                    for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
+                        if definicao == def_sec:
+                            return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
+        except:
+            print("A palavra %s e definicao '%s' retornou 0 sinonimos!" % (palavra, definicao))
+
+        return None
+
+    # Obtem exemplos a partir do objeto unificado
+    def obter_exemplos__(self, pos, definicao, obj_unificado):
         if pos.__len__() == 1:
             pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
         try:
             for def_primaria in obj_unificado[pos]:
                 if definicao == def_primaria:
-                    return obj_unificado[pos][def_primaria]['sinonimos']
+                    return obj_unificado[pos][def_primaria]['exemplos']
 
                 for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
                     if definicao == def_sec:
-                        return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
+                        return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['exemplos']
 
         except:
             print("A palavra %s e definicao '%s' retornou 0 sinonimos!" % (palavra, definicao))
@@ -122,12 +165,18 @@ class BaseUnificadaObjetosOxford(object):
         return None
 
     # Obter todas as definicoes
-    def obter_todas_definicoes(self, obj_unificado, pos):
+    def obter_todas_definicoes(self, palavra, pos):
+        obj_unificado = self.obter_obj_unificado(palavra)
+
         # Se POS = None, pegue todas as POS
         if pos == None:
             if pos.__len__() == 1:
                 pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
+            obj_unificado = {pos: obj_unificado[pos]}
+
+        else:
+            pos = Utilitarios.conversor_pos_wn_oxford(pos)
             obj_unificado = {pos: obj_unificado[pos]}
 
         todas_definicoes = []

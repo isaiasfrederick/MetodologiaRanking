@@ -2,6 +2,7 @@
 from nltk.corpus import wordnet
 from Utilitarios import Utilitarios
 from CasadorManual import CasadorManual
+from ModuloDesambiguacao import DesambiguadorOxford
 import CasadorManual
 import traceback
 
@@ -19,6 +20,11 @@ class AbordagemAlvaro(object):
         resultados = list()
         f = fontes
 
+        contexto = None
+
+        if set(fontes) == set(['wordnet', 'oxford']):
+            raise Exception("Estas duas fontes nao foram implementadas!")
+
         todas_definicoes_candidatas = []
 
         if candidatos == None:
@@ -29,43 +35,61 @@ class AbordagemAlvaro(object):
 
         todos_candidatos = [p for p in todos_candidatos if not Utilitarios.representa_multipalavra(p)]
 
+        raw_input("\n\nTODOS CANDIDATOS PARA A PALAVRA '%s': %s\n" % (palavra, str(todos_candidatos)))
 
         if fontes == ['oxford']:
             for candidato in todos_candidatos:
-                # obter_obj_unificado(self, candidato):
-                pos_oxford = Utilitarios.conversor_pos_wn_oxford(pos)
-                obj_oxford = self.base_oxford.obter_obj_unificado(palavra)[pos_oxford]
+                todas_definicoes_candidatas += [(d, candidato) for d in self.base_oxford.obter_todas_definicoes(candidato, pos)]
 
-                for definicao in obj_oxford:
-                    todas_definicoes_candidatas.append(definicao)
-                    print('### ' + candidato)
-                    raw_input('>>> ' + definicao)
+            definicoes_palavra = [(d, palavra) for d in self.base_oxford.obter_todas_definicoes(palavra, pos)]
 
-        print('\n\nTODOS CANDIDATOS PARA AS FONTES %s: ' % str(fontes).upper())
-        raw_input(todos_candidatos)
-        print('\n\n')
+            # Retira os significados da palavra
+            # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
+            todas_definicoes_candidatas = list(set(todas_definicoes_candidatas) - set(definicoes_palavra))
 
-        for candidato in todos_candidatos:
-            for synset_sinonimo in wn.synsets(candidato, pos):
-                todas_definicoes_candidatas.append(synset_sinonimo)
+        elif fontes == ['wordnet']:
+            for candidato in todos_candidatos:
+                for definicao_candidata in wn.synsets(candidato, pos):
+                    todas_definicoes_candidatas.append((definicao_candidata, candidato))
 
-        # Retira os significados da palavra
-        todas_definicoes_candidatas = list(set(todas_definicoes_candidatas) - set(wn.synsets(palavra, pos)))
+            definicoes_palavra = [(s, palavra) for s in wn.synsets(palavra, pos)]
+            # Retira os significados da palavra
+            todas_definicoes_candidatas = list(set(todas_definicoes_candidatas) - set(definicoes_palavra))
 
-        for synset_sinonimo in todas_definicoes_candidatas:
+        else:
+            raise Exception("Esta configuracao nao existe!")
+
+        # Todas definicoes candidatas:
+        # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
+        for definicao_candidata in todas_definicoes_candidatas:
             if anotar_exemplos == True and fontes == ['wordnet']:
+                synset, lema = definicao_candidata
                 # Solicita a anotacao dos termos para casar as definicoes, caso nao existam
-                nome_synset_sinonimo = synset_sinonimo.lemma_names()[0]
-                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, synset_sinonimo.pos(), corrigir=False)
+                nome_synset_sinonimo = synset.lemma_names()[0]
+                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, synset.pos(), corrigir=False)
+
+            todos_exemplos = []
 
             try:
-                todos_exemplos = synset_sinonimo.examples()
+                if fontes == ['wordnet']:                    
+                    def_candidata, lema = definicao_candidata
+                    todos_exemplos = def_candidata.examples()
+                elif fontes == ['oxford']:
+                    def_candidata, lema = definicao_candidata
+                    todos_exemplos = self.base_oxford.obter_atributo(lema, pos, def_candidata, 'exemplos')
+                else:
+                    todos_exemplos = []
+
             except:
+                import traceback
+                traceback.print_exc()
                 todos_exemplos = []
 
             try:
                 if usar_fontes_secundarias == True:
-                    todos_exemplos += self.casador_manual.recuperar_exemplos(synset_sinonimo.name())
+                    if fontes == ['wordnet']:
+                        synset, lema = definicao_candidata
+                        todos_exemplos += self.casador_manual.recuperar_exemplos(synset.name())
             except:
                 traceback.print_exc()
 
@@ -74,13 +98,23 @@ class AbordagemAlvaro(object):
 
             for exemplo in todos_exemplos:               
                 # Cosine Lesk
-                resultado = cosine_lesk(exemplo, palavra, pos=pos, nbest=True)
+                if fontes == ['wordnet']:
+                    resultado_desambiguador = cosine_lesk(exemplo, palavra, pos=pos, nbest=True)
+                elif fontes == ['oxford']:
+                    desambiguador_oxford = DesambiguadorOxford.DesambiguadorOxford(self.configs, self.base_oxford)
+                    resultado_desambiguador = desambiguador_oxford.adapted_cosine_lesk(exemplo, palavra, pos=pos)
+                else:
+                    resultado_desambiguador = []
 
-                for registro in resultado:
+                for registro in resultado_desambiguador:
                     synset, pontuacao = registro
 
-                    reg_tmp = synset_sinonimo.name(), synset.name(), exemplo, pontuacao
-                    resultados.append(reg_tmp)
+                    if fontes == ['wordnet']:
+                        reg_ponderacao = definicao_candidata[0].name(), synset.name(), exemplo, pontuacao
+                    elif fontes == ['oxford']:
+                        reg_ponderacao = ";".join(definicao_candidata), ";".join(synset[0:2][::-1]), exemplo, pontuacao
+                        
+                    resultados.append(reg_ponderacao)
 
         return resultados
                 
