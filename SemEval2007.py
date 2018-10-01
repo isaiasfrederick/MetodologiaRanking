@@ -16,7 +16,7 @@ import re
 def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
     base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
     
-    gabaritos = obter_gabarito_rankings(configs)
+    gabaritos = obter_gabarito_rankings_semeval(configs)
 
     configs_se2007 = configs['semeval2007']
     todas_metricas = configs_se2007['metricas']['limites'].keys()
@@ -152,7 +152,6 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
     dir_saidas_rankeador = configs['dir_saidas_rankeador']
     Utilitarios.limpar_diretorio(configs, dir_saidas_rankeador)
 
-
     metodos_extracao = configs['aplicacao']['metodos_extracao']
     todas_metricas_se2007 = configs['semeval2007']['metricas']['separadores'].keys()
 
@@ -162,41 +161,46 @@ def gerar_submissoes_para_se2007(configs, validador_se2007):
         resultados[metrica] = [ ]
 
     for metodo in metodos_extracao:
-        if 'WordEmbbedings' in metodo: # or 'Wander' in metodo:
-            todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
-            for metrica in todas_metricas_se2007:
-                submissao_gerada = todas_submissoes_geradas[metrica]
+        todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
+        for metrica in todas_metricas_se2007:
+            submissao_gerada = todas_submissoes_geradas[metrica]
 
-                nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
-                nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
+            nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
+            nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
 
-                resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
-                resultados[metrica].append(resultados_minha_abordagem)
+            resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
+            resultados[metrica].append(resultados_minha_abordagem)
 
     return resultados
  
 # Realizar o SemEval2007 exclusivamente para os métodos que desenvolvi
 def realizar_se2007_metodos_desenvolvidos(configs):
+    # Limpa todas saidas geradas
     system('clear ' + configs['dir_saidas_rankeador'])
-
-    validador_se2007 = ValidadorRankingSemEval2007(configs)
+    validador_se = ValidadorRankingSemEval2007(configs)
     # gerar todas minhas abordagens de baseline
-    minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se2007)
+
+    minhas_submissoes_geradas = None
+
+    try:
+        minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se)
+    except:
+        traceback.print_exc()
+        raw_input("\n\n\nErro na geracao de submissoes!\n")
 
     # para cada metrica (oot e best)
     for metrica in minhas_submissoes_geradas.keys():
-        submissao_gerada = minhas_submissoes_geradas[metrica]
-        resultados_participantes = validador_se2007.obter_score_participantes_originais(metrica)
+        minhas_submissoes_geradas = minhas_submissoes_geradas[metrica]
+        resultados_participantes_originais = validador_se.obter_score_participantes_originais(metrica)
 
-        for minha_abordagem in submissao_gerada:
-            resultados_participantes[minha_abordagem['nome']] = minha_abordagem
+        for minha_abordagem in minhas_submissoes_geradas:
+            resultados_participantes_originais[minha_abordagem['nome']] = minha_abordagem
 
-        exibir_todos_resultados(resultados_participantes, validador_se2007)
+        exibir_todos_resultados(resultados_participantes_originais, validador_se)
 
-# Carregar gold file
-def obter_gabarito_rankings(configs):
-    dir_gold_file = configs['semeval2007']['trial']['gold_file']
 
+def carregar_gabarito(dir_gabarito):
+    dir_gold_file = dir_gabarito
     arquivo_gold = open(dir_gold_file, 'r')
     todas_linhas = arquivo_gold.readlines()
     arquivo_gold.close()
@@ -204,11 +208,12 @@ def obter_gabarito_rankings(configs):
     saida = dict()
     separador = " :: "
 
+    todas_linhas = [linha for linha in todas_linhas if linha != "\n"]
+
     for linha in todas_linhas:
         resposta_linha = dict()
         try:
-            ltmp = str(linha)
-            ltmp = ltmp.replace('\n', '')
+            ltmp = str(linha).replace('\n', '')
             chave, sugestoes = ltmp.split(separador)
             sugestoes = [s for s in sugestoes.split(';') if s]
 
@@ -223,6 +228,10 @@ def obter_gabarito_rankings(configs):
             traceback.print_exc()
     
     return saida
+
+# Carregar gold file
+def obter_gabarito_rankings_semeval(configs):
+    return carregar_gabarito(configs['semeval2007']['trial']['gold_file'])
 
 # Aplica a métrica GAP
 def aplicar_metrica_gap_participantes_semeval2007(configs):

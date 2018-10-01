@@ -12,7 +12,6 @@ import os.path
 import copy
 import io
 
-
 class ValidadorRankingSemEval2007(object):
     def __init__(self, configs):
         self.configs = configs

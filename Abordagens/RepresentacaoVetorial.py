@@ -16,7 +16,10 @@ class RepresentacaoVetorial(object):
         self.stemmer = PorterStemmer()
 
     def obter_palavras_relacionadas(self, positivos=[], negativos=[], topn=1):
-        return self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
+        try:
+            return self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
+        except KeyError, ke:
+            return []
 
     def iniciar_processo(self, palavra_arg, pos_semeval, contexto, topn=10):
         if self.modelo == None:

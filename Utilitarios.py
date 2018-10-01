@@ -122,7 +122,7 @@ class Utilitarios(object):
         return Counter(words)
 
     @staticmethod
-    def carregar_json(diretorio):
+    def carregar_json(diretorio):        
         try:
             arq = open(diretorio, 'r')
             obj = json.loads(arq.read())
@@ -130,7 +130,8 @@ class Utilitarios(object):
 
             return obj
 
-        except:
+        except Exception, e:
+            print(e)
             return None
 
     @staticmethod

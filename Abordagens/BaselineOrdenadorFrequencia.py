@@ -1,4 +1,4 @@
-from SemEval2007 import obter_gabarito_rankings
+from SemEval2007 import obter_gabarito_rankings_semeval
 from Utilitarios import Utilitarios
 from ValidadorRanking.Validadores import GeneralizedAveragePrecisionMelamud
 
@@ -9,7 +9,7 @@ class BaselineOrdenadorFrequencia(object):
     def iniciar(self, configs, dir_arquivo_saida):
         validador_gap = GeneralizedAveragePrecisionMelamud(Utilitarios.configs)
         resultado = {}
-        gabarito = obter_gabarito_rankings(configs)
+        gabarito = obter_gabarito_rankings_semeval(configs)
 
         gap_acc = 0
         cont = 0

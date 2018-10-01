@@ -16,170 +16,334 @@ from RepositorioCentralConceitos import CasadorConceitos
 from nltk.corpus import wordnet
 # Fim pacotes da Experimentacao
 
+# Carrega o gabarito o arquivo de input
+from SemEval2007 import obter_gabarito_rankings_semeval, carregar_arquivo_submissao_se2007
+from Validadores import ValidadorRankingSemEval2007
+
 # Testar Abordagem Alvaro
 from Abordagens.AbordagemAlvaro import AbordagemAlvaro
+from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
 from CasadorManual import CasadorManual
 
 wn = wordnet
 
-def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False):
-    contadores = Utilitarios.carregar_json("/media/isaias/ParticaoAlternat/Bases/contadores_leipzig_corpus.json")
-    
-    f = [raw_input("Digite a fonte desejada ('oxford' ou 'wordnet'): ")]
+""" Este metodo testa a abordagem do Alvaro em carater investigativo
+sobre o componente que escolhe os sinonimos a serem utilizados """
+def medir_seletor_candidatos(configs):
+    contadores = Utilitarios.carregar_json(configs['leipzig']['dir_contadores'])
 
-    usar_desambiguador = False
+    dir_saida_seletor_candidatos = raw_input("Diretorio saida arquivo seletor candidatos: ")
 
-    flag_base = 'trial'
+    base_unificada = BaseUnificadaObjetosOxford(configs)
+    abordagem_alvaro = AbordagemAlvaro(configs, base_unificada, CasadorManual(configs))
+    representacao_vetorial = RepresentacaoVetorial(configs)
+    representacao_vetorial.carregar_modelo(diretorio="/mnt/ParticaoAlternat/Bases/Modelos/vectors.bin")
 
-    if flag_base == 'test':
-        # 301, 321, 331, 1091
-        casos_testes = Utilitarios.carregar_json('/home/isaias/casos_testes-test.json')
-        gabarito = Utilitarios.carregar_json('/home/isaias/gabarito-test.json')
+    bases_utilizadas = raw_input("Escolha a base para fazer a comparacao: 'trial' ou 'test': ")
 
+    if bases_utilizadas == "trial":
+        dir_gabarito = configs['semeval2007']['trial']['gold_file']
+        dir_entrada = configs['semeval2007']['trial']['scorer']
+    elif bases_utilizadas == "test":
+        dir_gabarito = "/mnt/ParticaoAlternat/SemEval2007/task10data/scoring/gold"
+        dir_entrada = "/mnt/ParticaoAlternat/SemEval2007/test/lexsub_test.xml"
+
+    gabarito_tmp = carregar_gabarito(dir_gabarito)
+
+    casos_testes, gabarito = [], []
+
+    gabarito_dict = dict()
+
+    for lexelt in gabarito_tmp:
+        lista = []
+        for sugestao in gabarito_tmp[lexelt]:
+            voto = gabarito_tmp[lexelt][sugestao]
+            lista.append([sugestao, voto])
+        gabarito.append(lista)
+        gabarito_dict[lexelt] = lista
+
+    validador_semeval2007 = ValidadorRankingSemEval2007(configs)
+    casos_testes_tmp = validador_semeval2007.ler_entrada_teste(dir_entrada)
+
+    casos_testes_dict = {}
+
+    for lexema in casos_testes_tmp:
+        for registro in casos_testes_tmp[lexema]:
+            frase = registro['frase']
+            palavra = registro['palavra']
+            pos = lexema.split(".")[1]
+            casos_testes.append([frase, palavra, pos])
+
+            nova_chave = "%s %s" % (lexema, registro['codigo'])
+            casos_testes_dict[nova_chave] = [frase, palavra, pos]
+
+    casos_testes = []
+    gabarito = []
+    lexemas = []
+
+    resultados_persistiveis = []
+
+    if len(gabarito) != len(casos_testes):
+        raise Exception("A quantidade de instancias de entrada estao erradas!")
+
+    for lexema in casos_testes_dict:
+        if lexema in casos_testes_dict and lexema in gabarito_dict:            
+            casos_testes.append(casos_testes_dict[lexema])
+            gabarito.append(gabarito_dict[lexema])
+            lexemas.append(lexema)
+
+    total_com_resposta = 0
+    total_sem_resposta = 0
+
+    usar_sinonimos_wordnet = usar_sinonimos_oxford = usar_sinonimos_word_embbedings= False
+
+    if raw_input("Adicionar sinonimos Wordnet? s/N? ") == 's':
+        usar_sinonimos_wordnet = True
+    if raw_input("Adicionar sinonimos Oxford? s/N? ") == 's':
+        usar_sinonimos_oxford = True
+    if raw_input("Adicionar sinonimos WordEmbbedings? s/N? ") == 's':
+        usar_sinonimos_word_embbedings = True
+
+    total_candidatos = [ ]
+
+    if usar_sinonimos_word_embbedings:
+        max_resultados = int(raw_input("Maximo resultados: "))
     else:
-        casos_testes = Utilitarios.carregar_json('/home/isaias/casos_testes-trial.json')
-        # 298, 281, 181, 255, 201, 11
-        gabarito = Utilitarios.carregar_json('/home/isaias/gabarito-trial.json')
+        max_resultados = 0
 
-    indice = int(raw_input('\nDigite o indice (Maximo: %d): ' % (len(gabarito)-1)))
+    for indice in range(len(gabarito)):
+        todos_votos = sorted([v[1] for v in gabarito[indice]], reverse=True)
+
+        # Se caso de entrada possui uma moda
+        possui_moda = todos_votos.count(todos_votos[0]) == 1
+
+        if possui_moda == True:
+            candidatos = [e[0] for e in gabarito[indice]]
+            contexto, palavra, pos = casos_testes[indice]
+
+            resultados_persistiveis.append(indice)
+
+            # Extraindo candidatos que a abordagem do Alvaro escolhe atraves de dicionarios
+            candidatos_selecionados_alvaro = list()
+
+            if usar_sinonimos_wordnet == True:
+                candidatos_selecionados_alvaro += abordagem_alvaro.selecionar_candidatos(palavra, pos, fontes=['wordnet'])
+            if usar_sinonimos_oxford == True:
+                candidatos_selecionados_alvaro += abordagem_alvaro.selecionar_candidatos(palavra, pos, fontes=['oxford'])
+            if usar_sinonimos_word_embbedings == True:
+                palavras_relacionadas = representacao_vetorial.obter_palavras_relacionadas(positivos=[palavra], topn=max_resultados)
+                palavras_relacionadas = [p[0] for p in palavras_relacionadas]
+                candidatos_selecionados_alvaro += palavras_relacionadas
+
+            total_candidatos.append(len(candidatos_selecionados_alvaro))
+            candidatos_selecionados_alvaro = list(set(candidatos_selecionados_alvaro))
+
+            # Respostas certas baseada na instancia de entrada
+            gabarito_tmp = sorted(gabarito[indice], key=lambda x: x[1], reverse=True)
+            gabarito_tmp = [reg[0] for reg in gabarito_tmp]
+
+            print("\nCASO ENTRADA: \n" + str((contexto, palavra, pos)))
+            print("\nMEDIA DE SUGESTOES:\n%d" % (sum(total_candidatos)/len(total_candidatos)))
+            print("\nRESPOSTAS CORRETAS:\n\n%s" % str(gabarito_tmp))
+
+            intersecao_tmp = list(set([gabarito_tmp[0]]) & set(candidatos_selecionados_alvaro))
+
+            if intersecao_tmp:
+                total_com_resposta += 1
+                print("\nINTERSECAO: %s" % str(intersecao_tmp))
+                print("\nTOTAL PREDITOS CORRETAMENTE: %d" % (len(intersecao_tmp)))
+            else:
+                total_sem_resposta += 1
+
+    arquivo_saida = open(dir_saida_seletor_candidatos, "w")
+
+    for indice in resultados_persistiveis:
+        # [['crazy', 3], ['fast', 1], ['very fast', 1], ['very quickly', 1], ['very rapidly', 1]]
+        sugestao = sorted(gabarito[indice], key=lambda x: x[1], reverse=True)[0][0]
+        arquivo_saida.write("%s :: %s\n" % (lexemas[indice], sugestao))
+
+    # Persistindo casos de entrada sem resposta corretamente
+    for lexema in set(casos_testes_tmp.keys()) - set(lexemas):
+        arquivo_saida.write(lexema + " ::\n")
+
+    arquivo_saida.close()
+
+    print("\n\nTotal com resposta: " + str(total_com_resposta))
+    print("\nTotal sem resposta: " + str(total_sem_resposta))
+
+def executar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=False):
+    contadores = Utilitarios.carregar_json(configs['leipzig']['dir_contadores'])
+    casos_testes = gabarito = None
+
+    # Carrega a base Trial para fazer os testes
+    dir_gabarito = configs['semeval2007']['trial']['gold_file']
+    dir_entrada = configs['semeval2007']['trial']['scorer']
+
+    gabarito_tmp = carregar_gabarito(dir_gabarito)
+
+    casos_testes, gabarito = [], []
+    gabarito_dict = {}
+
+    for lexelt in gabarito_tmp:
+        lista = []
+        for sugestao in gabarito_tmp[lexelt]:
+            voto = gabarito_tmp[lexelt][sugestao]
+            lista.append([sugestao, voto])
+        gabarito.append(lista)
+        gabarito_dict[lexelt] = lista
+
+    validador_semeval = ValidadorRankingSemEval2007(configs)
+    casos_testes_tmp = validador_semeval.ler_entrada_teste(dir_entrada)
+
+    casos_testes_dict = {}
+
+    for lexema in casos_testes_tmp:
+        for registro in casos_testes_tmp[lexema]:
+            frase = registro['frase']
+            palavra = registro['palavra']
+            pos = lexema.split(".")[1]
+            casos_testes.append([frase, palavra, pos])
+
+            nova_chave = "%s %s" % (lexema, registro['codigo'])
+            casos_testes_dict[nova_chave] = [frase, palavra, pos]
+
+    casos_testes = []
+    gabarito = []
+
+    if len(gabarito) != len(casos_testes):
+        raise Exception("A quantidade de instancias de entrada estao erradas!")
+
+    for lexema in casos_testes_dict:
+        casos_testes.append(casos_testes_dict[lexema])
+        gabarito.append(gabarito_dict[lexema])
 
     casador_manual = CasadorManual(configs)
     base_unificada = BaseUnificadaObjetosOxford(configs)
     abordagem_alvaro = AbordagemAlvaro(configs, base_unificada, casador_manual)
-    
+
     usar_gabarito = raw_input('Utilizar candidatos do gabarito? s/N: ').lower()
+    #indice = int(raw_input("Digite o indice (0 - %d): " % len(gabarito)))
 
-    if usar_gabarito == 's':
-        candidatos = [e[0] for e in gabarito[indice]]
-    else:
-        candidatos = None
+    for indice in range(0, len(casos_testes)):
+        if usar_gabarito == 's':
+            candidatos = [e[0] for e in gabarito[indice]]        
+        else:
+            candidatos = None
 
-    contexto, palavra, pos = casos_testes[indice]
+        # fontes = [raw_input("Digite a fonte desejada: 'wordnet' ou 'oxford': ")]
+        fontes = ["oxford"]
 
-    candidatos_selecionados_tmp = abordagem_alvaro.selecionar_candidatos(palavra, pos, fontes=f)
-    gabarito_tmp = candidatos = [e[0] for e in gabarito[indice]]
+        contexto, palavra, pos = casos_testes[indice]
+        resultado = abordagem_alvaro.iniciar_processo(palavra, pos, contexto, fontes_arg=fontes, anotar_exemplos=True, usar_fontes_secundarias=True, usar_ctx=usar_ctx, candidatos=candidatos)
 
-    print("\nGabarito:\n%s" % str(gabarito_tmp))
-    print("\nCandidatos temporarios:\n%s" % str(candidatos_selecionados_tmp))
-    intersecao_tmp = list(set(gabarito_tmp) & set(candidatos_selecionados_tmp))
-    print("\nIntersecao: %s" % str(intersecao_tmp))
-    raw_input("\nTotal de preditos corretamente: %d" % (len(intersecao_tmp)))
+        agregacao, frases = dict(), set()
 
-    resultado = abordagem_alvaro.iniciar_processo(palavra, pos, contexto, fontes=f, anotar_exemplos=True, usar_fontes_secundarias=True, usar_ctx=usar_ctx, candidatos=candidatos)
+        for reg in resultado:
+            if fontes == ['wordnet']:
+                label_sinonimo, significado, exemplo, pontuacao = reg
+            elif fontes == ['oxford']:
+                label_sinonimo = reg[0]
+                significado, exemplo, pontuacao = reg[1:]
 
-    agregacao = dict()
-    frases = set()
+            if not exemplo in frases:
+                frases.add(exemplo)
+                # (film.Noun.6;Cinema considered as an art or industry.#Cinema considered as an art or industry)
+                label = label_sinonimo + '#' + significado
 
-    for reg in resultado:
-        if f == ['wordnet']:
-            label_sinonimo, significado, exemplo, pontuacao = reg
-        elif f == ['oxford']:
-            label_sinonimo = reg[0]
-            significado, exemplo, pontuacao = reg[1], reg[2], reg[3]
+                if not label in agregacao:
+                    agregacao[label] = []
 
-        if not exemplo in frases:
-            frases.add(exemplo)
-            # (film.Noun.6;Cinema considered as an art or industry.#Cinema considered as an art or industry)
-            label = label_sinonimo + '#' + significado
+                agregacao[label].append(pontuacao)
 
-            if not label in agregacao:
-                agregacao[label] = []
+        resultado_ordenado_agregado = []
 
-            agregacao[label].append(pontuacao)
+        for lexelt in agregacao:
+            media = sum(agregacao[lexelt]) / len(agregacao[lexelt])
+            resultado_ordenado_agregado.append((lexelt, media))
 
-    resultado_ordenado = []
+        resultado_ordenado_agregado.sort(key=lambda x: x[1], reverse=True)
+        resultado = []
 
-    for chave in agregacao:
-        media = sum(agregacao[chave]) / len(agregacao[chave])
-        resultado_ordenado.append((chave, media))
+        todos_lemas = []
 
-    resultado_ordenado.sort(key=lambda x: x[1], reverse=True)
-    resultado = []
+        if usar_desambiguador == True:
+            if fontes == ['wordnet']:
+                resultado_desambiguacao = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+                resultado_desambiguacao = [r[0].name() for r in resultado_desambiguacao]
 
-    if usar_desambiguador == True:
-        if f == ['wordnet']:
-            resultado_desambiguacao = cosine_lesk(contexto, palavra, pos=pos, nbest=True)
-            resultado_desambiguacao = [r[0].name() for r in resultado_desambiguacao]
+            elif fontes == ['oxford']:
+                desambiguador_oxford = DesambiguadorOxford(configs, base_unificada)            
+                resultado_desambiguacao = desambiguador_oxford.cosine_lesk(contexto, palavra, pos=pos, nbest=True)
 
-        elif f == ['oxford']:
-            desambiguador_oxford = DesambiguadorOxford(configs, base_unificada)            
-            resultado_desambiguacao = desambiguador_oxford.adapted_cosine_lesk(contexto, palavra, pos=pos, nbest=True)
+                resultado_desambiguacao = ["%s#%s" % (r[0][0], r[0][1]) for r in resultado_desambiguacao]
 
-            resultado_desambiguacao = ["%s#%s" % (r[0][0], r[0][1]) for r in resultado_desambiguacao]
+            definicoes_processadas = set()
 
-        definicoes_processadas = set()
+            for reg in resultado_ordenado_agregado:
+                for reg_desambiguacao in resultado_desambiguacao:
+                    if len(resultado) < 10:
+                        if fontes == ['wordnet']:
+                            s1, s2 = reg[0].split('#')
+                        elif fontes == ['oxford']:
+                            s1 = reg[0].split('#')[0]
+                            s2 = reg[0].split('#')[1].split(";")[0]
 
-        for reg in resultado_ordenado:
-            for reg_desambiguacao in resultado_desambiguacao:
-                if len(resultado) < 10:
-                    if f == ['wordnet']:
-                        s1, s2 = reg[0].split('#')
-                    elif f == ['oxford']:
-                        s1 = reg[0].split('#')[0]
-                        s2 = reg[0].split('#')[1].split(";")[0]
+                        if fontes == ['oxford']:
+                            flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao.split("#")[1]
+                        elif fontes == ['wordnet']:                    
+                            flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao
 
-                    if f == ['oxford']:
-                        flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao.split("#")[1]
-                    elif f == ['wordnet']:                    
-                        flag = not s1 in definicoes_processadas and s2 == reg_desambiguacao
+                        if flag == True:
+                            definicoes_processadas.add(s1)
 
-                    if flag == True:
-                        definicoes_processadas.add(s1)
+                            if fontes == ['wordnet']:
+                                todos_lemas = wn.synset(s1).lemma_names()
+                            elif fontes == ['oxford']:
+                                #(u'def_1.;lema_1#def_2.;lema_2', 0.0)
+                                lema_s1 = s1.split(";")[-1:][0] # indice zero é pra tirar da lista
+                                def_s1 = s1.split(";")[:-1][0] # indice zero é pra tirar da lista
+                                todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
 
-                        if f == ['wordnet']:
-                            todos_lemas = wn.synset(s1).lemma_names()
-                        elif f == ['oxford']:
-                            #(u'def_1.;lema_1#def_2.;lema_2', 0.0)
-                            def_s1, lema_s1 = s1.split(";")
-                            todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
+            resultado = resultado[:10]
 
-        resultado = resultado[:10]
-
-    else:
-        for reg in resultado_ordenado:
-            todos_lemas = []
-            if f == ['wordnet']:
+        else:
+            for reg in resultado_ordenado_agregado:
+                todos_lemas = []
                 s1, s2 = reg[0].split('#')
-                s1, s2 = wn.synset(s1), wn.synset(s2)
+                if fontes == ['wordnet']:
+                    s1, s2 = wn.synset(s1), wn.synset(s2)
+                    todos_lemas = list(set(s1.lemma_names() + s2.lemma_names()))
+                elif fontes == ['oxford']:
+                    def_s1, lema_s1 = s1.split(";")     # def_s2, lema_s2 = re.split("[;.]+", s2)[:2]
+                    todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
 
-                todos_lemas = list(set(s1.lemma_names() + s2.lemma_names()))
-            elif f == ['oxford']:
-                s1, s2 = reg[0].split('#')
+        for lema in todos_lemas:
+            if not lema in resultado:
+                if Utilitarios.representa_multipalavra(lema) == False:
+                    if not lema in resultado:
+                        resultado.append(lema)
 
-                def_s1, lema_s1 = s1.split(";")
-                def_s2, lema_s2 = re.split("[;.]+", s2)[:2]
+            resultado = resultado[:10]
 
-                todos_lemas = base_unificada.obter_sinonimos(lema_s1, def_s1)
+        if palavra in resultado:
+            resultado.remove(palavra)
 
-    for lema in todos_lemas:
-        if not lema in resultado:
-            if Utilitarios.representa_multipalavra(lema) == False:
-                if not lema in resultado:
-                    resultado.append(lema)
+        resultado = [(p, contadores[p]) for p in resultado if p in contadores]
 
-        resultado = resultado[:10]
+        #print("\nCASO DE ENTRADA PARA (%s, %s): " % (palavra, contexto))
+        #print('\n\nRESULTADO: ')
+        resultado.sort(key=lambda x: x[1], reverse=True)
 
-    raw_input("\n\nRESULTADO: " + str(resultado))
-    if palavra in resultado:
-        resultado.remove(palavra)
+        #print(resultado)
+        #print('\n')
 
-    resultado = [(p, contadores[p]) for p in resultado]
+        #print('\nGABARITO:\n')
+        #print(gabarito[indice])
+        #print('\n')
 
-    print('\n\nRESULTADO +: ')
-    resultado.sort(key=lambda x: x[1], reverse=True)
-
-    print(resultado)
-    print('\n')
-
-    print('\nGABARITO:\n')
-    print(gabarito[indice])
-    print('\n')
-
-    print('\nINTERSECAO:\n')
-    intersecao = set([e[0] for e in gabarito[indice]]) & set([e[0] for e in resultado])
-    print(list(intersecao))
-
-    return
+        #print('\nINTERSECAO:\n')
+        intersecao = set([e[0] for e in gabarito[indice]]) & set([e[0] for e in resultado])
+        #print(list(intersecao))
 
 def testar_casamento(configs):
     base_unificada = BaseUnificadaObjetosOxford(configs)
@@ -224,62 +388,18 @@ if __name__ == '__main__':
     Utilitarios.limpar_console()
     configs = Utilitarios.carregar_configuracoes(argv[1])
 
-    if True:
-        executar_abordagem_alvaro(configs, usar_desambiguador=True)
-        #raw_input('\n\n<ENTER>\n')
-        #testar_abordagem_alvaro(configs, usar_desambiguador=False)
-        #raw_input('\n\nUSANDO CONTEXTO:\n<ENTER>\n')
-        #testar_abordagem_alvaro(configs, usar_desambiguador=True, usar_ctx=True)
-        #raw_input('\n\n<ENTER>\n')
-        #testar_abordagem_alvaro(configs, usar_desambiguador=False, usar_ctx=True)
-
-        print('\n\n\n')
-        exit(0)
-
-    if True:
-        from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
-        rep_vetorial = RepresentacaoVetorial(configs)
-        rep_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
-
-        while False:
-            res = rep_vetorial.palavra_diferente(raw_input("Digite as palavras separadas por espaços: "))
-            print(">>> " + res)
-
-        if True:
-            palavra = ""        
-            while palavra != "sair":
-                palavra = raw_input("DIGITAR PALAVRA: ")
-                if not palavra in ["sair", ""]:
-                    positivos = palavra + " " + raw_input("COLAR DEFINICAO DA PALAVRA: ")
-                    positivos = positivos.split(" ")
-                    
-                    for e in rep_vetorial.obter_palavras_relacionadas(positivos=positivos, topn=40):
-                        print(e)
-                    print('\n\n')
-        exit(0)
-
-#    testar_casamento_manual(configs)
-#    exit(0)
-    #testar_wander(configs)
-
-#    testar_casamento(configs)
-#    exit(0)
-
-    # Criando validadores par as métricas avaliadas
-    validador_se2007 = ValidadorRankingSemEval2007(configs)
-
     # Realiza o SemEval2007 para as minhas abordagens implementadas (baselines)
     print('\nIniciando o Semantic Evaluation 2007!')
     realizar_se2007_metodos_desenvolvidos(configs)
     print('\n\nSemEval2007 realizado!\n\n')
 
-    aplicar_metrica_gap = True
+    aplicar_metrica_gap = False
 
     if aplicar_metrica_gap:
         validador_gap = GeneralizedAveragePrecisionMelamud(configs)
         # Obtem os gabaritos informados por ambos
         # anotadores no formato <palavra.pos.id -> gabarito>
-        gold_rankings_se2007 = obter_gabarito_rankings(configs)
+        gold_rankings_se2007 = obter_gabarito_rankings_semeval(configs)
 
         # Lista todos aquivos .best ou .oot do SemEval2007
         lista_todas_submissoes_se2007 = Utilitarios.listar_arquivos(configs['dir_saidas_rankeador'])

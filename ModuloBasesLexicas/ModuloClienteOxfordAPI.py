@@ -8,6 +8,8 @@ import json
 import sys
 import re
 
+from textblob import Word
+
 from Utilitarios import Utilitarios
 import os
 import traceback
@@ -128,17 +130,17 @@ class BaseUnificadaObjetosOxford(object):
 
         if pos == None:
             lista_pos = [pos for pos in obj_unificado.keys()]
-        elif pos.__len__() == 1:
+        elif len(pos) == 1:
             lista_pos = [Utilitarios.conversor_pos_wn_oxford(pos)]
 
         try:
             for pos in lista_pos:
                 for def_primaria in obj_unificado[pos]:
-                    if definicao == def_primaria:
+                    if definicao in def_primaria or def_primaria in definicao:
                         return obj_unificado[pos][def_primaria]['sinonimos']
 
                     for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
-                        if definicao == def_sec:
+                        if definicao in def_sec or def_sec in definicao:
                             return obj_unificado[pos][def_primaria]['def_secs'][def_sec]['sinonimos']
         except:
             print("A palavra %s e definicao '%s' retornou 0 sinonimos!" % (palavra, definicao))
@@ -147,7 +149,7 @@ class BaseUnificadaObjetosOxford(object):
 
     # Obtem exemplos a partir do objeto unificado
     def obter_exemplos__(self, pos, definicao, obj_unificado):
-        if pos.__len__() == 1:
+        if len(pos) == 1:
             pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
         try:
@@ -168,18 +170,24 @@ class BaseUnificadaObjetosOxford(object):
     def obter_todas_definicoes(self, palavra, pos):
         obj_unificado = self.obter_obj_unificado(palavra)
 
-        # Se POS = None, pegue todas as POS
-        if pos == None:
-            if pos.__len__() == 1:
+        try:
+            # Se POS = None, pegue todas as POS
+            if pos != None:
                 pos = Utilitarios.conversor_pos_wn_oxford(pos)
 
-            obj_unificado = {pos: obj_unificado[pos]}
+                if pos in obj_unificado:
+                    obj_unificado = { pos: obj_unificado[pos] }
+                else:
+                    obj_unificado = dict()
+            else:
+                pass
 
-        else:
-            pos = Utilitarios.conversor_pos_wn_oxford(pos)
-            obj_unificado = {pos: obj_unificado[pos]}
-
-        todas_definicoes = []
+            todas_definicoes = []
+        except (TypeError, AttributeError), e:
+            try:
+                return self.obter_todas_definicoes(Word(palavra).singularize(), pos)
+            except:
+                return []
 
         try:
             for pos in obj_unificado:
@@ -602,7 +610,15 @@ class ColetorOxfordWeb(object):
 
     def scrap_frame_definicoes(self, frame):
         resultado = {}
-        pos = frame.find("h3[@class='ps pos']/span[@class='pos']").text.capitalize()
+
+        pos = None
+
+        try:
+            pos = frame.find("h3[@class='ps pos']/span[@class='pos']").text.capitalize()
+        except:
+            import traceback
+            traceback.print_exc()
+
         frame_definicoes = frame.findall('ul/li')
 
         resultado = dict()
@@ -615,9 +631,6 @@ class ColetorOxfordWeb(object):
 
             if def_princ_txt:
                 resultado[def_princ_txt] = dict()
-
-                print('Adicionando definicao principal:')
-                print(def_princ_txt)
 
                 path = "div/div[@class='exg']/div/em"
                 exemplos_principais = [self.remove_aspas(e.text) for e in frame_definicao.findall(path)]

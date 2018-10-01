@@ -46,7 +46,7 @@ class DesambiguadorOxford(object):
         return assinatura
 
     """ Metodo Cosseno feito para o dicionario de Oxford """
-    def adapted_cosine_lesk(self, ctx, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False, busca_ampla=False):
+    def cosine_lesk(self, ctx, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False, busca_ampla=False):
 
         if pos.__len__() == 1:
             pos = Utilitarios.conversor_pos_wn_oxford(pos)
@@ -175,7 +175,7 @@ class DesambiguadorOxford(object):
         obter_sinonimos_oxford = self.base_unificada_oxford.obter_sinonimos_fonte_obj_unificado
 
         try:
-            resultado = self.adapted_cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla)
+            resultado = self.cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla)
         except Exception, e:
             resultado = []
 
