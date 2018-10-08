@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from Utilitarios import Utilitarios
+from Utilitarios import Utils
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
 from nltk.corpus import wordnet
 
@@ -12,8 +12,8 @@ class CasadorManual(object):
         self.configs = configs
         # self.configs['dir_base_casada_manualmente']
         self.diretorio_base_casada_manualmente = self.configs['dir_base_casada_manualmente']
-        self.base_casada_manualmente = Utilitarios.carregar_json(self.diretorio_base_casada_manualmente)
-        self.base_unificada_oxford = BaseUnificadaObjetosOxford(self.configs)
+        self.base_casada_manualmente = Utils.carregar_json(self.diretorio_base_casada_manualmente)
+        self.base_ox = BaseUnificadaObjetosOxford(self.configs)
 
         if self.base_casada_manualmente == None:
             self.base_casada_manualmente = {}
@@ -39,8 +39,8 @@ class CasadorManual(object):
             self.base_casada_manualmente[termo] = {}
 
         if not wn.synsets(unicode(termo), pos)[0].name() in self.base_casada_manualmente[termo]:
-            obj_oxford = self.base_unificada_oxford.obter_obj_unificado(termo)       
-            pos_oxford = Utilitarios.conversor_pos_wn_oxford(pos)
+            obj_oxford = self.base_ox.obter_obj_unificado(termo)       
+            pos_oxford = Utils.conversor_pos_wn_oxford(pos)
 
             try:
                 obj_oxford = obj_oxford[pos_oxford]
@@ -77,15 +77,15 @@ class CasadorManual(object):
                     except IndexError: pass
 
             dir_saida = self.diretorio_base_casada_manualmente
-            Utilitarios.salvar_json(dir_saida, self.base_casada_manualmente)
+            Utils.salvar_json(dir_saida, self.base_casada_manualmente)
 
     def recuperar_exemplos(self, nome_synset=""):
         termo = wn.synset(nome_synset).lemma_names()[0]
         pos_oxford = wn.synset(nome_synset).pos()
-        pos_oxford = Utilitarios.conversor_pos_wn_oxford(pos_oxford)
+        pos_oxford = Utils.conversor_pos_wn_oxford(pos_oxford)
 
         try:
-            obj_unificado = self.base_unificada_oxford.obter_obj_unificado(termo)[pos_oxford]            
+            obj_unificado = self.base_ox.obter_obj_unificado(termo)[pos_oxford]            
         except:
             print('Excecao: ' + str((termo, pos_oxford)))
             obj_unificado = None

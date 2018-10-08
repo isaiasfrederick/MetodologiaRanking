@@ -57,7 +57,7 @@ class ValidadorInventarioOxford(object):
         
     @staticmethod
     def caso_entrada_(palavra, gabarito, top10):
-        base_unificada_oxford = BaseUnificadaObjetosOxford(None)
+        base_ox = BaseUnificadaObjetosOxford(None)
 
         total_corretos = list(set(gabarito.keys()) & set(top10))
         best_gabarito = gabarito[sorted(gabarito.keys(), reverse=True)[0]]
@@ -65,12 +65,12 @@ class ValidadorInventarioOxford(object):
         intersecao_palavras_oxford = []
         diferenca_palavras_oxford = []
 
-        obj_unificado_oxford = base_unificada_oxford.obter_obj_unificado(palavra)
-        todas_definicoes = base_unificada_oxford.obter_todas_definicoes(palavra)
+        obj_unificado_oxford = base_ox.obter_obj_unificado(palavra)
+        todas_definicoes = base_ox.obter_todas_definicoes(palavra)
 
         for definicao in todas_definicoes:
             pass
-            #sinonimos = base_unificada_oxford.
+            #sinonimos = base_ox.
 
         intersecao = list(set(s.lemma_names()) & set(gabarito.keys()))
         intersecao_palavras_wornet += intersecao

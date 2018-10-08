@@ -3,273 +3,194 @@ from RepositorioCentralConceitos import BaseUnificadaObjetosOxford
 from Abordagens import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
-from Utilitarios import Utilitarios
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import *
 from pywsd.lesk import cosine_lesk as cosine_lesk
-from Validadores import *
 from nltk.corpus import wordnet as wordnet
+import xml.etree.ElementTree as ET
+from os.path import isfile, join
+from operator import itemgetter
+from random import shuffle
+from Utilitarios import *
+from lxml import etree
+from os import listdir
+from os import system
 from sys import argv
 import traceback
+import operator
+import os.path
+import copy
+import io
 import re
 
-# Aplicar o SemEval2007 por método de extração
-def aplicar_se2007_sob_metodo(configs, metodo_extracao, ordenar):
-    base_unificada_oxford = BaseUnificadaObjetosOxford(configs)
-    
-    gabaritos = obter_gabarito_rankings_semeval(configs)
+class ValidadorSemEval(object):
+    def __init__(self, configs):
+        self.configs = configs
+        
+        self.dir_respostas_competidores = configs['semeval2007']['dir_resultados_concorrentes']
+        self.gold_file_test = configs['semeval2007']['test']['gold_file']
+        self.comando_scorer = configs['semeval2007']['test']['input']
+        self.dir_tmp = configs['dir_temporarios']
 
-    configs_se2007 = configs['semeval2007']
-    todas_metricas = configs_se2007['metricas']['limites'].keys()
+        self.todas_abordagens = dict()
 
-    respostas_semeval = dict()
+    # Gera o score das metricas das tarefas do SemEval para as abordagens originais da
+    def obter_score_participantes_originais(self, tarefa):
+        resultados_json = {}
+        todos_participantes = [p for p in self.listar_arq(self.dir_respostas_competidores) if '.' + tarefa in p]
 
-    for tarefa in todas_metricas:
-        respostas_semeval[tarefa] = dict()
+        for participante in todos_participantes:
+            resultados_json[participante] = self.calcular_score(self.dir_respostas_competidores, participante)
 
-    dir_contadores = configs['leipzig']['dir_contadores']
+        return resultados_json
 
-    cli_babelnet = ClienteBabelAPI(configs)
-    cli_oxford = ClienteOxfordAPI(configs)
+    # Recupera o score das abordagens posteriores à competição
+    def obter_score_participantes_posteriores(self):
+        pass
 
-    extrator_sinonimos = InterfaceAbordagens(configs, cli_oxford, cli_babelnet, dir_contadores, base_unificada_oxford)
-    validador_se2007 = ValidadorRankingSemEval2007(configs)
+    def calcular_score(self, dir_pasta_submissao, participante):
+        tarefa = participante.split('.')[1]
+        arquivo_tmp = "%s/%s.tmp" % (self.dir_tmp, participante)
 
-    dir_arquivo_teste = configs_se2007["dir_arquivo_teste"]
-    casos_entrada = validador_se2007.ler_entrada_teste(dir_arquivo_teste)
+        comando_scorer = self.comando_scorer
+        dir_entrada = dir_pasta_submissao + '/' + participante
+        dir_saida = dir_pasta_submissao + '/' + arquivo_tmp
 
-    for lema in casos_entrada:
-        respostas_semeval[tarefa][lema] = dict()
+        args = (comando_scorer, dir_entrada, self.gold_file_test, tarefa, arquivo_tmp)
 
-        for id_entrada in casos_entrada[lema]:
-            palavra, pos = lema.split('.')
+        comando = "perl %s %s %s -t %s > %s" % args
+        system(comando)
 
-            frase, codigo = id_entrada['frase'], id_entrada['codigo']
+        # Le a saida do formatoo <chave>:<valor> por linha
+        obj = self.ler_registro(arquivo_tmp)
+        obj['nome'] = participante
 
+        system('rm ' + arquivo_tmp)
+
+        return obj
+
+    def listar_arq(self, dir_arquivos):
+        return [f for f in listdir(dir_arquivos) if isfile(join(dir_arquivos, f))]
+
+    def filtrar_participantes(self, participantes, tarefa):
+        return [p for p in participantes if tarefa in p]
+
+    def ler_registro(self, path_arquivo):
+        obj = {}
+        arq = open(str(path_arquivo), 'r')
+        linhas = arq.readlines()
+
+        for l2 in linhas:
             try:
-                sinonimos = extrator_sinonimos.buscar_sinonimos(palavra, pos, metodo_extracao, contexto=frase)
-
-                if None in sinonimos:
-                    raw_input('Ha um objeto nulo!')
-            except:
-                print('\n')
-                traceback.print_exc()
-                sinonimos = []
-                print('\n')
-
-            try:
-                sinonimos.remove(palavra)
+                l = str(l2).replace('\n','')
+                chave, valor = l.split(':')
+                obj[chave] = float(valor)
             except: pass
 
-            if ordenar and sinonimos:
-                try:
-                    sinonimos = extrator_sinonimos.ordenar_por_frequencia(sinonimos)
-                except:
-                    print(sinonimos)
-                    raw_input('EXCECAO no metodo ' + metodo_extracao)
-            
-            for tarefa in todas_metricas:
-                if not lema in respostas_semeval[tarefa]:
-                    respostas_semeval[tarefa][lema] = dict()
+        arq.close()
+        return obj
 
-                limite_superior = int(configs_se2007['metricas']['limites'][tarefa])
-                try:
-                    sinonimos = [e.replace('_', ' ') for e in sinonimos[:limite_superior]]                
-                except:
-                    print('Sinonimos recuperados para o termo ' + palavra + ': ' + str(sinonimos))
-                    sinonimos = []
-                    
-                respostas_semeval[tarefa][lema][codigo] = sinonimos
+    def ler_entrada_teste(self, dir_arquivo_teste):
+        todos_lexelts = dict()
 
-            print('Entrada: %s - %s - %s - %s: %s' % (metodo_extracao, tarefa, lema, codigo, str(sinonimos)))
+        parser = etree.XMLParser(recover=True)
+        arvore_xml = ET.parse(dir_arquivo_teste, parser)
+        raiz = arvore_xml.getroot()
+
+        for lex in raiz.getchildren():
+            todos_lexelts[lex.values()[0]] = []
+            for inst in lex.getchildren():
+                codigo = str(inst.values()[0])
+                context = inst.getchildren()[0]
+                frase = "".join([e for e in context.itertext()]).strip()
+
+                palavra = inst.getchildren()[0].getchildren()[0].text
+                todos_lexelts[lex.values()[0]].append({'codigo': codigo, 'frase': frase, 'palavra': palavra})
+
+        return todos_lexelts
+
+    # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
+    def formatar_submissao(self, nome_abordagem, entrada):
+        metrica = nome_abordagem.split('.').pop()
+
+        todas_metricas = self.configs['semeval2007']['tarefas']
+        limite_respostas = int(todas_metricas['limites'][metrica])
+
+        dir_arquivo_saida = self.configs['dir_saidas_rankeador'] + '/' + nome_abordagem
+        arquivo_saida = open(dir_arquivo_saida, 'w')
+
+        separador = todas_metricas['separadores'][metrica]
+
+        for lemma in entrada:
+            for id_entrada in entrada[lemma]:
+                respostas = entrada[lemma][id_entrada][:limite_respostas]
+                args = (lemma, id_entrada, separador, ';'.join(respostas))
+                arquivo_saida.write("%s %s %s %s\n" % args)
         
-    return respostas_semeval
+        arquivo_saida.close()
 
-# Exibir todos participantes do SemEval2007
-def exibir_todos_resultados(todos_participantes, validador_se2007):
-    Utilitarios.limpar_console()
+        return nome_abordagem
 
-    lista_todos_participantes = todos_participantes.values()
-    todas_dimensoes = []
+    def carregar_gabarito(self, dir_gold_file):
+        arquivo_gold = open(dir_gold_file, 'r')
+        todas_linhas = arquivo_gold.readlines()
+        arquivo_gold.close()
 
-    participantes_ordenados = {}
+        saida = dict()
+        separador = " :: "
 
-    for participante in lista_todos_participantes:
-        try:
-            if participante.keys().__len__() > todas_dimensoes:
-                todas_dimensoes = participante.keys()
-        except: pass
+        todas_linhas = [linha for linha in todas_linhas if linha != "\n"]
 
-#    todas_dimensoes = ['Total', 'Attempted', 'Precision', 'Recall']
-#    todas_dimensoes += ['TotalWithMode', 'Attempted', 'ModePrecision', 'ModeRecall']
-    todas_dimensoes = ['Precision', 'Recall']
-    todas_dimensoes += ['ModePrecision', 'ModeRecall']
+        for linha in todas_linhas:
+            resposta_linha = dict()
+            try:
+                ltmp = str(linha).replace('\n', '')
+                chave, sugestoes = ltmp.split(separador)
+                sugestoes = [s for s in sugestoes.split(';') if s]
 
-    try:
-        todas_dimensoes.remove('nome')
-    except: pass
+                for sinonimo in sugestoes:
+                    sinonimo_lista = str(sinonimo).split(' ')
+                    votos = int(sinonimo_lista.pop())
+                    sinonimo_final = ' '.join(sinonimo_lista)
+                
+                    resposta_linha[sinonimo_final] = votos
+                saida[chave] = resposta_linha
+            except:
+                traceback.print_exc()
+        
+        return saida
 
-    for dimensao in todas_dimensoes:
-        try:
-            participantes_ordenados[dimensao] = dict()
+    # Carregar arquivos Submissão SemEval 2007 (formatado com o padrao SemEval)
+    def carregar_arquivo_submissao(self, configs, dir_arquivo, tarefa="oot"):
+        arquivo_submetido = open(dir_arquivo, 'r')
+        todas_linhas = arquivo_submetido.readlines()
+        arquivo_submetido.close()
 
-            for participante in lista_todos_participantes:
-                try:
-                    nome_participante = participante['nome']
-                    pontuacao = participante[dimensao]
+        saida = dict()
 
-                    if not pontuacao in participantes_ordenados[dimensao]:
-                        participantes_ordenados[dimensao][pontuacao] = []
+        separador = configs['semeval2007']['tarefas']['separadores'][tarefa]
+        separador = " " + separador + " "
 
-                    participantes_ordenados[dimensao][pontuacao].append(nome_participante)
+        total_sugestoes = 0
 
-                except Exception, e: pass
-        except: pass
+        for linha in todas_linhas:
+            resposta_linha = dict()
+            try:
+                ltmp = str(linha).replace('\n', '')
 
-    for dimensao in participantes_ordenados:
-        print('DIMENSAO: ' + dimensao)
-        indice = 1
-        for pontuacao in sorted(participantes_ordenados[dimensao], reverse=True):
-            for participante in participantes_ordenados[dimensao][pontuacao]:
-                print('%d  -  %s\t%.2f' % (indice, participante, pontuacao))
-                indice += 1
+                chave, sugestoes = ltmp.split(separador)
+                todos_candidatos = sugestoes.split(';')
+                indice = 0
 
-        print('\n')
+                for sinonimo in todos_candidatos:
+                    if sinonimo != "":
+                        sinonimo_lista = sinonimo
+                        votos = len(todos_candidatos) - indice           
+                        resposta_linha[sinonimo] = votos
 
-# Obter frases do caso de entrada do caso do SemEval2007
-def obter_frases_da_base(validador_se2007, configs):
-    entrada = validador_se2007.ler_entrada_teste(configs['semeval2007']['dir_arquivo_teste'])
+                    indice += 1
 
-    for lemma in entrada:
-        for id_entrada in entrada[lemma]:
-            pos = lemma.split('.')[1]
-            frase = id_entrada['frase']
-            palavra = id_entrada['palavra']
-
-            resultados_desambiguador = [r for r in cosine_lesk(frase, palavra, nbest=True, pos=pos) if r[0]]
-
-# Gerar todos os metodos de extracao direcionados ao SemEval2007
-def gerar_submissoes_para_se2007(configs, validador_se2007):
-    dir_saidas_rankeador = configs['dir_saidas_rankeador']
-    Utilitarios.limpar_diretorio(configs, dir_saidas_rankeador)
-
-    metodos_extracao = configs['aplicacao']['metodos_extracao']
-    todas_metricas_se2007 = configs['semeval2007']['metricas']['separadores'].keys()
-
-    resultados = dict()
-
-    for metrica in todas_metricas_se2007:
-        resultados[metrica] = [ ]
-
-    for metodo in metodos_extracao:
-        todas_submissoes_geradas = aplicar_se2007_sob_metodo(configs, metodo, True)
-        for metrica in todas_metricas_se2007:
-            submissao_gerada = todas_submissoes_geradas[metrica]
-
-            nome_minha_abordagem = configs['semeval2007']['nome_minha_abordagem'] + '-' + metodo + '.' + metrica
-            nome_minha_abordagem = validador_se2007.formatar_submissao(nome_minha_abordagem, submissao_gerada)
-
-            resultados_minha_abordagem = validador_se2007.calcular_score(configs['dir_saidas_rankeador'], nome_minha_abordagem)
-            resultados[metrica].append(resultados_minha_abordagem)
-
-    return resultados
- 
-# Realizar o SemEval2007 exclusivamente para os métodos que desenvolvi
-def realizar_se2007_metodos_desenvolvidos(configs):
-    # Limpa todas saidas geradas
-    system('clear ' + configs['dir_saidas_rankeador'])
-    validador_se = ValidadorRankingSemEval2007(configs)
-    # gerar todas minhas abordagens de baseline
-
-    minhas_submissoes_geradas = None
-
-    try:
-        minhas_submissoes_geradas = gerar_submissoes_para_se2007(configs, validador_se)
-    except:
-        traceback.print_exc()
-        raw_input("\n\n\nErro na geracao de submissoes!\n")
-
-    # para cada metrica (oot e best)
-    for metrica in minhas_submissoes_geradas.keys():
-        minhas_submissoes_geradas = minhas_submissoes_geradas[metrica]
-        resultados_participantes_originais = validador_se.obter_score_participantes_originais(metrica)
-
-        for minha_abordagem in minhas_submissoes_geradas:
-            resultados_participantes_originais[minha_abordagem['nome']] = minha_abordagem
-
-        exibir_todos_resultados(resultados_participantes_originais, validador_se)
-
-
-def carregar_gabarito(dir_gabarito):
-    dir_gold_file = dir_gabarito
-    arquivo_gold = open(dir_gold_file, 'r')
-    todas_linhas = arquivo_gold.readlines()
-    arquivo_gold.close()
-
-    saida = dict()
-    separador = " :: "
-
-    todas_linhas = [linha for linha in todas_linhas if linha != "\n"]
-
-    for linha in todas_linhas:
-        resposta_linha = dict()
-        try:
-            ltmp = str(linha).replace('\n', '')
-            chave, sugestoes = ltmp.split(separador)
-            sugestoes = [s for s in sugestoes.split(';') if s]
-
-            for sinonimo in sugestoes:
-                sinonimo_lista = str(sinonimo).split(' ')
-                votos = int(sinonimo_lista.pop())
-                sinonimo_final = ' '.join(sinonimo_lista)
-            
-                resposta_linha[sinonimo_final] = votos
-            saida[chave] = resposta_linha
-        except:
-            traceback.print_exc()
-    
-    return saida
-
-# Carregar gold file
-def obter_gabarito_rankings_semeval(configs):
-    return carregar_gabarito(configs['semeval2007']['trial']['gold_file'])
-
-# Aplica a métrica GAP
-def aplicar_metrica_gap_participantes_semeval2007(configs):
-    gerar_submissoes_para_gap(configs)
-
-# Carregar arquivos Submissão SemEval 2007
-def carregar_arquivo_submissao_se2007(configs, dir_arquivo, medida="oot"):
-    arquivo_gold = open(dir_arquivo, 'r')
-    todas_linhas = arquivo_gold.readlines()
-    arquivo_gold.close()
-
-    saida = dict()
-
-    separador = configs['semeval2007']['metricas']['separadores'][medida]
-    separador = " " + separador + " "
-
-    total_sugestoes = 0
-
-    for linha in todas_linhas:
-        resposta_linha = dict()
-        try:
-            ltmp = str(linha)
-            ltmp = ltmp.replace('\n', '')
-
-            chave, sugestoes = ltmp.split(separador)
-            todos_candidatos = sugestoes.split(';')
-            indice = 0
-
-            for sinonimo in todos_candidatos:
-                if sinonimo != "":
-                    sinonimo_lista = sinonimo
-                    votos = len(todos_candidatos) - indice           
-                    resposta_linha[sinonimo] = votos
-
-                indice += 1
-
-            saida[chave] = resposta_linha
-        except:
-            traceback.print_exc()
-    
-    return saida
+                saida[chave] = resposta_linha
+            except:
+                traceback.print_exc()
+        
+        return saida

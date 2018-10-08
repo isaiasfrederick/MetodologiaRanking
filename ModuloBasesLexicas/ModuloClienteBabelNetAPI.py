@@ -1,4 +1,4 @@
-from Utilitarios import Utilitarios
+from Utilitarios import Utils
 import requests
 import json
 
@@ -13,15 +13,15 @@ class ClienteBabelAPI(object):
     
     def obter_versao(self):
         url = self.url_base + '/getVersion?key=' + self.chave
-        return Utilitarios.requisicao_http(url)
+        return Utils.requisicao_http(url)
 
     def recuperar_synsets(self, palavra):
         url = self.url_base + '/getSynsetIds?lemma=%s&searchLang=EN&key=%s' % (palavra, self.chave)
-        return Utilitarios.requisicao_http(url)
+        return Utils.requisicao_http(url)
 
     def obter_informacao_synset(self, synset_id):
         url = self.url_base + '/getSynset?id=%s&key=%s' % (synset_id, self.chave)
-        resultado = Utilitarios.requisicao_http(url)
+        resultado = Utils.requisicao_http(url)
 
         exemplos = dict()
         definicoes = dict()
@@ -47,8 +47,4 @@ class ClienteBabelAPI(object):
 
     def recuperar_significado_synset(self, synset_id):
         url = self.url_base + '/getSenses?lemma=%s&searchLang=EN&key=%s' % (synset_id, self.chave)
-        return Utilitarios.requisicao_http(url)
-
-class ClienteSparQL(object):
-    def __init__(self):
-        pass
+        return Utils.requisicao_http(url)

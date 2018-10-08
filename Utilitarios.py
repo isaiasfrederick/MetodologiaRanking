@@ -19,11 +19,24 @@ import requests
 from nltk import pos_tag as pt, word_tokenize as wt
 from nltk.corpus import stopwords, wordnet
 
+wn = wordnet
 
-class Utilitarios(object):
+class Utils(object):
     configs = None
     # Contadores Corpus
     contadores = None
+
+    @staticmethod
+    def normalizar_palavra(palavra):
+        try:
+            return palavra
+            #for s in wn.synsets(palavra):
+            #    if palavra.name().index(s.name().split('.')[0]) == 0:
+            #        return s.name().split('.')[0]
+        except:
+            pass
+
+        return palavra
 
     @staticmethod
     def requisicao_http(url, headers=None):
@@ -63,12 +76,29 @@ class Utilitarios(object):
         return pos
 
     @staticmethod
-    def representa_multipalavra(palavra):
+    def descontrair(txt):
+        # specific
+        txt = re.sub(r"won't", "will not", txt)
+        txt = re.sub(r"can\'t", "can not", txt)
+
+        # general
+        txt = re.sub(r"n\'t", " not", txt)
+        txt = re.sub(r"\'re", " are", txt)
+        txt = re.sub(r"\'s", " is", txt)
+        txt = re.sub(r"\'d", " would", txt)
+        txt = re.sub(r"\'ll", " will", txt)
+        txt = re.sub(r"\'t", " not", txt)
+        txt = re.sub(r"\'ve", " have", txt)
+        txt = re.sub(r"\'m", " am", txt)
+        return txt
+
+    @staticmethod
+    def e_multipalavra(palavra):
         return '-' in palavra or ' ' in palavra or '_' in palavra
 
     @staticmethod
     def remover_multipalavras(lista):
-        return [e for e in lista if Utilitarios.representa_multipalavra(e) == False]
+        return [e for e in lista if Utils.e_multipalavra(e) == False]
 
     @staticmethod
     def carregar_configuracoes(dir_configs):
@@ -76,14 +106,14 @@ class Utilitarios(object):
         obj = json.loads(arq.read())
         arq.close()
         
-        Utilitarios.configs = obj
+        Utils.configs = obj
 
         return obj
 
     @staticmethod
     def cosseno(doc1, doc2):
-        vec1 = Utilitarios.doc_para_vetor(doc1.lower())
-        vec2 = Utilitarios.doc_para_vetor(doc2.lower())
+        vec1 = Utils.doc_para_vetor(doc1.lower())
+        vec2 = Utils.doc_para_vetor(doc2.lower())
 
         intersection = set(vec1.keys()) & set(vec2.keys())
         numerator = sum([vec1[x] * vec2[x] for x in intersection])
@@ -194,7 +224,7 @@ class Utilitarios(object):
         wn = wordnet
 
         if pos.__len__() > 1:
-            pos = Utilitarios.conversor_pos_oxford_wn(pos)
+            pos = Utils.conversor_pos_oxford_wn(pos)
 
         associacoes = dict()
 
@@ -271,7 +301,7 @@ class Utilitarios(object):
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
-        frase = Utilitarios.remove_acentos(frase)
+        frase = Utils.remove_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -300,7 +330,7 @@ class Utilitarios(object):
 
     @staticmethod
     def retornar_valida_pra_indexar(frase):
-        frase = Utilitarios.remove_acentos(frase)
+        frase = Utils.remove_acentos(frase)
         frase = re.sub('[(\[?!,;.\])]', ' ', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -329,13 +359,13 @@ class Utilitarios(object):
 
     @staticmethod
     def ordenar_palavras(todas_palavras):
-        dir_contadores = Utilitarios.configs['leipzig']['dir_contadores']
+        dir_contadores = Utils.configs['leipzig']['dir_contadores']
 
-        if Utilitarios.contadores == None:
-            contadores = Utilitarios.carregar_json(dir_contadores)
-            Utilitarios.contadores = contadores
+        if Utils.contadores == None:
+            contadores = Utils.carregar_json(dir_contadores)
+            Utils.contadores = contadores
         else:
-            contadores = Utilitarios.contadores
+            contadores = Utils.contadores
 
         palavras_indexadas = dict()
         palavras_ordenadas = []

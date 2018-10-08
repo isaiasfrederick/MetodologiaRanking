@@ -2,7 +2,7 @@
 from nltk.stem.porter import PorterStemmer
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
-from Utilitarios import Utilitarios
+from Utilitarios import Utils
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from nltk.corpus import stopwords, wordnet
@@ -12,8 +12,8 @@ import json
 # Esta classe funcionara como um "casador"
 # de definicoes de diferentes fontes da abordagem
 class CasadorConceitos:
-    def __init__(self, configs, base_unificada_oxford):
-        self.base_unificada_oxford = base_unificada_oxford
+    def __init__(self, configs, base_ox):
+        self.base_ox = base_ox
 
         self.stemmer = PorterStemmer()
         self.configs = configs
@@ -58,10 +58,10 @@ class CasadorConceitos:
         if obj_cache:
             return obj_cache
 
-        #todas_definicoes_oxford = self.base_unificada_oxford.iniciar_consulta(lema)
-        raw_input(self.base_unificada_oxford)
+        #todas_definicoes_oxford = self.base_ox.iniciar_consulta(lema)
+        raw_input(self.base_ox)
         raw_input(type(lema))
-        todas_definicoes_oxford = self.base_unificada_oxford.obter_obj_unificado(lema)
+        todas_definicoes_oxford = self.base_ox.obter_obj_unificado(lema)
 
         try:
             todos_synsets = wn.synsets(lema, pos[0].lower())
@@ -123,7 +123,7 @@ class CasadorConceitos:
         doc = self.stemizar_frase(doc)
 
         for s in wn.synsets(lema, pos[0].lower()):
-            resultado.append((s, Utilitarios.cosseno(s.definition(), doc)))
+            resultado.append((s, Utils.cosseno(s.definition(), doc)))
 
         resultado.sort(key=lambda k: k[1], reverse=True)
                 
@@ -201,7 +201,7 @@ class CasadorConceitos:
         return assinatura
 
     def assinatura_definicao_lema(self, synset):
-        todos_lemas = Utilitarios.juntar_tokens(synset.lemma_names())
+        todos_lemas = Utils.juntar_tokens(synset.lemma_names())
         todos_lemas = ' '.join(todos_lemas)
 
         definicao = synset.definition() + ' ' + todos_lemas
@@ -311,7 +311,7 @@ class CasadorConceitos:
 
                         for h in synset.hypernyms():
                             assinatura_synset = self.assinatura_definicao_lema(synset)
-                            dist_cosseno = Utilitarios.cosseno(definicao_oxford.lower(), assinatura_synset.lower())
+                            dist_cosseno = Utils.cosseno(definicao_oxford.lower(), assinatura_synset.lower())
 
                             resultado_parcial.append((definicao_oxford, synset, dist_cosseno))
                     except: pass
@@ -326,7 +326,7 @@ class CasadorConceitos:
             ca_tmp = self.buscar_conceitos_autorefenciados(lema, pos, def_oxford)
             for d, synset, dist_cosseno in ca_tmp:
                 assinatura_synset = self.assinatura_definicao_lema(synset)
-                dist_cosseno = Utilitarios.cosseno(def_oxford.lower(), assinatura_synset.lower())
+                dist_cosseno = Utils.cosseno(def_oxford.lower(), assinatura_synset.lower())
                 casamentos_autoreferenciado.append((def_oxford, synset, dist_cosseno))
 
         return sorted(casamentos_autoreferenciado, key=lambda x: x[2], reverse=True)
@@ -350,7 +350,7 @@ class CasadorConceitos:
                             def_oxford = todos_hiper_oxford[hiper_oxf][0]         
                             assinatura_wordnet = self.assinatura_definicao_lema(synset_hipo)
 
-                            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+                            cosseno = Utils.cosseno(assinatura_wordnet, def_oxford)
                             casamentos_hiperonimos.append((def_oxford, synset_hipo.name(), cosseno))
 
         return sorted(casamentos_hiperonimos, key=lambda x: x[2], reverse=True)
@@ -373,7 +373,7 @@ class CasadorConceitos:
 
                             resultado = self.maximizar_caminho(synset_hipo, synset_hiper, def_oxford)
 
-                            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+                            cosseno = Utils.cosseno(assinatura_wordnet, def_oxford)
                             casamentos_hiperonimos.append((def_oxford, synset_hipo.name(), cosseno))
 
         return sorted(casamentos_hiperonimos, key=lambda x: x[2], reverse=True)
@@ -433,7 +433,7 @@ class CasadorConceitos:
             def_oxford, hiponimo, hiperonimo = registro
 
             assinatura_wordnet = self.assinatura_definicao_lema(hiperonimo)
-            cosseno = Utilitarios.cosseno(assinatura_wordnet, def_oxford)
+            cosseno = Utils.cosseno(assinatura_wordnet, def_oxford)
 
             casamento_hiponimos.append((def_oxford, hiperonimo.name(), cosseno))
 

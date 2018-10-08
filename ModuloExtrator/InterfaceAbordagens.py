@@ -1,6 +1,6 @@
 #! coding: utf-8
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import ClienteOxfordAPI
-from Utilitarios import Utilitarios
+from Utilitarios import Utils
 
 # importando desambiguadores
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
@@ -19,15 +19,16 @@ import traceback
 
 # Esta classe é front-end para cada método por mim gerado pra gerar o ranking de sinônimos
 class InterfaceAbordagens(object):
-    def __init__(self, configs, cli_oxford, cli_babelnet, dir_contadores, base_unificada_oxford):
+#    cli_babelnet = ClienteBabelAPI(configs), cli_oxford = ClienteOxfordAPI(configs)
+    def __init__(self, configs, cli_oxford, cli_babelnet, dir_contadores, base_ox):
         self.configs = configs
         
         self.desambiguador_wordnet = None
         self.desambiguador_oxford = None
         self.desambiguador_unificado = None
 
-        self.desambiguador_oxford = DesambiguadorOxford(configs, base_unificada_oxford)
-        self.desambiguador_unificado = DesambiguadorUnificado(configs, base_unificada_oxford)
+        self.desambiguador_oxford = DesambiguadorOxford(configs, base_ox)
+        self.desambiguador_unificado = DesambiguadorUnificado(configs, base_ox)
         self.desambiguador_wordnet = DesambiguadorWordnet(configs)
 
         self.cli_oxford_api = cli_oxford
@@ -36,7 +37,7 @@ class InterfaceAbordagens(object):
         self.representacao_vetorial = RepresentacaoVetorial(configs)
         self.representacao_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
 
-        self.contadores = Utilitarios.carregar_json(dir_contadores)
+        self.contadores = Utils.carregar_json(dir_contadores)
 
         # Objeto que implementa a abordagem do Wander
         self.ponderador_wander = PonderacaoSinonimia.Ponderador(self.configs)
@@ -48,7 +49,7 @@ class InterfaceAbordagens(object):
         flag_oxford = True
         flag_unificado = True
 
-        pos_wn = Utilitarios.conversor_pos_semeval_wn(pos)
+        pos_wn = Utils.conversor_pos_semeval_wn(pos)
         pos_ox = pos
 
 #        if metodo == 'simples_wordnet':
@@ -158,7 +159,7 @@ class InterfaceAbordagens(object):
 
         saida_sinonimos = []
         for s in set(sinonimos):
-            if (not Utilitarios.representa_multipalavra(s) and not multiword) or multiword:
+            if (not Utils.e_multipalavra(s) and not multiword) or multiword:
                 saida_sinonimos.append(s)
 
         return saida_sinonimos
@@ -184,7 +185,7 @@ class InterfaceAbordagens(object):
                 if not l in sinonimos:
                     sinonimos.append(l)
                         
-        return [s for s in sinonimos if (not Utilitarios.representa_multipalavra(s) and not multiword) or multiword]
+        return [s for s in sinonimos if (not Utils.e_multipalavra(s) and not multiword) or multiword]
 
     def buscar_topk_wordnet(self, palavra, pos, fontes, multiword, topk):
         try:
@@ -200,7 +201,7 @@ class InterfaceAbordagens(object):
     def buscar_sinonimos_principal_synset_wordnet(self, palavra, pos, fontes, multiword):
         resultado = wn.synsets(palavra, pos)[0].lemma_names()
 
-        return Utilitarios.remover_multipalavras(resultado)
+        return Utils.remover_multipalavras(resultado)
 
     def buscar_sinonimos_baseline_semeval_wordnet(self, palavra, pos, fontes, multiword):
         sinonimos_nivel1 = set()
@@ -254,10 +255,10 @@ class InterfaceAbordagens(object):
             for similar in todos_synsets.similar_tos():
                 sinonimos_nivel5.update(similar.lemma_names())
 
-        sinonimos_nivel2 = Utilitarios.remover_multipalavras(list(sinonimos_nivel2))
-        sinonimos_nivel3 = Utilitarios.remover_multipalavras(list(sinonimos_nivel3))
-        sinonimos_nivel4 = Utilitarios.remover_multipalavras(list(sinonimos_nivel4))
-        sinonimos_nivel5 = Utilitarios.remover_multipalavras(list(sinonimos_nivel5))
+        sinonimos_nivel2 = Utils.remover_multipalavras(list(sinonimos_nivel2))
+        sinonimos_nivel3 = Utils.remover_multipalavras(list(sinonimos_nivel3))
+        sinonimos_nivel4 = Utils.remover_multipalavras(list(sinonimos_nivel4))
+        sinonimos_nivel5 = Utils.remover_multipalavras(list(sinonimos_nivel5))
 
         todos_resultados = [sinonimos_nivel2, sinonimos_nivel3, sinonimos_nivel4, sinonimos_nivel5]
         todos_resultados = list(itertools.chain(*todos_resultados))
@@ -265,7 +266,7 @@ class InterfaceAbordagens(object):
         if todos_resultados.__len__() == 0:
             for synset in wn.synsets(palavra, pos):
                 sinonimos_nivel6.update(synset.lemma_names())
-            todos_resultados.append(Utilitarios.remover_multipalavras(list(sinonimos_nivel6)))
+            todos_resultados.append(Utils.remover_multipalavras(list(sinonimos_nivel6)))
             todos_resultados = list(itertools.chain(*todos_resultados))
 
         resultado_final = []
@@ -281,4 +282,4 @@ class InterfaceAbordagens(object):
         return resultado_final
 
     def ordenar_por_frequencia(self, todas_palavras):
-        return Utilitarios.ordenar_palavras(todas_palavras)
+        return Utils.ordenar_palavras(todas_palavras)
