@@ -1,5 +1,5 @@
 #! coding: utf-8
-from RepositorioCentralConceitos import BaseUnificadaObjetosOxford
+from RepositorioCentralConceitos import BaseUnificadaOxford
 from Abordagens import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
@@ -25,10 +25,10 @@ import re
 class ValidadorSemEval(object):
     def __init__(self, configs):
         self.configs = configs
-        
+
         self.dir_respostas_competidores = configs['semeval2007']['dir_resultados_concorrentes']
         self.gold_file_test = configs['semeval2007']['test']['gold_file']
-        self.comando_scorer = configs['semeval2007']['test']['input']
+        self.comando_scorer = configs['semeval2007']['comando_scorer']
         self.dir_tmp = configs['dir_temporarios']
 
         self.todas_abordagens = dict()
@@ -39,7 +39,7 @@ class ValidadorSemEval(object):
         todos_participantes = [p for p in self.listar_arq(self.dir_respostas_competidores) if '.' + tarefa in p]
 
         for participante in todos_participantes:
-            resultados_json[participante] = self.calcular_score(self.dir_respostas_competidores, participante)
+            resultados_json[participante] = self.obter_score(self.dir_respostas_competidores, participante)
 
         return resultados_json
 
@@ -47,9 +47,12 @@ class ValidadorSemEval(object):
     def obter_score_participantes_posteriores(self):
         pass
 
-    def calcular_score(self, dir_pasta_submissao, participante):
+    def obter_score(self, dir_pasta_submissao, participante):
         tarefa = participante.split('.')[1]
         arquivo_tmp = "%s/%s.tmp" % (self.dir_tmp, participante)
+
+        if dir_pasta_submissao[-1] == "/":
+            dir_pasta_submissao = dir_pasta_submissao[:-1]
 
         comando_scorer = self.comando_scorer
         dir_entrada = dir_pasta_submissao + '/' + participante
@@ -58,6 +61,7 @@ class ValidadorSemEval(object):
         args = (comando_scorer, dir_entrada, self.gold_file_test, tarefa, arquivo_tmp)
 
         comando = "perl %s %s %s -t %s > %s" % args
+
         system(comando)
 
         # Le a saida do formatoo <chave>:<valor> por linha
@@ -97,7 +101,7 @@ class ValidadorSemEval(object):
         raiz = arvore_xml.getroot()
 
         for lex in raiz.getchildren():
-            todos_lexelts[lex.values()[0]] = []
+            todos_lexelts[lex.values()[0]] = [ ]
             for inst in lex.getchildren():
                 codigo = str(inst.values()[0])
                 context = inst.getchildren()[0]
@@ -129,6 +133,17 @@ class ValidadorSemEval(object):
         arquivo_saida.close()
 
         return nome_abordagem
+
+    # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
+    def formatar_submissao_final(self, dir_arquivo_saida, entrada, limite_resposta, separador):
+        arquivo_saida = open(dir_arquivo_saida, 'w')
+
+        for lexelt in entrada:
+            respostas = entrada[lexelt][:limite_resposta]
+            args = (lexelt, separador, ';'.join(respostas))
+            arquivo_saida.write("%s %s %s\n" % args)
+        
+        arquivo_saida.close()
 
     def carregar_gabarito(self, dir_gold_file):
         arquivo_gold = open(dir_gold_file, 'r')

@@ -73,14 +73,14 @@ class AbordagemEdmonds(object):
         raizes = list(raizes_arg)
         palavras_proibidas = set(raizes)
 
-        todos_objetos_niveis = []
+        todos_objetos_niveis = [ ]
 
         for nivel in range(1, nivel_maximo + 1):
             dir_obj_nivel = self.construir_nivel('nivel-%s.json' % nivel, raizes, janela, palavras_proibidas)
 
             todos_objetos_niveis.append(dir_obj_nivel)
 
-            palavras_novo_nivel = []
+            palavras_novo_nivel = [ ]
 
             obj_nivel = Utils.carregar_json(dir_obj_nivel)
 
@@ -110,7 +110,7 @@ class AbordagemEdmonds(object):
 
         for doc in documentos_retornados:
             tmp = doc.replace('\t', ' ').split(' ')
-            fr_tokenizada = []
+            fr_tokenizada = [ ]
 
             try:
                 try:
@@ -187,7 +187,7 @@ class AbordagemEdmonds(object):
                         try:
                             fr_tokenizada = self.tokenize(unicode(l.lower()), remover_vazias=True)[1:]
                         except Exception, e:
-                            fr_tokenizada = []
+                            fr_tokenizada = [ ]
 
                         for token in fr_tokenizada:
                             if not token in contadores:
@@ -211,7 +211,7 @@ class AbordagemEdmonds(object):
     # carrega documento de sinonimos
     def carregar_sinonimos(self, caminho):
         arquivo_sinonimos = open(caminho, 'r')
-        sinonimos_aproximados = []
+        sinonimos_aproximados = [ ]
 
         for ltmp in arquivo_sinonimos.readlines():
             l = ltmp.replace('\n', '')

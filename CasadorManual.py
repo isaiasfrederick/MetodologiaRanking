@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from Utilitarios import Utils
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
 from nltk.corpus import wordnet
 
 wn = wordnet
@@ -13,7 +13,7 @@ class CasadorManual(object):
         # self.configs['dir_base_casada_manualmente']
         self.diretorio_base_casada_manualmente = self.configs['dir_base_casada_manualmente']
         self.base_casada_manualmente = Utils.carregar_json(self.diretorio_base_casada_manualmente)
-        self.base_ox = BaseUnificadaObjetosOxford(self.configs)
+        self.base_ox = BaseUnificadaOxford(self.configs)
 
         if self.base_casada_manualmente == None:
             self.base_casada_manualmente = {}
@@ -25,7 +25,7 @@ class CasadorManual(object):
 
             return [int(v) for v in valores.split(' ')]
         except:
-            return []
+            return [ ]
 
     # Base casada manualmente possuira tres vetores:
     # Um do casamento - Dicionario
@@ -49,14 +49,14 @@ class CasadorManual(object):
                 return 
 
             for synset in wn.synsets(unicode(termo), pos):
-                self.base_casada_manualmente[termo][synset.name()] = []
+                self.base_casada_manualmente[termo][synset.name()] = [ ]
 
                 print('\n\n')
                 print('\t' + str((str(termo), str(pos))))
                 print('\t' + synset.definition().upper() + '\n')
                 
                 indice = 1
-                definicoes_indexadas = []
+                definicoes_indexadas = [ ]
                 for definicao in obj_oxford:
                     definicoes_indexadas.append(definicao)
                     print('\n\t\t' + str(indice) + ' - ' + repr(definicao) + '\n')
@@ -97,7 +97,7 @@ class CasadorManual(object):
             definicoes_oxford = None
 
         if definicoes_oxford:
-            lista_definicoes = []
+            lista_definicoes = [ ]
 
             for def_principal in obj_unificado:
                 reg = ("", def_principal, obj_unificado[def_principal]['exemplos'])
@@ -110,4 +110,4 @@ class CasadorManual(object):
                 if definicao in definicoes_oxford:
                     return exemplos
 
-        return []
+        return [ ]

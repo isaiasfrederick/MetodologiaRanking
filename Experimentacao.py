@@ -1,5 +1,5 @@
 from nltk.corpus import wordnet as wn
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
 
 
 class ValidadorInventarioWordnet(object):
@@ -8,8 +8,8 @@ class ValidadorInventarioWordnet(object):
         total_corretos = list(set(gabarito.keys()) & set(top10))
         best_gabarito = gabarito[sorted(gabarito.keys(), reverse=True)[0]]
 
-        intersecao_palavras_wornet = []
-        diferenca_palavras_wordnet = []
+        intersecao_palavras_wornet = [ ]
+        diferenca_palavras_wordnet = [ ]
 
         for s in wn.synsets(palavra):
             intersecao = list(set(s.lemma_names()) & set(gabarito.keys()))
@@ -24,7 +24,7 @@ class ValidadorInventarioWordnet(object):
         if list(set(best_palavras) & set(top10)):
             best_preditas = list(set(best_palavras) & set(top10))
         else:
-            best_preditas = []
+            best_preditas = [ ]
 
         try:
             if best_gabarito == top10[0]: best_correto = True
@@ -57,13 +57,13 @@ class ValidadorInventarioOxford(object):
         
     @staticmethod
     def caso_entrada_(palavra, gabarito, top10):
-        base_ox = BaseUnificadaObjetosOxford(None)
+        base_ox = BaseUnificadaOxford(None)
 
         total_corretos = list(set(gabarito.keys()) & set(top10))
         best_gabarito = gabarito[sorted(gabarito.keys(), reverse=True)[0]]
 
-        intersecao_palavras_oxford = []
-        diferenca_palavras_oxford = []
+        intersecao_palavras_oxford = [ ]
+        diferenca_palavras_oxford = [ ]
 
         obj_unificado_oxford = base_ox.obter_obj_unificado(palavra)
         todas_definicoes = base_ox.obter_todas_definicoes(palavra)
@@ -88,7 +88,7 @@ class ValidadorInventarioOxford(object):
         if list(set(best_palavras) & set(top10)):
             best_preditas = list(set(best_palavras) & set(top10))
         else:
-            best_preditas = []
+            best_preditas = [ ]
 
         try:
             if best_gabarito == top10[0]: best_correto = True

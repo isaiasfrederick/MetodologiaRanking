@@ -181,7 +181,7 @@ class Utils(object):
         if pos_semeval != 'a':
             return wordnet.synsets(palavra, pos_semeval)
         else:
-            saida = []
+            saida = [ ]
 
             for pos in ['a', 's']: # adjective e adjective sattelite
                 saida += wordnet.synsets(palavra, pos)
@@ -240,7 +240,7 @@ class Utils(object):
         except:
             raw_input('\nDefinicoes que geraram excecao: ' + str(definicao) + '\n')
 
-        resultado = []
+        resultado = [ ]
 
         try:
             for l, pos_iter in resultado_tmp:
@@ -368,14 +368,14 @@ class Utils(object):
             contadores = Utils.contadores
 
         palavras_indexadas = dict()
-        palavras_ordenadas = []
+        palavras_ordenadas = [ ]
         
         for palavra in todas_palavras:
             try:
                 if not contadores[palavra] in palavras_indexadas:
-                    palavras_indexadas[contadores[palavra]] = []
+                    palavras_indexadas[contadores[palavra]] = [ ]
             except:
-                palavras_indexadas[0] = []
+                palavras_indexadas[0] = [ ]
 
             try:
                 palavras_indexadas[contadores[palavra]].append(palavra)

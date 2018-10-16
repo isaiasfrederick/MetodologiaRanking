@@ -44,7 +44,7 @@ class DesambiguadorWordnet(object):
         resultado = self.adapted_cosine_lesk(ctx, palavra, pos, busca_ampla=busca_ampla)
         print('Desambiguador executado...\n')
 
-        sinonimos = []
+        sinonimos = [ ]
 
         try:
 			if resultado[0][1] == 0:
@@ -52,7 +52,7 @@ class DesambiguadorWordnet(object):
 				repetir = False
 
 				if False:
-					sinonimos = []
+					sinonimos = [ ]
 					try:
 						for synset in [s[0] for s in resultado]:
 							for lema in synset.lemma_names():
@@ -64,7 +64,7 @@ class DesambiguadorWordnet(object):
 			else:
 				resultado = [item for item in resultado if item[1] > 0]
         except:
-			resultado = []
+			resultado = [ ]
 
         continuar = bool(resultado)
         
@@ -128,7 +128,7 @@ def compare_overlaps(context, synsets_signatures, \
 	Calculates overlaps between the context sentence and the synset_signture
 	and returns a ranked list of synsets from highest overlap to lowest.
 	"""
-	overlaplen_synsets = [] # a tuple of (len(overlap), synset).
+	overlaplen_synsets = [ ] # a tuple of (len(overlap), synset).
 	for ss in synsets_signatures:
 		overlaps = set(synsets_signatures[ss]).intersection(context)
 		overlaplen_synsets.append((len(overlaps), ss))
@@ -183,7 +183,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 			if pos and str(ss.pos) != pos:
 				continue
 
-		signature = []
+		signature = [ ]
 		# Includes definition.
 		ss_definition = synset_properties(ss, 'definition')
 
@@ -336,14 +336,14 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 	else:
 		context_sentence = " ".join(lemmatize_sentence(context_sentence))
 
-	scores = []
+	scores = [ ]
 
 	chave_assinatura = "%s.%s.%s.%s.%s.%s" % (ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla)
 
 	if not chave_assinatura in DesambiguadorWordnet.cache_assinaturas:
 		synsets_signatures = simple_signature(ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla=busca_ampla)
 
-		DesambiguadorWordnet.cache_assinaturas[chave_assinatura] = []
+		DesambiguadorWordnet.cache_assinaturas[chave_assinatura] = [ ]
 
 		for ss, signature in synsets_signatures.items():
 			# Lowercase and replace "_" with spaces.

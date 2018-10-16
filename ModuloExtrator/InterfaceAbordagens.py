@@ -147,17 +147,17 @@ class InterfaceAbordagens(object):
         elif metodo == 'WordEmbbedings':
             return self.representacao_vetorial.iniciar_processo(palavra, pos, contexto, topn=10)
 
-        return []
+        return [ ]
 
     # obtem todos sinonimos de todos synsets da Wordnet
     def buscar_sinonimos_simples_wordnet(self, palavra, pos, fontes, multiword):
-        sinonimos = []
+        sinonimos = [ ]
 
         for s in wn.synsets(unicode(palavra), pos):
             for l in s.lemma_names():
                 sinonimos.append(l)
 
-        saida_sinonimos = []
+        saida_sinonimos = [ ]
         for s in set(sinonimos):
             if (not Utils.e_multipalavra(s) and not multiword) or multiword:
                 saida_sinonimos.append(s)
@@ -174,7 +174,7 @@ class InterfaceAbordagens(object):
         return resultado
 
     def buscar_sinonimos_desambiguacao(self, palavra, pos, ctxt, fontes, multiword):
-        sinonimos = []
+        sinonimos = [ ]
         synsets = wn.synsets(palavra, pos)
 
         significados = self.desambiguador_unificado.desambiguar(ctxt, palavra)
@@ -196,7 +196,7 @@ class InterfaceAbordagens(object):
             return list(meu_set)
         except:
             traceback.print_stack()
-            return []
+            return [ ]
 
     def buscar_sinonimos_principal_synset_wordnet(self, palavra, pos, fontes, multiword):
         resultado = wn.synsets(palavra, pos)[0].lemma_names()
@@ -269,7 +269,7 @@ class InterfaceAbordagens(object):
             todos_resultados.append(Utils.remover_multipalavras(list(sinonimos_nivel6)))
             todos_resultados = list(itertools.chain(*todos_resultados))
 
-        resultado_final = []
+        resultado_final = [ ]
 
         if todos_resultados.__len__() == 0:
             for synset in wn.synsets(palavra, pos):

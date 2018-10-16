@@ -15,20 +15,20 @@ class RepresentacaoVetorial(object):
         self.configs = configs
         self.stemmer = PorterStemmer()
 
-    def obter_palavras_relacionadas(self, positivos=[], negativos=[], topn=1):
+    def obter_palavras_relacionadas(self, positivos=[ ], negativos=[ ], topn=1):
         try:
             return self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
         except KeyError, ke:
-            return []
+            return [ ]
 
     def iniciar_processo(self, palavra_arg, pos_semeval, contexto, topn=10):
         if self.modelo == None:
             raw_input("Nao ha modelo carregado!")
 
-        todos_conjuntos_synsets = []
+        todos_conjuntos_synsets = [ ]
 
         registros = self.obter_palavras_relacionadas(positivos=[palavra_arg], topn=topn)
-        saida = []
+        saida = [ ]
 
         for palavra_flexionada, pontuacao in registros:
             # palavra = self.stemmer.stem(palavra_flexionada)

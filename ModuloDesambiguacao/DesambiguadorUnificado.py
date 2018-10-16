@@ -1,4 +1,4 @@
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
 from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from Utilitarios import Utils
@@ -22,7 +22,7 @@ class DesambiguadorUnificado(object):
     # obtem hiperonimo ja casado entre as diferentes
     # fontes para compor a assinatura ho hiponimo
     def obter_assinatura_definicao_casada(self, configs, lema, pos, synset_lema):
-        assinatura = []
+        assinatura = [ ]
 
         if pos.__len__() == 1:
             pos = Utils.conversor_pos_wn_oxford(pos)
@@ -38,12 +38,12 @@ class DesambiguadorUnificado(object):
         todas_definicoes = self.base_ox.iniciar_consulta(lema)
 
         for sense in todas_definicoes[pos]:
-            exemplos = []
+            exemplos = [ ]
 
             if sense == def_oxford_definitiva:
                 try:
                     exemplos = todas_definicoes[pos][sense]['exemplos']
-                except: exemplos = []
+                except: exemplos = [ ]
 
             try:
                 if not len(exemplos):
@@ -60,7 +60,7 @@ class DesambiguadorUnificado(object):
         if not inventario:
             return None
 
-        assinaturas = []
+        assinaturas = [ ]
 
         for registro in inventario:
             ass_tmp = ""
@@ -115,7 +115,7 @@ class DesambiguadorUnificado(object):
         max_sinonimos = 10
         
         resultado = self.adapted_cosine_lesk(frase, palavra, pos, usar_exemplos=usar_exemplos)
-        sinonimos = []
+        sinonimos = [ ]
 
         for item in resultado:
             definicao, pontuacao = item[0], item[1]
@@ -143,9 +143,9 @@ class DesambiguadorUnificado(object):
         lista_ctx = [p for p in word_tokenize(lista_ctx.lower()) if not p in [',', ';', '.']]        
         lista_ctx = Utils.processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True)
 
-        pontuacao = []
+        pontuacao = [ ]
 
-        if None == todas_assinaturas: todas_assinaturas = []
+        if None == todas_assinaturas: todas_assinaturas = [ ]
 
         for a in todas_assinaturas:
             ass_tmp = a[1]
@@ -166,9 +166,9 @@ class DesambiguadorUnificado(object):
         try:
             resultado = self.adapted_cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla, inventario_unificado=False)
         except Exception, e:
-            resultado = []
+            resultado = [ ]
 
-        sinonimos = []
+        sinonimos = [ ]
 
         try:
             if resultado[0][1] == 0:
@@ -177,7 +177,7 @@ class DesambiguadorUnificado(object):
             else:
                 resultado = [item for item in resultado if item[1] > 0]
         except:
-            resultado = []
+            resultado = [ ]
 
         continuar = bool(resultado)
 
@@ -224,13 +224,13 @@ class DesambiguadorUnificado(object):
     def construir_inventario_estendido(self, palavra, pos, usar_ontologia=True):
         pos = Utils.conversor_pos_wn_oxford(pos)
 
-        inventario = []
+        inventario = [ ]
 
         try:
             todas_definicoes_oxford = { pos: self.base_ox.obter_obj_unificado(palavra)[pos] }
             todas_definicoes_oxford = self.desindentar_coleta_oxford(palavra, todas_definicoes_oxford)
         except Exception, e:
-            todas_definicoes_oxford = []
+            todas_definicoes_oxford = [ ]
 
         for synset in wordnet.synsets(palavra, pos[0].lower()):
             registro = {}
@@ -257,11 +257,11 @@ class DesambiguadorUnificado(object):
                 registro['pos'] = pos[0].lower()
 
                 if not usar_ontologia:
-                    registro['hiperonimos'] = []
+                    registro['hiperonimos'] = [ ]
                 else:
-                    registro['hiperonimos'] = []
+                    registro['hiperonimos'] = [ ]
 
-                registro['lemas'] = []
+                registro['lemas'] = [ ]
 
                 inventario.append(registro)
 
@@ -270,7 +270,7 @@ class DesambiguadorUnificado(object):
     def construir_inventario_unificado(self, palavra, pos, usar_ontologia=True):
         pos = Utils.conversor_pos_wn_oxford(pos)
 
-        inventario = []
+        inventario = [ ]
         # indexado (def_oxford, synset_name)
         casamentos = self.casador_conceitos.iniciar_casamento(palavra, pos)
         # indexado (synset_name, def_oxford)
@@ -327,11 +327,11 @@ class DesambiguadorUnificado(object):
                 registro['pos'] = pos[0].lower()
 
                 if not usar_ontologia:
-                    registro['hiperonimos'] = []
+                    registro['hiperonimos'] = [ ]
                 else:
-                    registro['hiperonimos'] = []
+                    registro['hiperonimos'] = [ ]
 
-                registro['lemas'] = []
+                registro['lemas'] = [ ]
 
                 inventario.append(registro)
 
@@ -339,7 +339,7 @@ class DesambiguadorUnificado(object):
 
     # retira do obj json a estrutura de aninhamento entre definicoes
     def desindentar_coleta_oxford(self, lema, obj_entrada):
-        resultado = []
+        resultado = [ ]
         cont = 1
         for pos in obj_entrada.keys():
             for definicao_prim in obj_entrada[pos].keys():

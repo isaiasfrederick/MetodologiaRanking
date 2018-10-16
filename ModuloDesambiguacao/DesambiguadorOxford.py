@@ -77,7 +77,7 @@ class DesambiguadorOxford(object):
 
         lema = lemmatize(lema)
 
-        assinaturas_significados = []  #(nome, definicao, exemplos)
+        assinaturas_significados = [ ]  #(nome, definicao, exemplos)
 
         for pos in resultado.keys():
             significados = resultado[pos].keys()
@@ -90,10 +90,10 @@ class DesambiguadorOxford(object):
                 if usar_exemplos:
                     exemplos = resultado[pos][s]['exemplos']
                 else:
-                    exemplos = []
+                    exemplos = [ ]
 
                 # nome, definicao, exemplos, assinatura
-                definicao_corrente = [nome_sig, s, exemplos, []]
+                definicao_corrente = [nome_sig, s, exemplos, [ ]]
                 assinaturas_significados.append(definicao_corrente)
 
                 # Colocando exemplos na assinatura
@@ -107,9 +107,9 @@ class DesambiguadorOxford(object):
                     if usar_exemplos:
                         exemplos_secundarios = resultado[pos][s]['def_secs'][ss]['exemplos']
                     else:
-                        exemplos_secundarios = []
+                        exemplos_secundarios = [ ]
 
-                    definicao_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, []]
+                    definicao_corrente_sec = [nome_sig_sec, ss, exemplos_secundarios, [ ]]
                     assinaturas_significados.append(definicao_corrente_sec)
 
                     definicao_corrente_sec[len(definicao_corrente)-1] += self.assinatura_significado_aux(lema, pos, ss, exemplos_secundarios)
@@ -133,7 +133,7 @@ class DesambiguadorOxford(object):
         resultado = self.base_ox.obter_obj_unificado(palavra)
 
         if not resultado:
-            return []
+            return [ ]
 
         definicoes_selecionadas = [ ]
         sinonimos_selecionados = set()
@@ -177,9 +177,9 @@ class DesambiguadorOxford(object):
         try:
             resultado = self.cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla)
         except Exception, e:
-            resultado = []
+            resultado = [ ]
 
-        sinonimos = []
+        sinonimos = [ ]
 
         try:
             if resultado[0][1] == 0:
@@ -188,7 +188,7 @@ class DesambiguadorOxford(object):
             else:
                 resultado = [item for item in resultado if item[1] > 0]
         except:
-            resultado = []
+            resultado = [ ]
 
         continuar = bool(resultado)
 

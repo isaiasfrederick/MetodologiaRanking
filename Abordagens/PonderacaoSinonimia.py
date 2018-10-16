@@ -32,7 +32,7 @@ class Ponderador(object):
     def iniciar_processo(self, termo, pos, contexto, usar_fontes_secundarias=False, anotar_exemplos=False):
         representa_multipalavra = Utils.e_multipalavra
         
-        conjunto_solucao = []
+        conjunto_solucao = [ ]
         pontuacoes_agregadas = dict()
 
         resultado = self.processar_termo(termo, pos, usar_fontes_secundarias=usar_fontes_secundarias, anotar_exemplos=anotar_exemplos)
@@ -61,7 +61,7 @@ class Ponderador(object):
             pontuacao_media = sum(todos_pesos) / len(todos_pesos)
 
             if not pontuacao_media in casamentos_por_ordenacao:
-                casamentos_por_ordenacao[pontuacao_media] = []
+                casamentos_por_ordenacao[pontuacao_media] = [ ]
 
             casamentos_por_ordenacao[pontuacao_media].append(chave_par)
 
@@ -81,7 +81,7 @@ class Ponderador(object):
         except:
             print('\n' + termo)
             print('Excecao na selecao do SYNSET mais bem pontuado.')
-            return []
+            return [ ]
 
         # SE NAO FOR POR QUE A ABORDAGEM DO WANDER TRATA, PEGAR OS LEMAS DO SENTIDO MAIS USUAL
         if not pos in self.configs['pos_wander']:
@@ -110,7 +110,7 @@ class Ponderador(object):
 
     # Coleta os dez primeiros lemas dos synsets Ordenados
     def coletar_lemas(self, synsets_ordenados):
-        saida = []
+        saida = [ ]
 
         for s in synsets_ordenados:
             for l in s.lemma_names():
@@ -150,11 +150,11 @@ class Ponderador(object):
         resultado = dict()
 
         for synset_sinonimo in todos_synsets_sinonimos:
-            resultado[synset_sinonimo.name()] = []
+            resultado[synset_sinonimo.name()] = [ ]
 
             sinonimo = synset_sinonimo.name().split('.')[0]
 
-            pontuacoes = []
+            pontuacoes = [ ]
             novos_exemplos = list(synset_sinonimo.examples())
 
             if anotar_exemplos == True:
@@ -196,7 +196,7 @@ class Ponderador(object):
             lema_hiperonimo = synset_original.hypernyms()[0].lemma_names()[0]
             return [s for s in wn.synsets(lema_hiperonimo) if s.pos() == pos]
         except:
-            return []
+            return [ ]
 
 # Itera cada synset original S
 # Salva cada Synset original

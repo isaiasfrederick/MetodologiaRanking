@@ -7,12 +7,14 @@ import traceback
 import re
 from pywsd.lesk import cosine_lesk
 from operator import itemgetter
+from operator import itemgetter
 
 # Experimentacao
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from RepositorioCentralConceitos import CasadorConceitos
 from nltk.corpus import wordnet
 # Fim pacotes da Experimentacao
@@ -29,13 +31,13 @@ wn = wordnet
 
 def desambiguar_word_embbedings(configs, ctx, palavra):
     rep_vetorial = RepresentacaoVetorial(configs)
-    rep_vetorial.carregar_modelo("/mnt/ParticaoAlternat/Bases/Modelos/vectors.bin")
+    rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
 
     p = ctx.split(" ")
 
-    palavras_correlatas = rep_vetorial.obter_palavras_relacionadas(positivos=[palavra], negativos=[], topn=60)
-    palavras_correlatas_ctx = rep_vetorial.obter_palavras_relacionadas(positivos=p, negativos=[], topn=60)
-    palavras_correlatas_ctx = []
+    palavras_correlatas = rep_vetorial.obter_palavras_relacionadas(positivos=[palavra], negativos=[ ], topn=60)
+    palavras_correlatas_ctx = rep_vetorial.obter_palavras_relacionadas(positivos=p, negativos=[ ], topn=60)
+    palavras_correlatas_ctx = [ ]
 
     for reg in palavras_correlatas:
         print("\t- " + str(reg))
@@ -47,9 +49,9 @@ def desambiguar_word_embbedings(configs, ctx, palavra):
 
 
 def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte='wordnet'):
-    base_ox = BaseUnificadaObjetosOxford(configs)
+    base_ox = BaseUnificadaOxford(configs)
     rep_vetorial = RepresentacaoVetorial(configs)
-    rep_vetorial.carregar_modelo("/mnt/ParticaoAlternat/Bases/Modelos/vectors.bin")
+    rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
 
     while raw_input("\nContinuar? S/n: ").lower() != 'n':
         palavra = raw_input("Palavra: ")
@@ -110,12 +112,12 @@ def medir_seletor_candidatos(configs):
     #dir_saida_seletor_candidatos = raw_input("Diretorio saida arquivo seletor candidatos: ")
     dir_saida_seletor_candidatos = "/home/isaias/saida-oot.oot"
 
-    base_ox = BaseUnificadaObjetosOxford(configs)
+    base_ox = BaseUnificadaOxford(configs)
     alvaro = AbordagemAlvaro(configs, base_ox, CasadorManual(configs))
 
     # Abordagem com representacao vetorial das palavras
     rep_vet = RepresentacaoVetorial(configs)
-    rep_vet.carregar_modelo(diretorio="/mnt/ParticaoAlternat/Bases/Modelos/vectors.bin")
+    rep_vet.carregar_modelo(diretorio=configs['modelos']['word2vec-default'])
 
     bases_utilizadas = raw_input("Escolha a base para fazer a comparacao: 'trial' ou 'test': ")
     dir_gabarito = configs['semeval2007'][bases_utilizadas]['gold_file']
@@ -123,12 +125,12 @@ def medir_seletor_candidatos(configs):
 
     gabarito_tmp = validador.carregar_gabarito(dir_gabarito)
 
-    casos_testes_list, gabarito_list = [], []
+    casos_testes_list, gabarito_list = [ ], [ ]
 
     gabarito_dict = dict()
 
     for lexelt in gabarito_tmp:
-        lista = []
+        lista = [ ]
         for sugestao in gabarito_tmp[lexelt]:
             voto = gabarito_tmp[lexelt][sugestao]
             lista.append([sugestao, voto])
@@ -152,11 +154,11 @@ def medir_seletor_candidatos(configs):
             nova_chave = "%s %s" % (lexema, registro['codigo'])
             casos_testes_dict[nova_chave] = [frase, palavra, pos]
 
-    casos_testes_list = []
-    gabarito_list = []
-    lexemas_list = []
+    casos_testes_list = [ ]
+    gabarito_list = [ ]
+    lexemas_list = [ ]
 
-    resultados_persistiveis = []
+    resultados_persistiveis = [ ]
 
     if len(gabarito_list) != len(casos_testes_list):
         raise Exception("A quantidade de instancias de entrada estao erradas!")
@@ -257,12 +259,12 @@ def medir_seletor_candidatos(configs):
     print("\nTotal sem resposta: " + str(total_sem_resposta))
 
 
-def carregar_bases(configs):
+def carregar_bases(configs, tipo_base):
     casos_testes = gabarito = None
     validador = ValidadorSemEval(configs)
 
     # Carrega a base Trial para fazer os testes
-    tipo_base = raw_input("Base 'trial' ou 'test'? ")
+
     dir_gabarito = configs['semeval2007'][tipo_base]['gold_file']
     dir_entrada = configs['semeval2007'][tipo_base]['input']
 
@@ -274,7 +276,7 @@ def carregar_bases(configs):
     casos_testes_dict, gabarito_dict = {}, {}
 
     for lexelt in gabarito:
-        lista = []
+        lista = [ ]
         for sugestao in gabarito[lexelt]:
             voto = gabarito[lexelt][sugestao]
             lista.append([sugestao, voto])
@@ -299,53 +301,74 @@ def carregar_bases(configs):
 
 # Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
 # Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
-def construir_relacao_abordagem_alvaro(configs, tec='des'):
+#   criterio = frequencia OU alvaro OU embbedings
+def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo_base=None):
     casador_manual = CasadorManual(configs)
-    base_ox = BaseUnificadaObjetosOxford(configs)
+    base_ox = BaseUnificadaOxford(configs)
     alvaro = AbordagemAlvaro(configs, base_ox, casador_manual)
 
+    separador = "###"
+
+    # Resultado de saida <lexelt : lista>
+    resultado_geral = dict()
+
     # Fonte para selecionar as definicoes e fonte para selecionar os candidatos
-    fontes_def, fontes_cands = raw_input("Digite a fonte para definicoes: "), ['oxford', 'wordnet']
+    # fontes_def, fontes_cands = raw_input("Digite a fonte para definicoes: "), ['oxford', 'wordnet']
+    fontes_def, fontes_cands = fontes_def, ['oxford', 'wordnet']
+    casos_testes_dict, gabarito_dict = carregar_bases(configs, tipo_base)
 
-    casos_testes_dict, gabarito_dict = carregar_bases(configs)
-
-    usar_gabarito = raw_input('Utilizar candidatos do gabarito? s/N: ').lower()
-
-    indice = len(casos_testes_dict)
-    indice = int(raw_input("Digite um indice menor que [0 - %d]: " % (indice-1)))
-
+    # TODOS CASOS DE ENTRADA
     if indice == -1:
-        casos_testes_dict_tmp = list(casos_testes_dict.keys())
-    else:
+        casos_testes_dict_tmp = list(casos_testes_dict.keys())    
+    else: # SO O CASO DE ENTRADA INFORMADO
         casos_testes_dict_tmp = [casos_testes_dict.keys()[indice]]
 
     contador_instancias_nulas = 0
+    cont = 1
 
     # A chave tem que estar em ambos objetos para nao excecao na linha 329
     for lexelt in list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())):
         frase, palavra, pos = casos_testes_dict[lexelt]
         frase = Utils.descontrair(frase).replace("  ", " ")
+        # Palavra tem que estar inflexionada
         palavra = lexelt.split(".")[0]
 
-        cands = [e[0] for e in gabarito_dict[lexelt] if not Utils.e_multipalavra(e[0])]
+        if usar_gabarito == True:
+            cands = [e[0] for e in gabarito_dict[lexelt] if not Utils.e_multipalavra(e[0])]
+        else:
+            cands = alvaro.selecionar_candidatos(palavra, pos, fontes=fontes_cands)
+            cands = [p for p in cands if p.istitle() == False]
 
-        print("\n\n")
-        print("CASO DE ENTRADA:")
-        print((lexelt, palavra, pos, frase))
-        print(gabarito_dict[lexelt])
-        print("CANDIDATOS GABARITO: " + ", ".join(cands) + "\n\n")
+        cands = [p for p in cands if not Utils.e_multipalavra(p)]
 
-        resultado_sinonimia = alvaro.construir_relacao(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands)
-        resultado_sinonimia.reverse()
+        print("Processando a entrada " + str(lexelt))
+        print("%d / %d\n" % (cont, len(list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())))))
+        cont += 1
 
-        print("RESULTADO SINONIMIA")
-        for reg in resultado_sinonimia:
-            print(reg)
+        if criterio == 'embbedings':
+            rep_vet = RepresentacaoVetorial(configs)
+            rep_vet.carregar_modelo(configs['modelos']['word2vec-default'], binario=True)
 
-        raw_input("\n\n<enter>")
+            res_tmp = rep_vet.obter_palavras_relacionadas(positivos=[lexelt.split('.')[0]], topn=200)
+            resultado_geral[lexelt] = [sin for sin, pontuacao in res_tmp if sin in cands]
 
-        # Desambiguando significado naquele contexto
-        if tec == 'des':
+        elif criterio == 'frequencia':
+            cliente_ox = ClienteOxfordAPI(configs)
+
+            cands_ponts = [ ]
+            for sin in cands:
+                try:
+                    cands_ponts.append((sin, cliente_ox.obter_frequencia(sin)))
+                except:
+                    cands_ponts.append((sin, -1))
+
+            res_predicao = [reg[0] for reg in sorted(cands_ponts, key=lambda x:x[1], reverse=True)]
+            resultado_geral[lexelt] = res_predicao
+
+        elif criterio == 'alvaro':
+            res_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands)
+            res_sinonimia.reverse()
+
             if fontes_def == 'oxford':
                 desambiguador = DesambiguadorOxford(configs, base_ox)
                 res_desambiguacao = desambiguador.cosine_lesk(frase, palavra, pos, usar_exemplos=False)
@@ -354,24 +377,82 @@ def construir_relacao_abordagem_alvaro(configs, tec='des'):
 
             try:
                 peso_ini, peso_fim = res_desambiguacao[0][1], res_desambiguacao[-1][1]
-                if peso_ini == 0: contador_instancias_nulas += 1
+                if peso_ini == 0:
+                    contador_instancias_nulas += 1
             except Exception, e:
                 contador_instancias_nulas += 1
 
-            print("\n\n")
-            for reg in res_desambiguacao:
-                print("\n" + str(reg))
+            resultado_agregado = dict()
+
+            for sin in res_desambiguacao:
+                definicao_label, definicao_reg, frases_reg, pontuacao_reg = sin[0][0], sin[0][1], sin[0][2], sin[1]
+                if not definicao_label in resultado_agregado:
+                    resultado_agregado[definicao_label] = list()
+
+            for reg_sin in res_sinonimia:
+                definicao_label = reg_sin[1].split(";")[-1]
+                resultado_agregado[definicao_label].append(reg_sin)
             
-            
-            raw_input("\n\n<enter>")
-       
-    print("\n")
-    print("TOTAL DE INSTANCIAS: %d" % len(casos_testes_dict_tmp))
-    print("TOTAL DE INSTANCIAS NULAS: %d" % contador_instancias_nulas)
-    print("\n\n\n")
+            definicoes_sinonimos = set()
+            saida_sinonimos_tmp = [ ]
+
+            # ITERANDO RESULTADO DAS DESAMBIGUACAO
+            for sin in res_desambiguacao:
+                definicao_label, definicao_reg, frases_reg, pontuacao_reg = sin[0][0], sin[0][1], sin[0][2], sin[1]
+                relacao_ordenada = sorted(resultado_agregado[definicao_label], key=lambda x :x[1], reverse=False)
+
+                res_agregado_tmp = dict()
+
+                # ITERANDO RELACAO DE SINONIMIA COMPUTADA ANTERIORMENTE
+                for reg_sin in relacao_ordenada:
+                    def_sin = reg_sin[0]
+                    def_sin, lema_sin = def_sin.split(';')[:-1][0], def_sin.split(';')[-1]
+
+                    pontuacao_tmp = reg_sin[3]
+                    chave_definicoes = "%s%s%s" % (reg_sin[0], separador, reg_sin[1])
+
+                    # AGREGANDO PONTUACOES DE FRASES DE EXEMPLOS DISTINTAS
+                    if not chave_definicoes in res_agregado_tmp:
+                        res_agregado_tmp[chave_definicoes] = list()
+
+                    # ADICIONANDO PONTUACAO DA NOVA FRASE
+                    res_agregado_tmp[chave_definicoes].append(pontuacao_tmp)
+
+                # AGREGANDO SCORES NESTE LACO
+                res_agregado_tmp_array = [ ]
+                for chave_definicoes in res_agregado_tmp:
+                    # AGREGANDO A MEDIA DA PONTUACAO DAS FRASES
+                    media_tmp = sum(res_agregado_tmp[chave_definicoes]) / len(res_agregado_tmp[chave_definicoes])
+                    # PAR <def1, def2> : pontuacao
+                    res_agregado_tmp_array.append((chave_definicoes, media_tmp))
+
+                # ORDENANDO AGREGADO
+                res_agregado_tmp = sorted(res_agregado_tmp_array, key=lambda x: x[1], reverse=True)
+
+                for sin in res_agregado_tmp:
+                    def_reg = sin[0].split(separador)[0]
+                    def_reg, lema_reg = def_reg.split(';')[:-1][0], def_reg.split(';')[-1]
+
+                    sins_reg = base_ox.obter_sinonimos(lema_reg, def_reg)
+                    if len(sins_reg) > 0:
+                        saida_sinonimos_tmp += sins_reg
+                        #saida_sinonimos.append(sins_reg[0]) #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+            saida_sinonimos = [ ]
+            for sin in saida_sinonimos_tmp:
+                if usar_gabarito == True:
+                    if sin in [p[0] for p in gabarito_dict[lexelt]] and not sin in saida_sinonimos:
+                        saida_sinonimos.append(sin)
+                else:
+                    saida_sinonimos.append(sin)
+
+            resultado_geral[lexelt] = saida_sinonimos
+
+    # MINHA SUGESTAO, CASO DE ENTRADA, GABARITO
+    return resultado_geral, casos_testes_dict, gabarito_dict
 
 def testar_casamento(configs):
-    base_unificada = BaseUnificadaObjetosOxford(configs)
+    base_unificada = BaseUnificadaOxford(configs)
     casador = CasadorConceitos(configs, base_unificada)
 
     palavra = raw_input('Palavra: ')
@@ -417,9 +498,55 @@ if __name__ == '__main__':
         validador = ValidadorSemEval(configs)
         fonte = raw_input("Fonte: ")
         utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte=fonte)
+
+    validador = ValidadorSemEval(configs)
+
     if True:
-        #print("\n\n")
-        construir_relacao_abordagem_alvaro(configs)
+        for criterio in ['alvaro']:#, 'embbedings', 'frequencia']:
+            predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=False, criterio=criterio, indice=-1, tipo_base='test')
+            #(self, dir_arquivo_saida, entrada, limite_resposta, separador):
+            # OOT
+            nome_abordagem = "%s.%s" % (criterio, "oot")
+            validador.formatar_submissao_final("/home/isaias/Desktop/" + nome_abordagem, predicao, 10, ":::")
+            # BEST
+            nome_abordagem = "%s.%s" % (criterio, "best")
+            validador.formatar_submissao_final("/home/isaias/Desktop/" + nome_abordagem, predicao, 1, "::")
+
+    todos_resultados_best = validador.obter_score_participantes_originais("best").values()
+    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "embbedings.best"))
+    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "frequencia.best"))
+    todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "alvaro.best"))
+
+    chave = ""
+    while chave == "":
+        chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_best[0].keys()) + ": ")
+        print("\n")
+
+    todos_resultados_best = sorted(todos_resultados_best, key=itemgetter(chave), reverse=True) 
+
+    print(chave.upper() + "\t-----------------------")
+    for e in  todos_resultados_best: print(e)
+    raw_input("\n\n\n<enter>")
+
+    print("\n\n\n")
+    todos_resultados_oot = validador.obter_score_participantes_originais("oot").values()
+    #todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "embbedings.oot"))
+    #todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "frequencia.oot"))
+    todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "alvaro.oot"))
+
+    chave = ""
+    while chave == "":
+        chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_oot[0].keys()) + ": ")
+        print("\n")
+       
+    todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True) 
+
+    print(chave.upper() + "\t-----------------------")
+    for e in  todos_resultados_oot: print(e)
+    raw_input("\n\n\n<enter>")
+
+    exit(0)
+
     if False:
         desambiguar_word_embbedings(configs, raw_input("Frase: "), raw_input("Palavra: "))
     exit(0)
@@ -471,3 +598,4 @@ if __name__ == '__main__':
             print('%s\t\tGAP Medio: %s' % (nome_abordagem, str(gap_medio)))
 
         print('\n\n\nFim do __main__')
+

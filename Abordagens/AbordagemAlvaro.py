@@ -16,22 +16,24 @@ class AbordagemAlvaro(object):
         self.base_oxford = base_ox
         self.casador_manual = casador_manual
 
+    # CONSTRUIR RELACAO ENTRE AS DEFINICOES
     # def iniciar(self, palavra, pos, contexto, fontes_arg=['wordnet'],\
     # anotar_exemplos=False, usar_fontes_secundarias=False, usar_ctx=False, candidatos=None):
-    def construir_relacao(self, palavra, pos, contexto, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None):
+    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None):
+        nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
+        dir_cache = self.configs['aplicacao']['dir_cache_relacao_sinonimia']
+        todos_arqs_cache = [arq.split("/")[-1] for arq in Utils.listar_arquivos(dir_cache)]
+
+        if nome_arquivo_cache in todos_arqs_cache:
+            return Utils.carregar_json(dir_cache + "/" + nome_arquivo_cache)
+        
         resultados = list()
-        contexto = None
+        ctx = None
 
         if type(fontes_def) != str:
             raise Exception("O tipo deste argumento deve ser string!")
 
-        if cands == None:
-            cands = self.selecionar_candidatos(palavra, pos, fontes=fontes_cands)
-            cands = [p for p in cands if p.istitle() == False]
-            raw_input("TODOS CANDIDATOS (%d): %s" % (len(cands), str(cands)))
-
-        cands = [p for p in cands if not Utils.e_multipalavra(p)]
-        todas_definicoes_candidatas = []
+        todas_definicoes_candidatas = [ ]
 
         if fontes_def == 'oxford':
             for candidato in cands:
@@ -44,9 +46,10 @@ class AbordagemAlvaro(object):
                     todas_definicoes_candidatas.append((definicao_candidata, candidato))
             definicoes_palavra = [(d, palavra) for d in wn.synsets(palavra, pos)]
 
-        # Retira os significados da palavra
+        # Retira os significados da palavra passada como argumento
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
-        todas_definicoes_candidatas = list(set(todas_definicoes_candidatas) - set(definicoes_palavra))
+        todas_definicoes_candidatas = set(set(todas_definicoes_candidatas) - set(definicoes_palavra))
+        todas_definicoes_candidatas = list(todas_definicoes_candidatas)
 
         # Todas definicoes candidatas:
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
@@ -57,7 +60,7 @@ class AbordagemAlvaro(object):
                 nome_synset_sinonimo = definicao.lemma_names()[0]
                 self.casador_manual.iniciar_casamento(nome_synset_sinonimo, definicao.pos(), corrigir=False)
 
-            todos_exemplos = []
+            todos_exemplos = [ ]
 
             try:
                 # definicao_candidata é uma tupla no formato (definicao, palavra)
@@ -67,7 +70,7 @@ class AbordagemAlvaro(object):
                 elif fontes_def == 'oxford':
                     todos_exemplos = self.base_oxford.obter_atributo(lema, pos, def_candidata, 'exemplos')
             except:
-                todos_exemplos = []
+                todos_exemplos = [ ]
 
             try:
                 if fts_secs == True:
@@ -79,18 +82,22 @@ class AbordagemAlvaro(object):
 
             # Usar contexto na estapa de discriminação (desambiguação)
             if usar_ctx == True:
-                todos_exemplos.append(contexto)
+                todos_exemplos.append(ctx)
+
+            if todos_exemplos == None:
+                todos_exemplos = [ ]
 
             for exemplo in todos_exemplos:
                 if fontes_def == 'wordnet':
-                    resultado_desambiguador = []
+                    resultado_desambiguador = [ ]
                     try:
                         resultado_desambiguador = cosine_lesk(exemplo, palavra, pos=pos, nbest=True)
                     except KeyboardInterrupt, ke:
                         raw_input("\t\t@@@ " + str((exemplo, palavra, pos)) + "")
+
                 elif fontes_def == 'oxford':
-                    desambiguador_oxford = DesambiguadorOxford(self.configs, self.base_oxford)
-                    resultado_desambiguador = desambiguador_oxford.cosine_lesk(exemplo, palavra, pos=pos)
+                    desambiguador_ox = DesambiguadorOxford(self.configs, self.base_oxford)
+                    resultado_desambiguador = desambiguador_ox.cosine_lesk(exemplo, palavra, pos=pos)
 
                 for registro in resultado_desambiguador:
                     # definicao = synset ou definica = (definicao, palavra)
@@ -104,8 +111,11 @@ class AbordagemAlvaro(object):
                         
                     resultados.append(reg_ponderacao)
 
-        # Retornando ordenado
-        return sorted(resultados, key=lambda x: x[3], reverse=True)
+        # Retornando ordenado 
+        obj_retorno = sorted(resultados, key=lambda x: x[3], reverse=True)
+        Utils.salvar_json(dir_cache + "/" + nome_arquivo_cache, obj_retorno)
+
+        return obj_retorno
 
     # Gabarito no formato [[palavra, voto], ...]
     def possui_moda(self, gabarito):
@@ -118,8 +128,8 @@ class AbordagemAlvaro(object):
     def selecionar_candidatos(self, palavra, pos, fontes=['wordnet']):
         candidatos = set()
 
-        if fontes in [[], None]:
-            return []
+        if fontes in [[ ], None]:
+            return [ ]
 
         if 'wordnet' in fontes:
             for s in wn.synsets(palavra, pos):
@@ -130,7 +140,7 @@ class AbordagemAlvaro(object):
 
             for definicao in todas_definicoes:
                 candidatos_tmp = self.base_oxford.obter_sinonimos(palavra, definicao, pos)
-                candidatos.update([] if candidatos_tmp == None else candidatos_tmp)
+                candidatos.update([ ] if candidatos_tmp == None else candidatos_tmp)
 
         if 'wordembbedings' in fontes:
             pass

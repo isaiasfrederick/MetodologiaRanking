@@ -3,7 +3,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
 from Utilitarios import Utils
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaObjetosOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from nltk.corpus import stopwords, wordnet
 import re
@@ -119,7 +119,7 @@ class CasadorConceitos:
 
     # dado um conceito central através de um lema, retorne um conceito mais indicado
     def buscador_conceitos_centrais(self, lema, pos, doc):
-        resultado = []
+        resultado = [ ]
         doc = self.stemizar_frase(doc)
 
         for s in wn.synsets(lema, pos[0].lower()):
@@ -176,7 +176,7 @@ class CasadorConceitos:
 
                 for hiperonimo in caminho:
                     if not hiperonimo.name() in resultados_wordnet:
-                        resultados_wordnet[hiperonimo.name()] = []
+                        resultados_wordnet[hiperonimo.name()] = [ ]
 
                     resultados_wordnet[hiperonimo.name()].append(synset)
 
@@ -259,7 +259,7 @@ class CasadorConceitos:
         if not obj_entrada_unificado:
             return None
 
-        resultado = []
+        resultado = [ ]
         cont = 1
         for pos in obj_entrada_unificado.keys():
             for definicao_prim in obj_entrada_unificado[pos].keys():
@@ -288,7 +288,7 @@ class CasadorConceitos:
         todos_synsets = wn.synsets(lema, pos[0].lower())
         todos_substantivos = self.extrair_substantivos(definicao_oxford)
 
-        resultado_parcial = []
+        resultado_parcial = [ ]
         todos_lemas_unitarios_wordnet = {}
 
         for synset in todos_synsets:        
@@ -320,7 +320,7 @@ class CasadorConceitos:
 
     # metodo que acha todos conceitos (Oxford, Wordnet) que compartilham mesmo lema
     def casar_autoreferenciados(self, lema, pos, todas_definicoes_oxford):
-        casamentos_autoreferenciado = []
+        casamentos_autoreferenciado = [ ]
 
         for def_oxford in todas_definicoes_oxford:
             ca_tmp = self.buscar_conceitos_autorefenciados(lema, pos, def_oxford)
@@ -337,7 +337,7 @@ class CasadorConceitos:
         todos_hiper_oxford, todos_hiper_wordnet = \
         self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
 
-        casamentos_hiperonimos = []
+        casamentos_hiperonimos = [ ]
 
         for hiper_oxf in todos_hiper_oxford:
             if todos_hiper_oxford[hiper_oxf].__len__() == 1:
@@ -361,7 +361,7 @@ class CasadorConceitos:
         todos_hiper_oxford, todos_hiper_wordnet = \
         self.busca_todos_hiperonimos(lema, todos_synsets, todas_definicoes_oxford)
 
-        casamentos_hiperonimos = []
+        casamentos_hiperonimos = [ ]
 
         for hiper_oxf in todos_hiper_oxford:
             for lema_hiperonimo_wn in todos_hiper_wordnet:
@@ -380,7 +380,7 @@ class CasadorConceitos:
 
 
     def maximizar_caminho(self, hiponimo, hiperonimo, def_oxford):
-        contadores = []
+        contadores = [ ]
         todos_caminhos = hiponimo.hypernym_paths()
 
         for caminho_tmp in todos_caminhos:

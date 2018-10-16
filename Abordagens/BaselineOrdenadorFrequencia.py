@@ -14,7 +14,7 @@ class BaselineOrdenadorFrequencia(object):
         gap_acc = 0
         cont = 0
 
-        resultado_correto = []
+        resultado_correto = [ ]
 
         candidatos = dict()
 
@@ -31,7 +31,7 @@ class BaselineOrdenadorFrequencia(object):
             res_ordenados = Utils.ordenar_palavras(palavras)
             #res_ordenados = [p for p in gabarito[entrada].keys() if len(p.split(' ')) > 1] + res_ordenados
 
-            vetor = []
+            vetor = [ ]
             for i in range(1, len(res_ordenados) + 1):
                 v = [res_ordenados[i-1], i]
                 vetor.append(v)
@@ -39,7 +39,7 @@ class BaselineOrdenadorFrequencia(object):
             for elemento in vetor:
                 if len(elemento[0].split(' ')) > 1: elemento[1] = 1
 
-            gabarito_anotado = []
+            gabarito_anotado = [ ]
 
             for sinonimo in gabarito[entrada]:
                 gabarito_anotado.append([sinonimo, gabarito[entrada][sinonimo]])

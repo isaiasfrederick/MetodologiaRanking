@@ -28,18 +28,18 @@ class ClienteBabelAPI(object):
 
         for ex in resultado.json()['examples']:
             if not ex['sourceSense'] in exemplos:
-                exemplos[ex['sourceSense']] = []
+                exemplos[ex['sourceSense']] = [ ]
             exemplos[ex['sourceSense']].append(ex['example'])
         
         # merge de exemplos e definicoes
         for gl in resultado.json()['glosses']:
             if not gl['sourceSense'] in definicoes:
-                definicoes[gl['sourceSense']] = {'definicoes': []}
+                definicoes[gl['sourceSense']] = {'definicoes': [ ]}
                 if gl['sourceSense'] in exemplos:
                     ex = exemplos[gl['sourceSense']]
                     definicoes[gl['sourceSense']]['exemplos'] = ex
                 else:
-                    definicoes[gl['sourceSense']]['exemplos'] = []
+                    definicoes[gl['sourceSense']]['exemplos'] = [ ]
 
             definicoes[gl['sourceSense']]['definicoes'].append(gl['gloss'])
 
