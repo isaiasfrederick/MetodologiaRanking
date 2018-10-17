@@ -326,6 +326,9 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
     contador_instancias_nulas = 0
     cont = 1
 
+    certos = 0
+    errados = 0
+
     # A chave tem que estar em ambos objetos para nao excecao na linha 329
     for lexelt in list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())):
         frase, palavra, pos = casos_testes_dict[lexelt]
@@ -359,11 +362,22 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
             for sin in cands:
                 try:
                     cands_ponts.append((sin, cliente_ox.obter_frequencia(sin)))
-                except:
+                except Exception, e:
+                    print(e)
                     cands_ponts.append((sin, -1))
 
             res_predicao = [reg[0] for reg in sorted(cands_ponts, key=lambda x:x[1], reverse=True)]
             resultado_geral[lexelt] = res_predicao
+
+            print("Candidatos: " + str(sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)))
+            print("Candidatos pontuacao: " + str(cands_ponts))
+            print("Candidatos ordenados: " + str(res_predicao))
+            gabs = sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)
+
+            try:
+                if gabs[0][0] == res_predicao[0]: certos += 1
+                else: errados += 1
+            except: pass
 
         elif criterio == 'alvaro':
             res_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands)
@@ -448,6 +462,10 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
 
             resultado_geral[lexelt] = saida_sinonimos
 
+    print("\n\nCENTOS/ERRADOS: ")
+    print((certos, errados))
+    print("\n")
+
     # MINHA SUGESTAO, CASO DE ENTRADA, GABARITO
     return resultado_geral, casos_testes_dict, gabarito_dict
 
@@ -500,22 +518,25 @@ if __name__ == '__main__':
         utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte=fonte)
 
     validador = ValidadorSemEval(configs)
+    todos_criterios = ['frequencia']
 
     if True:
-        for criterio in ['alvaro']:#, 'embbedings', 'frequencia']:
-            predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=False, criterio=criterio, indice=-1, tipo_base='test')
+        for criterio in todos_criterios:
+            predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=True, criterio=criterio, indice=-1, tipo_base='test')
             #(self, dir_arquivo_saida, entrada, limite_resposta, separador):
             # OOT
-            nome_abordagem = "%s.%s" % (criterio, "oot")
-            validador.formatar_submissao_final("/home/isaias/Desktop/" + nome_abordagem, predicao, 10, ":::")
+            #for cont in range(1, 11):
+            #    nome_abordagem = "%s-%d.%s" % (criterio, cont, "oot")
+            #    validador.formatar_submissao_final("/home/isaias/Desktop/contadores/" + nome_abordagem, predicao, cont, ":::")
+            #raw_input("\n\nPressione <enter>")
             # BEST
             nome_abordagem = "%s.%s" % (criterio, "best")
             validador.formatar_submissao_final("/home/isaias/Desktop/" + nome_abordagem, predicao, 1, "::")
 
     todos_resultados_best = validador.obter_score_participantes_originais("best").values()
     #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "embbedings.best"))
-    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "frequencia.best"))
-    todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "alvaro.best"))
+    todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "frequencia.best"))
+    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "alvaro.best"))
 
     chave = ""
     while chave == "":
@@ -526,24 +547,25 @@ if __name__ == '__main__':
 
     print(chave.upper() + "\t-----------------------")
     for e in  todos_resultados_best: print(e)
-    raw_input("\n\n\n<enter>")
+    #raw_input("\n\n\n<enter>")
 
-    print("\n\n\n")
-    todos_resultados_oot = validador.obter_score_participantes_originais("oot").values()
-    #todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "embbedings.oot"))
-    #todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "frequencia.oot"))
-    todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop", "alvaro.oot"))
+    if True:
+        todos_resultados_oot = validador.obter_score_participantes_originais("oot").values()
+        for criterio in todos_criterios:
+            for cont in range(1, 11):
+                nome_abordagem = "%s-%d.%s" % (criterio, cont, "oot")
+                todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop/contadores", nome_abordagem))
 
-    chave = ""
-    while chave == "":
-        chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_oot[0].keys()) + ": ")
-        print("\n")
-       
-    todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True) 
+        chave = ""
+        while chave == "":
+            chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_oot[0].keys()) + ": ")
+            print("\n")
 
-    print(chave.upper() + "\t-----------------------")
-    for e in  todos_resultados_oot: print(e)
-    raw_input("\n\n\n<enter>")
+        todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True) 
+
+        print(chave.upper() + "\t-----------------------")
+        for e in  todos_resultados_oot: print(e)
+        raw_input("\n\n\n<enter>")
 
     exit(0)
 

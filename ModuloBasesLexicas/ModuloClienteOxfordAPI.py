@@ -360,7 +360,7 @@ class ClienteOxfordAPI(object):
             path = dir_cache + '/' + palavra + '.json'
             obj = Utils.carregar_json(path)
 
-            return obj_req['result']['frequency']
+            return obj['result']['frequency']
         else:
             url = self.url_base + '/stats/frequency/word/en/?corpus=nmc&lemma=' + palavra
             obj_req = Utils.requisicao_http(url, self.headers)
