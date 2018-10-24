@@ -37,7 +37,7 @@ class InterfaceAbordagens(object):
         self.representacao_vetorial = RepresentacaoVetorial(configs)
         self.representacao_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
 
-        self.contadores = Utils.carregar_json(dir_contadores)
+        self.contadores = Utils.abrir_json(dir_contadores)
 
         # Objeto que implementa a abordagem do Wander
         self.ponderador_wander = PonderacaoSinonimia.Ponderador(self.configs)

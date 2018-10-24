@@ -13,7 +13,7 @@ class Ponderador(object):
         dir_base_sinonimia = self.solicitar_diretorio_base_sinonimia()
 
         self.configs = configs
-        self.base_sinonimia = Utils.carregar_json(dir_base_sinonimia)
+        self.base_sinonimia = Utils.abrir_json(dir_base_sinonimia)
         self.casador_manual = CasadorManual(self.configs)
 
     def solicitar_diretorio_base_sinonimia(self):

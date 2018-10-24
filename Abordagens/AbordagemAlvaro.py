@@ -5,6 +5,7 @@ from Utilitarios import Utils
 from nltk.corpus import wordnet
 import CasadorManual
 import traceback
+import sys
 
 from pywsd.lesk import cosine_lesk
 
@@ -19,13 +20,14 @@ class AbordagemAlvaro(object):
     # CONSTRUIR RELACAO ENTRE AS DEFINICOES
     # def iniciar(self, palavra, pos, contexto, fontes_arg=['wordnet'],\
     # anotar_exemplos=False, usar_fontes_secundarias=False, usar_ctx=False, candidatos=None):
-    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None):
+    # max_en = maximo de exemplos utilizaveis
+    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None, max_ex=sys.maxint):
         nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
         dir_cache = self.configs['aplicacao']['dir_cache_relacao_sinonimia']
         todos_arqs_cache = [arq.split("/")[-1] for arq in Utils.listar_arquivos(dir_cache)]
 
         if nome_arquivo_cache in todos_arqs_cache:
-            return Utils.carregar_json(dir_cache + "/" + nome_arquivo_cache)
+            return Utils.abrir_json(dir_cache + "/" + nome_arquivo_cache)
         
         resultados = list()
         ctx = None
@@ -72,6 +74,8 @@ class AbordagemAlvaro(object):
             except:
                 todos_exemplos = [ ]
 
+            todos_exemplos = todos_exemplos[:max_ex]
+
             try:
                 if fts_secs == True:
                     if fontes_def == ['wordnet']:
@@ -102,6 +106,9 @@ class AbordagemAlvaro(object):
                 for registro in resultado_desambiguador:
                     # definicao = synset ou definica = (definicao, palavra)
                     definicao, pontuacao = registro
+
+                    if pontuacao > 0.00:
+                        raw_input("PONTUACAO: " + str(pontuacao))
 
                     if fontes_def == 'wordnet':
                         reg_ponderacao = definicao_candidata[0].name(), definicao.name(), exemplo, pontuacao

@@ -1,4 +1,4 @@
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
 from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from Utilitarios import Utils

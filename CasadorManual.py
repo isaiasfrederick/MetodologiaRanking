@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from Utilitarios import Utils
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
 from nltk.corpus import wordnet
 
 wn = wordnet
@@ -12,8 +12,8 @@ class CasadorManual(object):
         self.configs = configs
         # self.configs['dir_base_casada_manualmente']
         self.diretorio_base_casada_manualmente = self.configs['dir_base_casada_manualmente']
-        self.base_casada_manualmente = Utils.carregar_json(self.diretorio_base_casada_manualmente)
-        self.base_ox = BaseUnificadaOxford(self.configs)
+        self.base_casada_manualmente = Utils.abrir_json(self.diretorio_base_casada_manualmente)
+        self.base_ox = BaseUnificadaOx(self.configs)
 
         if self.base_casada_manualmente == None:
             self.base_casada_manualmente = {}

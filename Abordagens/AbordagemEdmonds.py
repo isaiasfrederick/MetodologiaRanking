@@ -82,7 +82,7 @@ class AbordagemEdmonds(object):
 
             palavras_novo_nivel = [ ]
 
-            obj_nivel = Utils.carregar_json(dir_obj_nivel)
+            obj_nivel = Utils.abrir_json(dir_obj_nivel)
 
             for raiz in obj_nivel.keys():
                 palavras_novo_nivel += obj_nivel[raiz].keys()

@@ -7,13 +7,13 @@ import traceback
 import re
 from pywsd.lesk import cosine_lesk
 from operator import itemgetter
-from operator import itemgetter
+import sys
 
 # Experimentacao
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOxford
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from RepositorioCentralConceitos import CasadorConceitos
 from nltk.corpus import wordnet
@@ -48,8 +48,21 @@ def desambiguar_word_embbedings(configs, ctx, palavra):
     print("\n")
 
 
+def criar_vetores_wordnet(configs):
+    rep_vetorial = RepresentacaoVetorial(configs)
+    rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
+
+    while raw_input("\nContinuar? S/n: ").lower() != 'n':
+        p = raw_input("Positivas: ").split(",")
+        n = raw_input("Negativas: ").split(",")
+
+        res = rep_vetorial.obter_palavras_relacionadas(positivos=p, negativos=None, topn= 40)
+
+        print([e[0] for e in res])
+
+    
 def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte='wordnet'):
-    base_ox = BaseUnificadaOxford(configs)
+    base_ox = BaseUnificadaOx(configs)
     rep_vetorial = RepresentacaoVetorial(configs)
     rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
 
@@ -107,12 +120,12 @@ def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, 
 sobre o componente que escolhe os sinonimos a serem utilizados """
 def medir_seletor_candidatos(configs):
     validador = ValidadorSemEval(configs)
-    contadores = Utils.carregar_json(configs['leipzig']['dir_contadores'])
+    contadores = Utils.abrir_json(configs['leipzig']['dir_contadores'])
 
     #dir_saida_seletor_candidatos = raw_input("Diretorio saida arquivo seletor candidatos: ")
     dir_saida_seletor_candidatos = "/home/isaias/saida-oot.oot"
 
-    base_ox = BaseUnificadaOxford(configs)
+    base_ox = BaseUnificadaOx(configs)
     alvaro = AbordagemAlvaro(configs, base_ox, CasadorManual(configs))
 
     # Abordagem com representacao vetorial das palavras
@@ -302,10 +315,13 @@ def carregar_bases(configs, tipo_base):
 # Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
 # Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
 #   criterio = frequencia OU alvaro OU embbedings
-def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo_base=None):
+def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo_base=None, max_ex=-1):
     casador_manual = CasadorManual(configs)
-    base_ox = BaseUnificadaOxford(configs)
+    base_ox = BaseUnificadaOx(configs)
     alvaro = AbordagemAlvaro(configs, base_ox, casador_manual)
+
+    if max_ex == -1:
+        max_ex = sys.maxint # Valor infinito
 
     separador = "###"
 
@@ -325,9 +341,6 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
 
     contador_instancias_nulas = 0
     cont = 1
-
-    certos = 0
-    errados = 0
 
     # A chave tem que estar em ambos objetos para nao excecao na linha 329
     for lexelt in list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())):
@@ -369,9 +382,6 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
             res_predicao = [reg[0] for reg in sorted(cands_ponts, key=lambda x:x[1], reverse=True)]
             resultado_geral[lexelt] = res_predicao
 
-            print("Candidatos: " + str(sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)))
-            print("Candidatos pontuacao: " + str(cands_ponts))
-            print("Candidatos ordenados: " + str(res_predicao))
             gabs = sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)
 
             try:
@@ -380,7 +390,7 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
             except: pass
 
         elif criterio == 'alvaro':
-            res_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands)
+            res_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands, max_ex=max_ex)
             res_sinonimia.reverse()
 
             if fontes_def == 'oxford':
@@ -462,15 +472,11 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
 
             resultado_geral[lexelt] = saida_sinonimos
 
-    print("\n\nCENTOS/ERRADOS: ")
-    print((certos, errados))
-    print("\n")
-
     # MINHA SUGESTAO, CASO DE ENTRADA, GABARITO
     return resultado_geral, casos_testes_dict, gabarito_dict
 
 def testar_casamento(configs):
-    base_unificada = BaseUnificadaOxford(configs)
+    base_unificada = BaseUnificadaOx(configs)
     casador = CasadorConceitos(configs, base_unificada)
 
     palavra = raw_input('Palavra: ')
@@ -512,60 +518,92 @@ if __name__ == '__main__':
     Utils.limpar_console()
     configs = Utils.carregar_configuracoes(argv[1])
 
+    #criar_vetores_wordnet(configs)
+    #exit(0)
+
     if False:
-        validador = ValidadorSemEval(configs)
-        fonte = raw_input("Fonte: ")
-        utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte=fonte)
+        criar_vetores_wordnet(configs)
+
+    if False:
+        palavra = raw_input("Palavra: ")
+        ns = raw_input(str(wn.synsets(palavra)) + ": ")
+        print("\n")
+        rep_vetorial = RepresentacaoVetorial(configs)
+        rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
+
+        for p in rep_vetorial.criar_vetor_synset(palavra, ns):
+            print(p)
+
+        exit(0)
 
     validador = ValidadorSemEval(configs)
-    todos_criterios = ['frequencia']
+
+    dir_saida_abordagem = "/home/isaias/Desktop/exps"
+    todos_criterios = ['alvaro']
+    flags_usar_gabarito = [False, True]
+
+    res_certos, res_errados, res_excecao = 0, 0, 0
 
     if True:
-        for criterio in todos_criterios:
-            predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=True, criterio=criterio, indice=-1, tipo_base='test')
-            #(self, dir_arquivo_saida, entrada, limite_resposta, separador):
-            # OOT
-            #for cont in range(1, 11):
-            #    nome_abordagem = "%s-%d.%s" % (criterio, cont, "oot")
-            #    validador.formatar_submissao_final("/home/isaias/Desktop/contadores/" + nome_abordagem, predicao, cont, ":::")
-            #raw_input("\n\nPressione <enter>")
-            # BEST
-            nome_abordagem = "%s.%s" % (criterio, "best")
-            validador.formatar_submissao_final("/home/isaias/Desktop/" + nome_abordagem, predicao, 1, "::")
+        todos_resultados_best = validador.avaliar_parts_originais("best").values()
+        todos_resultados_oot = validador.avaliar_parts_originais("oot").values()
+        
+        for crit in todos_criterios:
+            for usar_gabarito in flags_usar_gabarito:
+                for max_ex in [10, 40]:
+                    predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo_base='test', max_ex=max_ex)
 
-    todos_resultados_best = validador.obter_score_participantes_originais("best").values()
-    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "embbedings.best"))
-    todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "frequencia.best"))
-    #todos_resultados_best.append(validador.obter_score("/home/isaias/Desktop", "alvaro.best"))
+                    for lexelt in gabarito:
+                        if lexelt in predicao:
+                            reg_gabarito = sorted(gabarito[lexelt], key=lambda x: x[1], reverse=True)
+                            reg_gabarito = [e[0] for e in reg_gabarito]
 
-    chave = ""
-    while chave == "":
-        chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_best[0].keys()) + ": ")
-        print("\n")
+                            try:
+                                if reg_gabarito[0] == predicao[lexelt][0]: res_certos += 1
+                                else: res_errados += 1
+                            except: res_excecao += 1
 
-    todos_resultados_best = sorted(todos_resultados_best, key=itemgetter(chave), reverse=True) 
+                    # Out-of-Ten (filtrando quantas predicoes sao necessarias)
+                    for cont in range(1, 11):
+                        nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
+                        if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                            validador.formatar_submissao_final(dir_saida_abordagem + "/" + nome_abordagem, predicao, cont, ":::")
+                        if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                            todos_resultados_oot.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
-    print(chave.upper() + "\t-----------------------")
-    for e in  todos_resultados_best: print(e)
-    #raw_input("\n\n\n<enter>")
+                    # Best
+                    nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
+                    if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        validador.formatar_submissao_final(dir_saida_abordagem + "/"  + nome_abordagem, predicao, 1, "::")
+                    if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        todos_resultados_best.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
-    if True:
-        todos_resultados_oot = validador.obter_score_participantes_originais("oot").values()
-        for criterio in todos_criterios:
-            for cont in range(1, 11):
-                nome_abordagem = "%s-%d.%s" % (criterio, cont, "oot")
-                todos_resultados_oot.append(validador.obter_score("/home/isaias/Desktop/contadores", nome_abordagem))
+            print("\n\nCERTOS/ERRADOS/EXCECAO")
+            raw_input((res_certos, res_errados, res_excecao))
 
+    if raw_input("Calcular BEST? s/N? ") == "s":
         chave = ""
         while chave == "":
-            chave = raw_input("\nEscolha a chave pra ordenar: " + str(todos_resultados_oot[0].keys()) + ": ")
+            chave = raw_input("\nEscolha a chave pra ordenara saida BEST: " + str(todos_resultados_best[0].keys()) + ": ")
             print("\n")
-
-        todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True) 
-
+        todos_resultados_best = sorted(todos_resultados_best, key=itemgetter(chave), reverse=True) 
         print(chave.upper() + "\t-----------------------")
-        for e in  todos_resultados_oot: print(e)
-        raw_input("\n\n\n<enter>")
+        for e in todos_resultados_best: print(e)
+
+    print("\n\n\n")
+
+    if raw_input("Calcular Out-of-Ten? s/N? ") == "s":
+        chave = ""
+        while chave == "":
+            chave = raw_input("\nEscolha a chave pra ordenara saida OOT: " + str(todos_resultados_oot[0].keys()) + ": ")
+            print("\n")
+        todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True)        
+        print(chave.upper() + "\t-----------------------")
+        for e in todos_resultados_oot:
+            if 'alvaro' in e['nome']:
+                if 'alvaro-10-' in e['nome']: print(e)
+            else:
+                print(e)
 
     exit(0)
 

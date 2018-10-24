@@ -18,7 +18,7 @@ import json
 import time
 
 # Esta classe faz o merge de objetos do coletor
-class BaseUnificadaOxford(object):
+class BaseUnificadaOx(object):
     # Salva os pares <<palavra, definicao> : sinonimos>
     # Para os dados de Oxford
     sinonimos_extraidos_definicao = dict()
@@ -64,23 +64,23 @@ class BaseUnificadaOxford(object):
 
     # Mescla objetos obtidos via coletor-web e objeto unificado ClienteAPI
     def obter_obj_unificado(self, palavra):
-        BaseUnificadaOxford.objs_unificados = {}
+        BaseUnificadaOx.objs_unificados = {}
 
         palavra = Utils.normalizar_palavra(palavra)
 
-        if palavra in BaseUnificadaOxford.objs_unificados:
+        if palavra in BaseUnificadaOx.objs_unificados:
             print('@@@ Achei os dados no cache!\nPalavra: ' + palavra)
 
-            if not BaseUnificadaOxford.objs_unificados[palavra]:
+            if not BaseUnificadaOx.objs_unificados[palavra]:
                 print('NULO!\n')
 
-            return BaseUnificadaOxford.objs_unificados[palavra]
+            return BaseUnificadaOx.objs_unificados[palavra]
 
         obj_cli_unificado = self.cliente_api_oxford.iniciar_coleta(palavra)
         obj_coletado = self.coletor_web_oxford.iniciar_coleta(palavra)
 
         if not obj_cli_unificado or not obj_coletado:
-            BaseUnificadaOxford.objs_unificados[palavra] = None
+            BaseUnificadaOx.objs_unificados[palavra] = None
             return None
 
         obj_coletado = dict(obj_coletado)
@@ -91,15 +91,15 @@ class BaseUnificadaOxford(object):
                     sinonimos = self.obter_sinonimos_fonte_obj_api(pos, def_primaria, obj_cli_unificado)
 
                     try:
-                        sinonimos = BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra][def_primaria]
+                        sinonimos = BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria]
                     except: pass
 
                     if sinonimos.__len__() == 0:
                         sinonimos = self.extrair_sinonimos_candidatos_definicao(def_primaria, pos)
 
-                        if not palavra in BaseUnificadaOxford.sinonimos_extraidos_definicao:
-                            BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra] = {}                
-                        BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
+                        if not palavra in BaseUnificadaOx.sinonimos_extraidos_definicao:
+                            BaseUnificadaOx.sinonimos_extraidos_definicao[palavra] = {}                
+                        BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
 
                     obj_coletado[pos][def_primaria]['sinonimos'] = sinonimos
 
@@ -109,25 +109,25 @@ class BaseUnificadaOxford(object):
                             sinonimos = self.obter_sinonimos_fonte_obj_api(pos, def_primaria, obj_cli_unificado)
 
                             try:
-                                sinonimos = BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra][def_primaria]
+                                sinonimos = BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria]
                             except: pass
 
                             if sinonimos.__len__() == 0:
                                 sinonimos = self.extrair_sinonimos_candidatos_definicao(def_sec, pos)
 
-                                if not palavra in BaseUnificadaOxford.sinonimos_extraidos_definicao:
-                                    BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra] = {}                
-                                BaseUnificadaOxford.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
+                                if not palavra in BaseUnificadaOx.sinonimos_extraidos_definicao:
+                                    BaseUnificadaOx.sinonimos_extraidos_definicao[palavra] = {}                
+                                BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
 
 
                         obj_coletado[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
             traceback.print_exc()
-            BaseUnificadaOxford.objs_unificados[palavra] = None
+            BaseUnificadaOx.objs_unificados[palavra] = None
             return None
 
         obj_unificado = dict(obj_coletado)
-        BaseUnificadaOxford.objs_unificados[palavra] = obj_unificado
+        BaseUnificadaOx.objs_unificados[palavra] = obj_unificado
 
         return obj_unificado
 
@@ -258,10 +258,10 @@ class ClienteOxfordAPI(object):
         }
 
         self.dir_urls_invalidas_sinonimos = configs['oxford']['cache']['obj_urls_invalidas_sinonimos']
-        self.obj_urls_invalidas_sinonimos = Utils.carregar_json(self.dir_urls_invalidas_sinonimos)
+        self.obj_urls_invalidas_sinonimos = Utils.abrir_json(self.dir_urls_invalidas_sinonimos)
 
         self.dir_urls_invalidas_definicoes = configs['oxford']['cache']['obj_urls_invalidas_definicoes']
-        self.obj_urls_invalidas_definicoes = Utils.carregar_json(self.dir_urls_invalidas_definicoes)
+        self.obj_urls_invalidas_definicoes = Utils.abrir_json(self.dir_urls_invalidas_definicoes)
 
         if not self.obj_urls_invalidas_sinonimos:
             self.obj_urls_invalidas_sinonimos = dict()
@@ -358,7 +358,7 @@ class ClienteOxfordAPI(object):
 
         if palavra + ".json" in todos_arquivos_cache:
             path = dir_cache + '/' + palavra + '.json'
-            obj = Utils.carregar_json(path)
+            obj = Utils.abrir_json(path)
 
             return obj['result']['frequency']
         else:
@@ -382,7 +382,7 @@ class ClienteOxfordAPI(object):
         dir_obj_json = dir_cache_oxford + '/' + palavra + '.json'
 
         if os.path.isfile(dir_obj_json):
-            return Utils.carregar_json(dir_obj_json)
+            return Utils.abrir_json(dir_obj_json)
 
         try:
             url = self.url_base + "/entries/en/" + palavra
@@ -423,7 +423,7 @@ class ClienteOxfordAPI(object):
         dir_obj_json = dir_cache_oxford + '/' + palavra + '.json'
 
         if os.path.isfile(dir_obj_json):
-            return Utils.carregar_json(dir_obj_json)
+            return Utils.abrir_json(dir_obj_json)
 
         try:
             url = self.url_base + "/entries/en/" + palavra + "/synonyms"
@@ -530,7 +530,7 @@ class ColetorOxfordWeb(object):
 
         dir_cache = self.configs['oxford']['cache']['extrator_web']
         dir_cache_obj = dir_cache + '/' + lema + '.json'
-        obj = Utils.carregar_json(dir_cache_obj)
+        obj = Utils.abrir_json(dir_cache_obj)
 
         if obj:
             ColetorOxfordWeb.cache_objetos_coletados[lema] = obj

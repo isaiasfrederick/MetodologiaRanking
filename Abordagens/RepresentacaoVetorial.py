@@ -7,6 +7,9 @@ from gensim.models import KeyedVectors
 from nltk.stem import PorterStemmer
 from nltk.corpus import wordnet
 from sys import argv
+import re
+
+wn = wordnet
 
 # Esta classe trabalha com WordEmbbedings para realizar a tarefa de prediçao de sinonimos
 class RepresentacaoVetorial(object):
@@ -15,8 +18,46 @@ class RepresentacaoVetorial(object):
         self.configs = configs
         self.stemmer = PorterStemmer()
 
-    def obter_palavras_relacionadas(self, positivos=[ ], negativos=[ ], topn=1):
+    # Dado um synset, cria uma representacao vetorial para o mesmo
+    def criar_vetor_synset(self, lema_principal_synset, nome_synset):
+        descritor_synset = wn.synset(nome_synset).lemma_names()
+        lista_negativa = [ ]
+
+        if wn.synset(nome_synset).pos() in ['n', 'v']:
+            for hiper in wn.synset(nome_synset).hypernyms():
+                raw_input("@@@ " + str(hiper.lemma_names()))
+                descritor_synset += hiper.lemma_names()
+            for hipo in wn.synset(nome_synset).hyponyms():
+                descritor_synset += hipo.lemma_names()
+
+        descritor_synset = list(set(descritor_synset))
+
+        for synset in wn.synsets(lema_principal_synset, wn.synset(nome_synset).pos()):
+            lista_negativa += synset.lemma_names()
+
+        lista_negativa = list(set(lista_negativa) - set(descritor_synset))
+
+        descritor_synset_tmp = descritor_synset
+        descritor_synset = [ ]
+
+        for p in descritor_synset_tmp:
+            descritor_synset += re.split("_|-", p)
+
+        print(descritor_synset)
+        print("\n\n\n")
+        print(lista_negativa)
+        print("\n\n\n")
+
+        return self.obter_palavras_relacionadas(positivos=descritor_synset, negativos=lista_negativa, topn=40)
+
+    def obter_palavras_relacionadas(self, positivos=None, negativos=None, topn=1):
         try:
+            if positivos == "": positivos = None
+            if negativos == "": negativos = None
+
+            if positivos != None: positivos = [p for p in positivos if p in self.modelo]
+            if negativos != None: negativos = [p for p in negativos if p in self.modelo]
+
             return self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
         except KeyError, ke:
             return [ ]

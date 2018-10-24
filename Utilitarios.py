@@ -28,15 +28,14 @@ class Utils(object):
 
     @staticmethod
     def normalizar_palavra(palavra):
-        try:
-            return palavra
-            #for s in wn.synsets(palavra):
-            #    if palavra.name().index(s.name().split('.')[0]) == 0:
-            #        return s.name().split('.')[0]
-        except:
-            pass
+        try: return palavra
+        except: pass
 
         return palavra
+
+    @staticmethod
+    def listar_arquivos(self, dir_arquivos):
+        return [f for f in listdir(dir_arquivos) if isfile(join(dir_arquivos, f))]
 
     @staticmethod
     def requisicao_http(url, headers=None):
@@ -152,7 +151,7 @@ class Utils(object):
         return Counter(words)
 
     @staticmethod
-    def carregar_json(diretorio):        
+    def abrir_json(diretorio):        
         try:
             arq = open(diretorio, 'r')
             obj = json.loads(arq.read())
@@ -289,6 +288,13 @@ class Utils(object):
         return frase.strip().lower()
 
     @staticmethod
+    def arquivo_existe(pasta, nome_arquivo):
+        if pasta[-1] != "/":
+            pasta = pasta + "/"
+
+        return os.path.isfile(pasta + nome_arquivo) 
+
+    @staticmethod
     def processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True):
         if stop:
             lista_ctx = [i for i in lista_ctx if i not in stopwords.words('english')]
@@ -362,7 +368,7 @@ class Utils(object):
         dir_contadores = Utils.configs['leipzig']['dir_contadores']
 
         if Utils.contadores == None:
-            contadores = Utils.carregar_json(dir_contadores)
+            contadores = Utils.abrir_json(dir_contadores)
             Utils.contadores = contadores
         else:
             contadores = Utils.contadores

@@ -1,5 +1,5 @@
 #! coding: utf-8
-from RepositorioCentralConceitos import BaseUnificadaOxford
+from RepositorioCentralConceitos import BaseUnificadaOx
 from Abordagens import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
@@ -33,8 +33,8 @@ class ValidadorSemEval(object):
 
         self.todas_abordagens = dict()
 
-    # Gera o score das metricas das tarefas do SemEval para as abordagens originais da
-    def obter_score_participantes_originais(self, tarefa):
+    # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
+    def avaliar_parts_originais(self, tarefa):
         resultados_json = {}
         todos_participantes = [p for p in self.listar_arq(self.dir_respostas_competidores) if '.' + tarefa in p]
 
@@ -42,10 +42,6 @@ class ValidadorSemEval(object):
             resultados_json[participante] = self.obter_score(self.dir_respostas_competidores, participante)
 
         return resultados_json
-
-    # Recupera o score das abordagens posteriores à competição
-    def obter_score_participantes_posteriores(self):
-        pass
 
     def obter_score(self, dir_pasta_submissao, participante):
         tarefa = participante.split('.')[1]
@@ -72,9 +68,6 @@ class ValidadorSemEval(object):
 
         return obj
 
-    def listar_arq(self, dir_arquivos):
-        return [f for f in listdir(dir_arquivos) if isfile(join(dir_arquivos, f))]
-
     def filtrar_participantes(self, participantes, tarefa):
         return [p for p in participantes if tarefa in p]
 
@@ -83,9 +76,9 @@ class ValidadorSemEval(object):
         arq = open(str(path_arquivo), 'r')
         linhas = arq.readlines()
 
-        for l2 in linhas:
+        for linha_tmp in linhas:
             try:
-                l = str(l2).replace('\n','')
+                l = str(linha_tmp).replace('\n','')
                 chave, valor = l.split(':')
                 obj[chave] = float(valor)
             except: pass
