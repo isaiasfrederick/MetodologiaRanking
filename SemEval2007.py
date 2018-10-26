@@ -36,7 +36,7 @@ class ValidadorSemEval(object):
     # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
     def avaliar_parts_originais(self, tarefa):
         resultados_json = {}
-        todos_participantes = [p for p in Utils.listar_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
+        todos_participantes = [p for p in Util.listar_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
 
         for participante in todos_participantes:
             resultados_json[participante] = self.obter_score(self.dir_respostas_competidores, participante)

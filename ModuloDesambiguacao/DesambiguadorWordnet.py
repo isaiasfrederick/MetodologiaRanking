@@ -1,5 +1,5 @@
 #! coding: utf-8
-from Utilitarios import Utils
+from Utilitarios import Util
 
 
 #!/usr/bin/env python -*- coding: utf-8 -*-
@@ -76,7 +76,7 @@ class DesambiguadorWordnet(object):
 
                 if len(sinonimos) < max_sinonimos:
                     try:
-                        sinonimos_tmp = [s for s in synset.lemma_names() if not Utils.e_multipalavra(s)]
+                        sinonimos_tmp = [s for s in synset.lemma_names() if not Util.e_multipalavra(s)]
                         sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
 
                         if coletar_todos: sinonimos += sinonimos_tmp
@@ -352,7 +352,7 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 			signature = [i for i in word_tokenize(signature) \
 						if i not in string.punctuation]
 
-			signature = Utils.processar_contexto(signature, stop=stop, lematizar=lemma, stem=stem)
+			signature = Util.processar_contexto(signature, stop=stop, lematizar=lemma, stem=stem)
 
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))
 

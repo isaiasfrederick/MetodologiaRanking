@@ -1,7 +1,7 @@
 from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
 from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
-from Utilitarios import Utils
+from Utilitarios import Util
 from nltk.tokenize import word_tokenize
 from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.lesk_isaias import cosine_lesk
@@ -25,7 +25,7 @@ class DesambiguadorUnificado(object):
         assinatura = [ ]
 
         if pos.__len__() == 1:
-            pos = Utils.conversor_pos_wn_oxford(pos)
+            pos = Util.conversor_pos_wn_oxford(pos)
 
         casador_conceitos = CasadorConceitos(configs, self.base_ox)
         casamentos = casador_conceitos.iniciar_casamento(lema, pos)
@@ -107,7 +107,7 @@ class DesambiguadorUnificado(object):
         return assinaturas
 
     def retornar_valida(self, frase):
-        return Utils.retornar_valida(frase)
+        return Util.retornar_valida(frase)
 
 # extrair_sinonimos(contexto, palavra, pos=pos, usar_exemplos=False, busca_ampla=True, repetir=True, coletar_todos=False)
 
@@ -127,7 +127,7 @@ class DesambiguadorUnificado(object):
                 if not sinonimos_tmp:                    
                     sinonimos_tmp = self.base_ox.extrair_sinonimos_candidatos_definicao(definicao, pos)
 
-                for s in [s for s in sinonimos_tmp if Utils.e_multipalavra(s) == False]:
+                for s in [s for s in sinonimos_tmp if Util.e_multipalavra(s) == False]:
                     sinonimos.append(s)
 
         return sinonimos[:max_sinonimos]
@@ -141,7 +141,7 @@ class DesambiguadorUnificado(object):
         todas_assinaturas = self.assinaturas_significados(inventario, usar_ontologia=usar_ontologia, usar_exemplos=usar_exemplos)
 
         lista_ctx = [p for p in word_tokenize(lista_ctx.lower()) if not p in [',', ';', '.']]        
-        lista_ctx = Utils.processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True)
+        lista_ctx = Util.processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True)
 
         pontuacao = [ ]
 
@@ -149,7 +149,7 @@ class DesambiguadorUnificado(object):
 
         for a in todas_assinaturas:
             ass_tmp = a[1]
-            ass_tmp = Utils.processar_contexto(ass_tmp, stop=True, lematizar=True, stem=True)
+            ass_tmp = Util.processar_contexto(ass_tmp, stop=True, lematizar=True, stem=True)
 
             pontuacao.append((cos_sim(" ".join(lista_ctx), " ".join(ass_tmp)), a[0]))
 
@@ -207,7 +207,7 @@ class DesambiguadorUnificado(object):
                                 if synset.definition() in lista_definicoes:
                                     sinonimos_tmp = synset.lemma_names()
 
-                        sinonimos_tmp = [s for s in sinonimos_tmp if not Utils.e_multipalavra(s)]
+                        sinonimos_tmp = [s for s in sinonimos_tmp if not Util.e_multipalavra(s)]
                         sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
 
                         if coletar_todos: sinonimos += sinonimos_tmp
@@ -222,7 +222,7 @@ class DesambiguadorUnificado(object):
         return sinonimos[:max_sinonimos]
 
     def construir_inventario_estendido(self, palavra, pos, usar_ontologia=True):
-        pos = Utils.conversor_pos_wn_oxford(pos)
+        pos = Util.conversor_pos_wn_oxford(pos)
 
         inventario = [ ]
 
@@ -268,7 +268,7 @@ class DesambiguadorUnificado(object):
         return inventario
 
     def construir_inventario_unificado(self, palavra, pos, usar_ontologia=True):
-        pos = Utils.conversor_pos_wn_oxford(pos)
+        pos = Util.conversor_pos_wn_oxford(pos)
 
         inventario = [ ]
         # indexado (def_oxford, synset_name)

@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
 from CasadorManual import CasadorManual
-from Utilitarios import Utils
+from Utilitarios import Util
 from nltk.corpus import wordnet
 import CasadorManual
 import traceback
@@ -24,7 +24,7 @@ class AbordagemAlvaro(object):
     def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None, max_ex=sys.maxint):
         nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
         dir_cache = self.cfgs['aplicacao']['dir_cache_relacao_sinonimia']
-        todos_arqs_cache = [arq.split("/")[-1] for arq in Utils.listar_arqs(dir_cache)]
+        todos_arqs_cache = [arq.split("/")[-1] for arq in Util.listar_arqs(dir_cache)]
 
         if nome_arquivo_cache in todos_arqs_cache:
             #return Utils.abrir_json(dir_cache + "/" + nome_arquivo_cache)
@@ -123,7 +123,7 @@ class AbordagemAlvaro(object):
         # Retornando ordenado PELA PONTUACAO
         # ('def;lema', 'def;lema', 'exemplo', 0.00)
         obj_retorno = sorted(resultados, key=lambda x: x[3], reverse=True)
-        Utils.salvar_json(dir_cache + "/" + nome_arquivo_cache, obj_retorno)
+        Util.salvar_json(dir_cache + "/" + nome_arquivo_cache, obj_retorno)
 
         return obj_retorno
 

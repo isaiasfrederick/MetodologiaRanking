@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from Utilitarios import Utils
+from Utilitarios import Util
 from nltk.corpus import stopwords as sw
 from unidecode import unidecode
 from nltk import word_tokenize
@@ -22,7 +22,7 @@ class AbordagemEdmonds(object):
         self.configs = configs
 
     def salvar_json(self, caminho_json_saida, palavras):        
-        Utils.salvar_json(caminho_json_saida, palavras)
+        Util.salvar_json(caminho_json_saida, palavras)
 
     def get_regex(self):
         rgx1 = u"\.|\,|\;|\s|\"|\-|\?|\!|\:|\t|\`|\_|\\(|\\)|\\[|\\]|@|\*"
@@ -82,7 +82,7 @@ class AbordagemEdmonds(object):
 
             palavras_novo_nivel = [ ]
 
-            obj_nivel = Utils.abrir_json(dir_obj_nivel)
+            obj_nivel = Util.abrir_json(dir_obj_nivel)
 
             for raiz in obj_nivel.keys():
                 palavras_novo_nivel += obj_nivel[raiz].keys()

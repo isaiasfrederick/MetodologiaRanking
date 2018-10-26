@@ -1,5 +1,5 @@
 from SemEval2007 import obter_gabarito_rankings_semeval
-from Utilitarios import Utils
+from Utilitarios import Util
 from ValidadorRanking.Validadores import GeneralizedAveragePrecisionMelamud
 
 class BaselineOrdenadorFrequencia(object):
@@ -7,7 +7,7 @@ class BaselineOrdenadorFrequencia(object):
         pass
 
     def iniciar(self, configs, dir_arquivo_saida):
-        validador_gap = GeneralizedAveragePrecisionMelamud(Utils.configs)
+        validador_gap = GeneralizedAveragePrecisionMelamud(Util.configs)
         resultado = {}
         gabarito = obter_gabarito_rankings_semeval(configs)
 
@@ -28,7 +28,7 @@ class BaselineOrdenadorFrequencia(object):
         for entrada in gabarito:
             palavras = list(candidatos[str(entrada).split(' ')[0]])
 
-            res_ordenados = Utils.ordenar_palavras(palavras)
+            res_ordenados = Util.ordenar_palavras(palavras)
             #res_ordenados = [p for p in gabarito[entrada].keys() if len(p.split(' ')) > 1] + res_ordenados
 
             vetor = [ ]

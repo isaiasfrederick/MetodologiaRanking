@@ -1,7 +1,7 @@
 #! coding: utf-8
 from pywsd.lesk import cosine_lesk
 from operator import itemgetter
-from Utilitarios import Utils
+from Utilitarios import Util
 from SemEval2007 import *
 from sys import argv
 import statistics
@@ -120,7 +120,7 @@ def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, 
 sobre o componente que escolhe os sinonimos a serem utilizados """
 def medir_seletor_candidatos(configs):
     validador = ValidadorSemEval(configs)
-    contadores = Utils.abrir_json(configs['leipzig']['dir_contadores'])
+    contadores = Util.abrir_json(configs['leipzig']['dir_contadores'])
 
     #dir_saida_seletor_candidatos = raw_input("Diretorio saida arquivo seletor candidatos: ")
     dir_saida_seletor_candidatos = "/home/isaias/saida-oot.oot"
@@ -343,17 +343,17 @@ def predizer_sinonimos(cfgs, criterio='frequencia', usar_gabarito=True, indice=-
     # A chave tem que estar em ambos objetos para nao excecao na linha 329
     for lexelt in list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())):
         frase, palavra, pos = casos_testes_dict[lexelt]
-        frase = Utils.descontrair(frase).replace("  ", " ")
+        frase = Util.descontrair(frase).replace("  ", " ")
         # Palavra tem que estar inflexionada
         palavra = lexelt.split(".")[0]
 
         if usar_gabarito == True:
-            cands = [e[0] for e in gabarito_dict[lexelt] if not Utils.e_multipalavra(e[0])]
+            cands = [e[0] for e in gabarito_dict[lexelt] if not Util.e_multipalavra(e[0])]
         else:
             cands = alvaro.selecionar_candidatos(palavra, pos, fontes=fontes_cands)
             cands = [p for p in cands if p.istitle() == False]
 
-        cands = [p for p in cands if not Utils.e_multipalavra(p)]
+        cands = [p for p in cands if not Util.e_multipalavra(p)]
 
         print("Processando a entrada " + str(lexelt))
         print("%d / %d\n" % (cont, len(list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())))))
@@ -517,8 +517,8 @@ if __name__ == '__main__':
         print('Tente py ./main <dir_config_file>\n\n')
         exit(0)
 
-    Utils.limpar_console()
-    configs = Utils.carregar_configuracoes(argv[1])
+    Util.limpar_console()
+    configs = Util.carregar_configuracoes(argv[1])
 
     #criar_vetores_wordnet(configs)
     #exit(0)
@@ -548,7 +548,7 @@ if __name__ == '__main__':
 
     dir_saida_abordagem = "/home/isaias/Desktop/exps"
     todos_criterios = ['alvaro']
-    flags_usar_gabarito = [True, False]
+    flags_usar_gabarito = [True]
 
     res_certos, res_errados, res_excecao = 0, 0, 0
 
@@ -559,8 +559,9 @@ if __name__ == '__main__':
         for crit in todos_criterios:
             for usar_gabarito in flags_usar_gabarito:
                 # Maximo de exemplos para criar a relacao de sinonimia
-                for max_ex in [1, 5, 10, 15, 20, 25, 30, 35]:
+                for max_ex in [1, 2, 3]:
                     predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
+                    #predicao, casos, gabarito = set(), set(), set()
 
                     for lexelt in gabarito:
                         if lexelt in predicao:
@@ -573,18 +574,18 @@ if __name__ == '__main__':
                             except: res_excecao += 1
 
                     # Out-of-Ten (filtrando quantas predicoes sao necessarias)
-                    for cont in range(1, 11):
+                    for cont in [10]:
                         nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
-                        if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
                             validador.formatar_submissao_final(dir_saida_abordagem + "/" + nome_abordagem, predicao, cont, ":::")
-                        if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
                             todos_resultados_oot.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
                     # Best
                     nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
-                    if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                    if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
                         validador.formatar_submissao_final(dir_saida_abordagem + "/"  + nome_abordagem, predicao, 1, "::")
-                    if Utils.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                    if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
                         todos_resultados_best.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
             print("\n\nCERTOS/ERRADOS/EXCECAO")
@@ -633,7 +634,7 @@ if __name__ == '__main__':
         gold_rankings_se2007 = obter_gabarito_rankings_semeval(configs)
 
         # Lista todos aquivos .best ou .oot do SemEval2007
-        lista_todas_submissoes_se2007 = Utils.listar_arqs(configs['dir_saidas_rankeador'])
+        lista_todas_submissoes_se2007 = Util.listar_arqs(configs['dir_saidas_rankeador'])
 
         # Usa, originalmente, oot
         lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]

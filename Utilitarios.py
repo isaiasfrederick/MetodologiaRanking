@@ -21,7 +21,7 @@ from nltk.corpus import stopwords, wordnet
 
 wn = wordnet
 
-class Utils(object):
+class Util(object):
     configs = None
     # Contadores Corpus
     contadores = None
@@ -93,7 +93,7 @@ class Utils(object):
 
     @staticmethod
     def remover_multipalavras(lista):
-        return [e for e in lista if Utils.e_multipalavra(e) == False]
+        return [e for e in lista if Util.e_multipalavra(e) == False]
 
     @staticmethod
     def carregar_configuracoes(dir_configs):
@@ -101,14 +101,14 @@ class Utils(object):
         obj = json.loads(arq.read())
         arq.close()
         
-        Utils.configs = obj
+        Util.configs = obj
 
         return obj
 
     @staticmethod
     def cosseno(doc1, doc2):
-        vec1 = Utils.doc_para_vetor(doc1.lower())
-        vec2 = Utils.doc_para_vetor(doc2.lower())
+        vec1 = Util.doc_para_vetor(doc1.lower())
+        vec2 = Util.doc_para_vetor(doc2.lower())
 
         intersection = set(vec1.keys()) & set(vec2.keys())
         numerator = sum([vec1[x] * vec2[x] for x in intersection])
@@ -147,17 +147,21 @@ class Utils(object):
         return Counter(words)
 
     @staticmethod
-    def abrir_json(diretorio):        
+    def abrir_json(diretorio, criar=False):
         try:
             arq = open(diretorio, 'r')
-            obj = json.loads(arq.read())
-            arq.close()
-
-            return obj
-
         except Exception, e:
-            print(e)
-            return None
+            if criar == False: return None
+
+        try:
+            obj = json.loads(arq.read())
+        except Exception:
+            arq = open(diretorio, 'w')
+            arq.write("{ }")
+            obj = { }
+
+        if arq.closed == False: arq.close()
+        return obj
 
     @staticmethod
     def deletar_arquivo(dir_arquivo):
@@ -219,7 +223,7 @@ class Utils(object):
         wn = wordnet
 
         if pos.__len__() > 1:
-            pos = Utils.conversor_pos_oxford_wn(pos)
+            pos = Util.conversor_pos_oxford_wn(pos)
 
         associacoes = dict()
 
@@ -263,8 +267,11 @@ class Utils(object):
 
     # Retorna todos arquivos da pasta. SOMENTE arquivos
     @staticmethod
-    def listar_arqs(dir_arqs):
-        return [f for f in os.listdir(dir_arqs) if os.path.isfile(os.path.join(dir_arqs, f))]
+    def listar_arqs(dir_arqs, caminho_completo=True):
+        if caminho_completo:
+            return [f for f in os.listdir(dir_arqs) if os.path.isfile(os.path.join(dir_arqs, f))]
+        else:
+            return os.listdir(dir_arqs)
 
     @staticmethod
     def limpar_console():
@@ -272,7 +279,7 @@ class Utils(object):
 
     @staticmethod
     def retornar_valida(frase):
-        frase = Utils.remove_acentos(frase)
+        frase = Util.remove_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -303,7 +310,7 @@ class Utils(object):
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
-        frase = Utils.remove_acentos(frase)
+        frase = Util.remove_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -332,7 +339,7 @@ class Utils(object):
 
     @staticmethod
     def retornar_valida_pra_indexar(frase):
-        frase = Utils.remove_acentos(frase)
+        frase = Util.remove_acentos(frase)
         frase = re.sub('[(\[?!,;.\])]', ' ', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -350,7 +357,7 @@ class Utils(object):
 
     @staticmethod
     def obter_peso_frase(frase):
-        frequencias = Utils.obter_frequencias_frase(frase)
+        frequencias = Util.obter_frequencias_frase(frase)
         soma = sum([e[1] for e in frequencias])
 
         return (soma / len(frequencias), frequencias)
@@ -361,13 +368,13 @@ class Utils(object):
 
     @staticmethod
     def ordenar_palavras(todas_palavras):
-        dir_contadores = Utils.configs['leipzig']['dir_contadores']
+        dir_contadores = Util.configs['leipzig']['dir_contadores']
 
-        if Utils.contadores == None:
-            contadores = Utils.abrir_json(dir_contadores)
-            Utils.contadores = contadores
+        if Util.contadores == None:
+            contadores = Util.abrir_json(dir_contadores)
+            Util.contadores = contadores
         else:
-            contadores = Utils.contadores
+            contadores = Util.contadores
 
         palavras_indexadas = dict()
         palavras_ordenadas = [ ]

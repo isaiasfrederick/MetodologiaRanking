@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from Utilitarios import Utils
+from Utilitarios import Util
 from CasadorManual import CasadorManual
 from pywsd.lesk import cosine_lesk
 from nltk.corpus import wordnet
@@ -13,12 +13,12 @@ class Ponderador(object):
         dir_base_sinonimia = self.solicitar_diretorio_base_sinonimia()
 
         self.configs = configs
-        self.base_sinonimia = Utils.abrir_json(dir_base_sinonimia)
+        self.base_sinonimia = Util.abrir_json(dir_base_sinonimia)
         self.casador_manual = CasadorManual(self.configs)
 
     def solicitar_diretorio_base_sinonimia(self):
         cont = 0
-        bases = Utils.listar_arqs("/media/isaias/ParticaoAlternat/Bases/")
+        bases = Util.listar_arqs("/media/isaias/ParticaoAlternat/Bases/")
         
         print('\n\n\tLISTAR BASES\n')
         for l in bases:
@@ -30,7 +30,7 @@ class Ponderador(object):
 
     # Retorna uma lista de palavras correlatas
     def iniciar_processo(self, termo, pos, contexto, usar_fontes_secundarias=False, anotar_exemplos=False):
-        representa_multipalavra = Utils.e_multipalavra
+        representa_multipalavra = Util.e_multipalavra
         
         conjunto_solucao = [ ]
         pontuacoes_agregadas = dict()
@@ -41,7 +41,7 @@ class Ponderador(object):
         # Desambiguador utilizado pelo Wander
         ponderacoes = cosine_lesk(contexto, termo, nbest=True)
         # FILTRAR PONDERACOES POR POS TAGS DE SEMEVAL
-        ponderacoes = Utils.filtrar_ponderacoes(pos, ponderacoes)
+        ponderacoes = Util.filtrar_ponderacoes(pos, ponderacoes)
 
         for significado_termo in self.base_sinonimia[termo]:
             for significado_sinonimo in self.base_sinonimia[termo][significado_termo]:
@@ -90,7 +90,7 @@ class Ponderador(object):
 
             if conjunto_solucao == [termo] or not conjunto_solucao:
                 def_tmp = synset_desambiguado.definition()
-                conjunto_solucao = Utils.extrair_sinonimos_candidatos_definicao(def_tmp, pos)
+                conjunto_solucao = Util.extrair_sinonimos_candidatos_definicao(def_tmp, pos)
 
             return conjunto_solucao
         else:
@@ -104,7 +104,7 @@ class Ponderador(object):
             # SE CONJUNTO SOLUCAO E VAZIO OU COM TERMO ORIGINAL
             if conjunto_solucao == [termo] or not conjunto_solucao:
                 definicao_principal = ponderacoes[0][0].definition()
-                conjunto_solucao = Utils.extrair_sinonimos_candidatos_definicao(definicao_principal, pos)
+                conjunto_solucao = Util.extrair_sinonimos_candidatos_definicao(definicao_principal, pos)
                 
             return conjunto_solucao
 
@@ -114,7 +114,7 @@ class Ponderador(object):
 
         for s in synsets_ordenados:
             for l in s.lemma_names():
-                if not Utils.e_multipalavra(l) and not l in saida:
+                if not Util.e_multipalavra(l) and not l in saida:
                     saida.append(l)
 
         return saida[:10]
@@ -123,7 +123,7 @@ class Ponderador(object):
         todos_lemas = wn.synset(nome_synset).lemma_names()
 
         try:
-            return [l for l in todos_lemas if not Utils.e_multipalavra(l)][0]
+            return [l for l in todos_lemas if not Util.e_multipalavra(l)][0]
         except:
             return None
 
@@ -140,7 +140,7 @@ class Ponderador(object):
                 resultado = self.comparar_termo(termo, pos, synsets_sinonimos, usar_fontes_secundarias=usar_fontes_secundarias, anotar_exemplos=anotar_exemplos)
                 self.base_sinonimia[termo][synset.name()] = resultado
 
-            Utils.salvar_json(self.configs['base_wander'], self.base_sinonimia)            
+            Util.salvar_json(self.configs['base_wander'], self.base_sinonimia)            
             return self.base_sinonimia[termo]
 
         else:
@@ -186,7 +186,7 @@ class Ponderador(object):
         sinonimos = set()
 
         for s in wn.synsets(palavra):
-            sinonimos.update([p for p in s.lemma_names() if not Utils.e_multipalavra(p)])
+            sinonimos.update([p for p in s.lemma_names() if not Util.e_multipalavra(p)])
 
         return [p for p in list(sinonimos) if not p[0].isupper()]
 

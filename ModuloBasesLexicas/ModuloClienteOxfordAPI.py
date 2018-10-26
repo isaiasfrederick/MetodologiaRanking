@@ -11,7 +11,7 @@ import re
 
 from textblob import Word
 
-from Utilitarios import Utils
+from Utilitarios import Util
 import os
 import traceback
 import json
@@ -43,7 +43,7 @@ class BaseUnificadaOx(object):
 
         if pos != None:
             if len(pos) == 1:
-                todas_pos = [Utils.conversor_pos_wn_oxford(pos)]
+                todas_pos = [Util.conversor_pos_wn_oxford(pos)]
         else:
             todas_pos = obj_unificado.keys()
 
@@ -66,7 +66,7 @@ class BaseUnificadaOx(object):
     def obter_obj_unificado(self, palavra):
         BaseUnificadaOx.objs_unificados = {}
 
-        palavra = Utils.normalizar_palavra(palavra)
+        palavra = Util.normalizar_palavra(palavra)
 
         if palavra in BaseUnificadaOx.objs_unificados:
             print('@@@ Achei os dados no cache!\nPalavra: ' + palavra)
@@ -138,7 +138,7 @@ class BaseUnificadaOx(object):
         if pos == None:
             lista_pos = [pos for pos in obj_unificado.keys()]
         elif len(pos) == 1:
-            lista_pos = [Utils.conversor_pos_wn_oxford(pos)]
+            lista_pos = [Util.conversor_pos_wn_oxford(pos)]
 
         try:
             for pos in lista_pos:
@@ -157,7 +157,7 @@ class BaseUnificadaOx(object):
     # Obtem exemplos a partir do objeto unificado
     def obter_exemplos__(self, pos, definicao, obj_unificado):
         if len(pos) == 1:
-            pos = Utils.conversor_pos_wn_oxford(pos)
+            pos = Util.conversor_pos_wn_oxford(pos)
 
         try:
             for def_primaria in obj_unificado[pos]:
@@ -180,7 +180,7 @@ class BaseUnificadaOx(object):
         try:
             # Se POS = None, pegue todas as POS
             if pos != None:
-                pos = Utils.conversor_pos_wn_oxford(pos)
+                pos = Util.conversor_pos_wn_oxford(pos)
 
                 if pos in obj_unificado:
                     obj_unificado = { pos: obj_unificado[pos] }
@@ -213,7 +213,7 @@ class BaseUnificadaOx(object):
     # Definicao deve vir com ponto e caixa baixa
     def obter_sinonimos_fonte_obj_api(self, pos, definicao_oxford, obj_cli_api):
         # retirando o ponto final e colocando em caixa baixa
-        pos = Utils.conversor_pos_wn_oxford(pos)
+        pos = Util.conversor_pos_wn_oxford(pos)
 
         todas_versoes_definicoes = [ ]
 
@@ -240,7 +240,7 @@ class BaseUnificadaOx(object):
 
     # Extrai todos (substantivos, verbos) de uma dada definicao e coloca como sinonimos candidatos
     def extrair_sinonimos_candidatos_definicao(self, definicao, pos):
-        return Utils.extrair_sinonimos_candidatos_definicao(definicao, pos)
+        return Util.extrair_sinonimos_candidatos_definicao(definicao, pos)
 #
 #
 # extrai da API da ferramenta todos Objetos utilizados pela abordagem
@@ -258,10 +258,10 @@ class ClienteOxfordAPI(object):
         }
 
         self.dir_urls_invalidas_sinonimos = configs['oxford']['cache']['obj_urls_invalidas_sinonimos']
-        self.obj_urls_invalidas_sinonimos = Utils.abrir_json(self.dir_urls_invalidas_sinonimos)
+        self.obj_urls_invalidas_sinonimos = Util.abrir_json(self.dir_urls_invalidas_sinonimos)
 
         self.dir_urls_invalidas_definicoes = configs['oxford']['cache']['obj_urls_invalidas_definicoes']
-        self.obj_urls_invalidas_definicoes = Utils.abrir_json(self.dir_urls_invalidas_definicoes)
+        self.obj_urls_invalidas_definicoes = Util.abrir_json(self.dir_urls_invalidas_definicoes)
 
         if not self.obj_urls_invalidas_sinonimos:
             self.obj_urls_invalidas_sinonimos = dict()
@@ -345,7 +345,7 @@ class ClienteOxfordAPI(object):
     def obter_lista_categoria(self, categoria):
         url = self.url_base + '/wordlist/en/registers=Rare;domains=' + categoria
         inicio = time.time()
-        resultado = Utils.requisicao_http(url, self.headers)
+        resultado = Util.requisicao_http(url, self.headers)
         fim = time.time()
         print('Tempo gasto para a URL %s: %s' + (url, str(fim-inicio)))
         return resultado
@@ -353,20 +353,20 @@ class ClienteOxfordAPI(object):
     def obter_frequencia(self, palavra):
         dir_cache = self.configs['oxford']['cache']['frequencias']
 
-        todos_arquivos_cache = Utils.listar_arqs(self.configs['oxford']['cache']['frequencias'])
+        todos_arquivos_cache = Util.listar_arqs(self.configs['oxford']['cache']['frequencias'])
         todos_arquivos_cache = [c.split("/")[-1] for c in todos_arquivos_cache]
 
         if palavra + ".json" in todos_arquivos_cache:
             path = dir_cache + '/' + palavra + '.json'
-            obj = Utils.abrir_json(path)
+            obj = Util.abrir_json(path)
 
             return obj['result']['frequency']
         else:
             url = self.url_base + '/stats/frequency/word/en/?corpus=nmc&lemma=' + palavra
-            obj_req = Utils.requisicao_http(url, self.headers)
+            obj_req = Util.requisicao_http(url, self.headers)
 
             path = dir_cache + '/' + palavra + '.json'
-            Utils.salvar_json(path, obj_req.json())
+            Util.salvar_json(path, obj_req.json())
 
             try:
                 return obj_req.json()['result']['frequency']
@@ -383,14 +383,14 @@ class ClienteOxfordAPI(object):
         dir_obj_json = dir_cache_oxford + '/' + palavra + '.json'
 
         if os.path.isfile(dir_obj_json):
-            return Utils.abrir_json(dir_obj_json)
+            return Util.abrir_json(dir_obj_json)
 
         try:
             url = self.url_base + "/entries/en/" + palavra
 
             print('\nRequerindo URL %s' % url)
             inicio = time.time()
-            obj = Utils.requisicao_http(url, self.headers).json()
+            obj = Util.requisicao_http(url, self.headers).json()
             fim = time.time()
 
             print('Tempo gasto: ' + str(fim-inicio))
@@ -406,7 +406,7 @@ class ClienteOxfordAPI(object):
                     saida[entry['lexicalCategory']].append(sense)
 
             print('ClienteOxford URL certa: ' + url + '\t\tHeaders: ' + str(self.headers))
-            print('ClienteOxford: Salvando em cache: ' + str(Utils.salvar_json(dir_obj_json, saida)))
+            print('ClienteOxford: Salvando em cache: ' + str(Util.salvar_json(dir_obj_json, saida)))
 
             return saida
         except:
@@ -426,11 +426,11 @@ class ClienteOxfordAPI(object):
         dir_obj_json = dir_cache_oxford + '/' + palavra + '.json'
 
         if os.path.isfile(dir_obj_json):
-            return Utils.abrir_json(dir_obj_json)
+            return Util.abrir_json(dir_obj_json)
 
         try:
             url = self.url_base + "/entries/en/" + palavra + "/synonyms"
-            obj = Utils.requisicao_http(url, self.headers).json()
+            obj = Util.requisicao_http(url, self.headers).json()
             obj_json = {}
 
             for entry in obj['results'][0]['lexicalEntries']:
@@ -441,7 +441,7 @@ class ClienteOxfordAPI(object):
                     obj_json[pos].append(sense)
 
             print('URL CERTA: ' + url + '\t\tHeaders: ' + str(self.headers))
-            print('Salvando em cache: ' + str(Utils.salvar_json(dir_obj_json, obj_json)))
+            print('Salvando em cache: ' + str(Util.salvar_json(dir_obj_json, obj_json)))
 
             return obj_json
         except:
@@ -450,8 +450,8 @@ class ClienteOxfordAPI(object):
             return None
 
     def persistir_urls_invalidas(self):
-        Utils.salvar_json(self.dir_urls_invalidas_sinonimos, self.obj_urls_invalidas_sinonimos)
-        Utils.salvar_json(self.dir_urls_invalidas_definicoes, self.obj_urls_invalidas_definicoes)
+        Util.salvar_json(self.dir_urls_invalidas_sinonimos, self.obj_urls_invalidas_sinonimos)
+        Util.salvar_json(self.dir_urls_invalidas_definicoes, self.obj_urls_invalidas_definicoes)
 
     def buscar_sinonimos_por_id(self, id, elemento):
         for e in elemento:
@@ -507,7 +507,7 @@ class ClienteOxfordAPI(object):
 
     def obter_antonimos(self, palavra):
         url = self.url_base + "/entries/en/" + palavra + "/antonyms"
-        return Utils.requisicao_http(url, self.headers)
+        return Util.requisicao_http(url, self.headers)
 
     def __del__(self):
         try:
@@ -533,9 +533,9 @@ class ColetorOxfordWeb(object):
 
         dir_cache = self.configs['oxford']['cache']['extrator_web']
         dir_cache_obj = dir_cache + '/' + lema + '.json'
-        obj = Utils.abrir_json(dir_cache_obj)
+        obj = Util.abrir_json(dir_cache_obj)
 
-        if obj:
+        if obj != None:
             ColetorOxfordWeb.cache_objetos_coletados[lema] = obj
             return obj
 
@@ -563,7 +563,7 @@ class ColetorOxfordWeb(object):
                 resultado[pos][def_primaria] = res_tmp[pos][def_primaria]
 
         obj = json.loads(json.dumps(resultado))
-        Utils.salvar_json(dir_cache_obj, obj)
+        Util.salvar_json(dir_cache_obj, obj)
 
         ColetorOxfordWeb.cache_objetos_coletados[lema] = obj
         return obj
@@ -707,8 +707,8 @@ class ColetorOxfordWeb(object):
     def classificar_exemplos(self, lemma, synset, funcao_sintatica):
         dtmp = synset.definition().split(' ')
 
-        is_stop_word = Utils.Utils.is_stop_word
-        frase_valida = Utils.Utils.retornar_valida
+        is_stop_word = Util.Utils.is_stop_word
+        frase_valida = Util.Utils.retornar_valida
 
         dados_coletados = self.iniciar_coleta(lemma)[funcao_sintatica]
         definicoes_principais = list(dados_coletados)
@@ -743,10 +743,10 @@ class ColetorOxfordWeb(object):
                     text1 = " ".join(list(d))
                     text2 = " ".join(list(synset.definition()))
 
-                    v1 = Utils.Utils.texto_para_vetor(text1)
-                    v2 = Utils.Utils.texto_para_vetor(text2)
+                    v1 = Util.Utils.texto_para_vetor(text1)
+                    v2 = Util.Utils.texto_para_vetor(text2)
 
-                    distancia = Utils.Utils.get_cosine(v1, v2)
+                    distancia = Util.Utils.get_cosine(v1, v2)
                     print('\t\t' + str(distancia) + ' - '+ d)
 
 

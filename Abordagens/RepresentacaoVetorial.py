@@ -1,7 +1,7 @@
 #! coding: utf-8
 
 from gensim.scripts.glove2word2vec import glove2word2vec
-from Utilitarios import Utils
+from Utilitarios import Util
 from gensim.test.utils import datapath, get_tmpfile
 from gensim.models import KeyedVectors
 from nltk.stem import PorterStemmer
@@ -74,7 +74,7 @@ class RepresentacaoVetorial(object):
         for palavra_flexionada, pontuacao in registros:
             # palavra = self.stemmer.stem(palavra_flexionada)
             palavra = palavra_flexionada            
-            synsets = Utils.obter_synsets(palavra, pos_semeval)
+            synsets = Util.obter_synsets(palavra, pos_semeval)
 
             if not synsets in todos_conjuntos_synsets:
                 if synsets.__len__() > 0:
