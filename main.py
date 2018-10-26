@@ -561,7 +561,6 @@ if __name__ == '__main__':
                 # Maximo de exemplos para criar a relacao de sinonimia
                 for max_ex in [1, 2, 3]:
                     predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
-                    #predicao, casos, gabarito = set(), set(), set()
 
                     for lexelt in gabarito:
                         if lexelt in predicao:
@@ -573,19 +572,21 @@ if __name__ == '__main__':
                                 else: res_errados += 1
                             except: res_excecao += 1
 
+                    padrao_nome_abordagem = "%s-%d-%s-Exemplos:%d.%s"
+
                     # Out-of-Ten (filtrando quantas predicoes sao necessarias)
                     for cont in [10]:
-                        nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
-                        if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
+                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                             validador.formatar_submissao_final(dir_saida_abordagem + "/" + nome_abordagem, predicao, cont, ":::")
-                        if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                             todos_resultados_oot.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
                     # Best
-                    nome_abordagem = "%s-%d-%s-Exemplos:%d.%s" % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
-                    if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                    nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
+                    if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                         validador.formatar_submissao_final(dir_saida_abordagem + "/"  + nome_abordagem, predicao, 1, "::")
-                    if Util.arquivo_existe(dir_saida_abordagem, nome_abordagem):
+                    if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                         todos_resultados_best.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
             print("\n\nCERTOS/ERRADOS/EXCECAO")

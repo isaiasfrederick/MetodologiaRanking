@@ -291,7 +291,7 @@ class Util(object):
         return frase.strip().lower()
 
     @staticmethod
-    def arquivo_existe(pasta, nome_arquivo):
+    def arq_existe(pasta, nome_arquivo):
         if pasta[-1] != "/":
             pasta = pasta + "/"
 
