@@ -34,10 +34,6 @@ class Utils(object):
         return palavra
 
     @staticmethod
-    def listar_arquivos(self, dir_arquivos):
-        return [f for f in listdir(dir_arquivos) if isfile(join(dir_arquivos, f))]
-
-    @staticmethod
     def requisicao_http(url, headers=None):
         if headers:
             res = requests.get(url, headers = headers)
@@ -265,10 +261,10 @@ class Utils(object):
 
         return resultado
 
-    # Retorna todos arquivos da pasta
+    # Retorna todos arquivos da pasta. SOMENTE arquivos
     @staticmethod
-    def listar_arquivos(diretorio):
-        return glob.glob(diretorio + '/*')
+    def listar_arqs(dir_arqs):
+        return [f for f in os.listdir(dir_arqs) if os.path.isfile(os.path.join(dir_arqs, f))]
 
     @staticmethod
     def limpar_console():

@@ -18,7 +18,7 @@ class Ponderador(object):
 
     def solicitar_diretorio_base_sinonimia(self):
         cont = 0
-        bases = Utils.listar_arquivos("/media/isaias/ParticaoAlternat/Bases/")
+        bases = Utils.listar_arqs("/media/isaias/ParticaoAlternat/Bases/")
         
         print('\n\n\tLISTAR BASES\n')
         for l in bases:

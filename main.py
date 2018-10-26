@@ -1,12 +1,12 @@
 #! coding: utf-8
+from pywsd.lesk import cosine_lesk
+from operator import itemgetter
 from Utilitarios import Utils
 from SemEval2007 import *
 from sys import argv
 import statistics
 import traceback
 import re
-from pywsd.lesk import cosine_lesk
-from operator import itemgetter
 import sys
 
 # Experimentacao
@@ -135,7 +135,7 @@ def medir_seletor_candidatos(configs):
     bases_utilizadas = raw_input("Escolha a base para fazer a comparacao: 'trial' ou 'test': ")
     dir_gabarito = configs['semeval2007'][bases_utilizadas]['gold_file']
     dir_entrada = configs['semeval2007'][bases_utilizadas]['input']
-
+    
     gabarito_tmp = validador.carregar_gabarito(dir_gabarito)
 
     casos_testes_list, gabarito_list = [ ], [ ]
@@ -153,7 +153,7 @@ def medir_seletor_candidatos(configs):
     gabarito_tmp = None
 
     validador_semeval2007 = ValidadorSemEval(configs)
-    casos_testes_tmp = validador_semeval2007.ler_entrada_teste(dir_entrada)
+    casos_testes_tmp = validador_semeval2007.carregar_caso_entrada(dir_entrada)
 
     casos_testes_dict = {}
 
@@ -258,8 +258,6 @@ def medir_seletor_candidatos(configs):
             for s in lexema_candidatos[lexemas_list[indice]]:
                 if not s in sugestoes: sugestoes.append(s)
 
-            sugestoes = sugestoes[:10]
-
         arquivo_saida.write("%s %s %s\n" % (lexemas_list[indice], "::" if tarefa == 'best' else ":::" ,";".join(sugestoes)))
 
     # Persistindo casos de entrada sem resposta corretamente
@@ -282,7 +280,7 @@ def carregar_bases(configs, tipo_base):
     dir_entrada = configs['semeval2007'][tipo_base]['input']
 
     gabarito = validador.carregar_gabarito(dir_gabarito)
-    casos_testes = validador.ler_entrada_teste(dir_entrada)
+    casos_testes = validador.carregar_caso_entrada(dir_entrada)
 
     # gabarito_dict[lexelt cod] = [[palavra votos], [palavra votos], [palavra votos], ...]
     # casos_testes_dict[lexema cod] = [frase, palavra, pos]
@@ -315,10 +313,10 @@ def carregar_bases(configs, tipo_base):
 # Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
 # Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
 #   criterio = frequencia OU alvaro OU embbedings
-def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo_base=None, max_ex=-1):
-    casador_manual = CasadorManual(configs)
-    base_ox = BaseUnificadaOx(configs)
-    alvaro = AbordagemAlvaro(configs, base_ox, casador_manual)
+def predizer_sinonimos(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo=None, max_ex=-1):
+    casador_manual = CasadorManual(cfgs)
+    base_ox = BaseUnificadaOx(cfgs)
+    alvaro = AbordagemAlvaro(cfgs, base_ox, casador_manual)
 
     if max_ex == -1:
         max_ex = sys.maxint # Valor infinito
@@ -331,7 +329,7 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
     # Fonte para selecionar as definicoes e fonte para selecionar os candidatos
     # fontes_def, fontes_cands = raw_input("Digite a fonte para definicoes: "), ['oxford', 'wordnet']
     fontes_def, fontes_cands = fontes_def, ['oxford', 'wordnet']
-    casos_testes_dict, gabarito_dict = carregar_bases(configs, tipo_base)
+    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tipo)
 
     # TODOS CASOS DE ENTRADA
     if indice == -1:
@@ -362,14 +360,14 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
         cont += 1
 
         if criterio == 'embbedings':
-            rep_vet = RepresentacaoVetorial(configs)
-            rep_vet.carregar_modelo(configs['modelos']['word2vec-default'], binario=True)
+            rep_vet = RepresentacaoVetorial(cfgs)
+            rep_vet.carregar_modelo(cfgs['modelos']['word2vec-default'], binario=True)
 
             res_tmp = rep_vet.obter_palavras_relacionadas(positivos=[lexelt.split('.')[0]], topn=200)
             resultado_geral[lexelt] = [sin for sin, pontuacao in res_tmp if sin in cands]
 
         elif criterio == 'frequencia':
-            cliente_ox = ClienteOxfordAPI(configs)
+            cliente_ox = ClienteOxfordAPI(cfgs)
 
             cands_ponts = [ ]
             for sin in cands:
@@ -394,7 +392,7 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
             res_sinonimia.reverse()
 
             if fontes_def == 'oxford':
-                desambiguador = DesambiguadorOxford(configs, base_ox)
+                desambiguador = DesambiguadorOxford(cfgs, base_ox)
                 res_desambiguacao = desambiguador.cosine_lesk(frase, palavra, pos, usar_exemplos=False)
             elif fontes_def == 'wordnet':
                 res_desambiguacao = cosine_lesk(frase, palavra, pos=pos, nbest=True)
@@ -457,7 +455,11 @@ def predizer_sinonimos(configs, criterio='frequencia', usar_gabarito=True, indic
                     def_reg = sin[0].split(separador)[0]
                     def_reg, lema_reg = def_reg.split(';')[:-1][0], def_reg.split(';')[-1]
 
-                    sins_reg = base_ox.obter_sinonimos(lema_reg, def_reg)
+                    try:
+                        sins_reg = base_ox.obter_sinonimos(lema_reg, def_reg)
+                    except:
+                        sins_reg = [ ]
+
                     if len(sins_reg) > 0:
                         saida_sinonimos_tmp += sins_reg
                         #saida_sinonimos.append(sins_reg[0]) #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -522,6 +524,12 @@ if __name__ == '__main__':
     #exit(0)
 
     if False:
+        import Experimentalismo
+        Experimentalismo.ler_entrada(configs)
+        #medir_seletor_candidatos(configs)
+        exit(0)
+
+    if False:
         criar_vetores_wordnet(configs)
 
     if False:
@@ -540,7 +548,7 @@ if __name__ == '__main__':
 
     dir_saida_abordagem = "/home/isaias/Desktop/exps"
     todos_criterios = ['alvaro']
-    flags_usar_gabarito = [False, True]
+    flags_usar_gabarito = [True, False]
 
     res_certos, res_errados, res_excecao = 0, 0, 0
 
@@ -550,8 +558,9 @@ if __name__ == '__main__':
         
         for crit in todos_criterios:
             for usar_gabarito in flags_usar_gabarito:
-                for max_ex in [10, 40]:
-                    predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo_base='test', max_ex=max_ex)
+                # Maximo de exemplos para criar a relacao de sinonimia
+                for max_ex in [1, 5, 10, 15, 20, 25, 30, 35]:
+                    predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
 
                     for lexelt in gabarito:
                         if lexelt in predicao:
@@ -624,7 +633,7 @@ if __name__ == '__main__':
         gold_rankings_se2007 = obter_gabarito_rankings_semeval(configs)
 
         # Lista todos aquivos .best ou .oot do SemEval2007
-        lista_todas_submissoes_se2007 = Utils.listar_arquivos(configs['dir_saidas_rankeador'])
+        lista_todas_submissoes_se2007 = Utils.listar_arqs(configs['dir_saidas_rankeador'])
 
         # Usa, originalmente, oot
         lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]

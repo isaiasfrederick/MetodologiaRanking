@@ -36,7 +36,7 @@ class ValidadorSemEval(object):
     # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
     def avaliar_parts_originais(self, tarefa):
         resultados_json = {}
-        todos_participantes = [p for p in self.listar_arq(self.dir_respostas_competidores) if '.' + tarefa in p]
+        todos_participantes = [p for p in Utils.listar_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
 
         for participante in todos_participantes:
             resultados_json[participante] = self.obter_score(self.dir_respostas_competidores, participante)
@@ -72,7 +72,7 @@ class ValidadorSemEval(object):
         return [p for p in participantes if tarefa in p]
 
     def ler_registro(self, path_arquivo):
-        obj = {}
+        obj = dict()
         arq = open(str(path_arquivo), 'r')
         linhas = arq.readlines()
 
@@ -85,25 +85,6 @@ class ValidadorSemEval(object):
 
         arq.close()
         return obj
-
-    def ler_entrada_teste(self, dir_arquivo_teste):
-        todos_lexelts = dict()
-
-        parser = etree.XMLParser(recover=True)
-        arvore_xml = ET.parse(dir_arquivo_teste, parser)
-        raiz = arvore_xml.getroot()
-
-        for lex in raiz.getchildren():
-            todos_lexelts[lex.values()[0]] = [ ]
-            for inst in lex.getchildren():
-                codigo = str(inst.values()[0])
-                context = inst.getchildren()[0]
-                frase = "".join([e for e in context.itertext()]).strip()
-
-                palavra = inst.getchildren()[0].getchildren()[0].text
-                todos_lexelts[lex.values()[0]].append({'codigo': codigo, 'frase': frase, 'palavra': palavra})
-
-        return todos_lexelts
 
     # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
     def formatar_submissao(self, nome_abordagem, entrada):
@@ -137,6 +118,26 @@ class ValidadorSemEval(object):
             arquivo_saida.write("%s %s %s\n" % args)
         
         arquivo_saida.close()
+
+    # Carregar o caso de entrada para gerar o ranking de sinonimos
+    def carregar_caso_entrada(self, dir_arq_caso_entrada):
+        todos_lexelts = dict()
+
+        parser = etree.XMLParser(recover=True)
+        arvore_xml = ET.parse(dir_arq_caso_entrada, parser)
+        raiz = arvore_xml.getroot()
+
+        for lex in raiz.getchildren():
+            todos_lexelts[lex.values()[0]] = [ ]
+            for inst in lex.getchildren():
+                codigo = str(inst.values()[0])
+                context = inst.getchildren()[0]
+                frase = "".join([e for e in context.itertext()]).strip()
+
+                palavra = inst.getchildren()[0].getchildren()[0].text
+                todos_lexelts[lex.values()[0]].append({'codigo': codigo, 'frase': frase, 'palavra': palavra})
+
+        return todos_lexelts
 
     def carregar_gabarito(self, dir_gold_file):
         arquivo_gold = open(dir_gold_file, 'r')

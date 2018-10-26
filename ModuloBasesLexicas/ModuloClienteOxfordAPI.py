@@ -353,7 +353,7 @@ class ClienteOxfordAPI(object):
     def obter_frequencia(self, palavra):
         dir_cache = self.configs['oxford']['cache']['frequencias']
 
-        todos_arquivos_cache = Utils.listar_arquivos(self.configs['oxford']['cache']['frequencias'])
+        todos_arquivos_cache = Utils.listar_arqs(self.configs['oxford']['cache']['frequencias'])
         todos_arquivos_cache = [c.split("/")[-1] for c in todos_arquivos_cache]
 
         if palavra + ".json" in todos_arquivos_cache:
@@ -375,7 +375,8 @@ class ClienteOxfordAPI(object):
 
     def obter_definicoes(self, palavra, lematizar=True):
         if palavra in self.obj_urls_invalidas_definicoes:
-            print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            #print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL evitada: ' + palavra)
             return None
 
         dir_cache_oxford = self.configs['oxford']['cache']['definicoes']            
@@ -411,12 +412,14 @@ class ClienteOxfordAPI(object):
         except:
             traceback.print_exc()
             self.obj_urls_invalidas_definicoes[palavra] = ""
-            print('ClienteOxford: URL errada: ' + url + '\t\tHeaders: ' + str(self.headers))
+            #print('ClienteOxford: URL errada: ' + url + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL errada: ' + palavra)
             return None
 
     def obter_sinonimos(self, palavra):
         if palavra in self.obj_urls_invalidas_sinonimos:
-            print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            #print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
+            print('ClienteOxford: URL evitada: ' + palavra)
             return None
 
         dir_cache_oxford = self.configs['oxford']['cache']['sinonimos']            
