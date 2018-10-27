@@ -518,33 +518,33 @@ if __name__ == '__main__':
         exit(0)
 
     Util.limpar_console()
-    configs = Util.carregar_configuracoes(argv[1])
+    cfgs = Util.carregar_configuracoes(argv[1])
 
     #criar_vetores_wordnet(configs)
     #exit(0)
 
     if False:
         import Experimentalismo
-        Experimentalismo.ler_entrada(configs)
+        Experimentalismo.ler_entrada(cfgs)
         #medir_seletor_candidatos(configs)
         exit(0)
 
     if False:
-        criar_vetores_wordnet(configs)
+        criar_vetores_wordnet(cfgs)
 
     if False:
         palavra = raw_input("Palavra: ")
         ns = raw_input(str(wn.synsets(palavra)) + ": ")
         print("\n")
-        rep_vetorial = RepresentacaoVetorial(configs)
-        rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
+        rep_vetorial = RepresentacaoVetorial(cfgs)
+        rep_vetorial.carregar_modelo(cfgs['modelos']['word2vec-default'])
 
         for p in rep_vetorial.criar_vetor_synset(palavra, ns):
             print(p)
 
         exit(0)
 
-    validador = ValidadorSemEval(configs)
+    validador = ValidadorSemEval(cfgs)
 
     dir_saida_abordagem = "/home/isaias/Desktop/exps"
     todos_criterios = ['alvaro']
@@ -559,8 +559,10 @@ if __name__ == '__main__':
         for crit in todos_criterios:
             for usar_gabarito in flags_usar_gabarito:
                 # Maximo de exemplos para criar a relacao de sinonimia
-                for max_ex in [1, 2, 3]:
-                    predicao, casos, gabarito = predizer_sinonimos(configs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
+                for max_ex in [1]:
+                    res_certos, res_errados, res_excecao = 0, 0, 0
+                    
+                    predicao, casos, gabarito = predizer_sinonimos(cfgs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
 
                     for lexelt in gabarito:
                         if lexelt in predicao:
@@ -578,19 +580,16 @@ if __name__ == '__main__':
                     for cont in [10]:
                         nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
                         if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                            validador.formatar_submissao_final(dir_saida_abordagem + "/" + nome_abordagem, predicao, cont, ":::")
+                            validador.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, cont, ":::")
                         if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                             todos_resultados_oot.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
 
                     # Best
                     nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
                     if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                        validador.formatar_submissao_final(dir_saida_abordagem + "/"  + nome_abordagem, predicao, 1, "::")
+                        validador.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, 1, "::")
                     if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
                         todos_resultados_best.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
-
-            print("\n\nCERTOS/ERRADOS/EXCECAO")
-            raw_input((res_certos, res_errados, res_excecao))
 
     if raw_input("Calcular BEST? s/N? ") == "s":
         chave = ""
@@ -619,7 +618,7 @@ if __name__ == '__main__':
     exit(0)
 
     if False:
-        desambiguar_word_embbedings(configs, raw_input("Frase: "), raw_input("Palavra: "))
+        desambiguar_word_embbedings(cfgs, raw_input("Frase: "), raw_input("Palavra: "))
     exit(0)
 
     # Realiza o SemEval2007 para as minhas abordagens implementadas (baselines)
@@ -629,13 +628,13 @@ if __name__ == '__main__':
     aplicar_metrica_gap = False
 
     if aplicar_metrica_gap:
-        validador_gap = GeneralizedAveragePrecisionMelamud(configs)
+        validador_gap = GeneralizedAveragePrecisionMelamud(cfgs)
         # Obtem os gabaritos informados por ambos
         # anotadores no formato <palavra.pos.id -> gabarito>
-        gold_rankings_se2007 = obter_gabarito_rankings_semeval(configs)
+        gold_rankings_se2007 = obter_gabarito_rankings_semeval(cfgs)
 
         # Lista todos aquivos .best ou .oot do SemEval2007
-        lista_todas_submissoes_se2007 = Util.listar_arqs(configs['dir_saidas_rankeador'])
+        lista_todas_submissoes_se2007 = Util.listar_arqs(cfgs['dir_saidas_rankeador'])
 
         # Usa, originalmente, oot
         lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]
@@ -644,7 +643,7 @@ if __name__ == '__main__':
         resultados_gap = dict()
 
         for dir_submissao_se2007 in lista_todas_submissoes_se2007:
-            submissao_carregada = carregar_arquivo_submissao_se2007(configs, dir_submissao_se2007)
+            submissao_carregada = carregar_arquivo_submissao_se2007(cfgs, dir_submissao_se2007)
             nome_abordagem = dir_submissao_se2007.split('/').pop()
 
             submissoes_se2007_carregadas[nome_abordagem] = submissao_carregada
