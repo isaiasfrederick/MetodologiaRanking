@@ -141,7 +141,7 @@ class DesambiguadorUnificado(object):
         todas_assinaturas = self.assinaturas_significados(inventario, usar_ontologia=usar_ontologia, usar_exemplos=usar_exemplos)
 
         lista_ctx = [p for p in word_tokenize(lista_ctx.lower()) if not p in [',', ';', '.']]        
-        lista_ctx = Util.processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True)
+        lista_ctx = Util.processar_ctx(lista_ctx, stop=True, lematizar=True, stem=True)
 
         pontuacao = [ ]
 
@@ -149,7 +149,7 @@ class DesambiguadorUnificado(object):
 
         for a in todas_assinaturas:
             ass_tmp = a[1]
-            ass_tmp = Util.processar_contexto(ass_tmp, stop=True, lematizar=True, stem=True)
+            ass_tmp = Util.processar_ctx(ass_tmp, stop=True, lematizar=True, stem=True)
 
             pontuacao.append((cos_sim(" ".join(lista_ctx), " ".join(ass_tmp)), a[0]))
 

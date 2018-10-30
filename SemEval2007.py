@@ -22,7 +22,7 @@ import copy
 import io
 import re
 
-class ValidadorSemEval(object):
+class VlddrSemEval(object):
     def __init__(self, configs):
         self.configs = configs
 
@@ -34,7 +34,7 @@ class ValidadorSemEval(object):
         self.todas_abordagens = dict()
 
     # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
-    def avaliar_parts_originais(self, tarefa):
+    def avaliar_parts_orig(self, tarefa):
         resultados_json = {}
         todos_participantes = [p for p in Util.listar_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
 
@@ -192,7 +192,7 @@ class ValidadorSemEval(object):
 
                 for sinonimo in todos_candidatos:
                     if sinonimo != "":
-                        sinonimo_lista = sinonimo
+                        sin_lista = sinonimo
                         votos = len(todos_candidatos) - indice           
                         resposta_linha[sinonimo] = votos
 
@@ -203,3 +203,8 @@ class ValidadorSemEval(object):
                 traceback.print_exc()
         
         return saida
+
+    # Ordena o gabarito padrao anotado SemEval2007 por frequencia de votos
+    def fltr_gabarito(self, gabarito):
+        try: return sorted(gabarito, key=lambda x: x[1], reverse=True)
+        except: return [ ]

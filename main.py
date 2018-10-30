@@ -20,7 +20,7 @@ from nltk.corpus import wordnet
 # Fim pacotes da Experimentacao
 
 # Carrega o gabarito o arquivo de input
-from SemEval2007 import ValidadorSemEval
+from SemEval2007 import VlddrSemEval
 
 # Testar Abordagem Alvaro
 from Abordagens.AbordagemAlvaro import AbordagemAlvaro
@@ -119,7 +119,7 @@ def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, 
 """ Este metodo testa a abordagem do Alvaro em carater investigativo
 sobre o componente que escolhe os sinonimos a serem utilizados """
 def medir_seletor_candidatos(configs):
-    validador = ValidadorSemEval(configs)
+    validador = VlddrSemEval(configs)
     contadores = Util.abrir_json(configs['leipzig']['dir_contadores'])
 
     #dir_saida_seletor_candidatos = raw_input("Diretorio saida arquivo seletor candidatos: ")
@@ -152,7 +152,7 @@ def medir_seletor_candidatos(configs):
 
     gabarito_tmp = None
 
-    validador_semeval2007 = ValidadorSemEval(configs)
+    validador_semeval2007 = VlddrSemEval(configs)
     casos_testes_tmp = validador_semeval2007.carregar_caso_entrada(dir_entrada)
 
     casos_testes_dict = {}
@@ -272,7 +272,7 @@ def medir_seletor_candidatos(configs):
 
 def carregar_bases(configs, tipo_base):
     casos_testes = gabarito = None
-    validador = ValidadorSemEval(configs)
+    validador = VlddrSemEval(configs)
 
     # Carrega a base Trial para fazer os testes
 
@@ -313,7 +313,7 @@ def carregar_bases(configs, tipo_base):
 # Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
 # Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
 #   criterio = frequencia OU alvaro OU embbedings
-def predizer_sinonimos(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tipo=None, max_ex=-1):
+def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tp=None, max_ex=-1):
     casador_manual = CasadorManual(cfgs)
     base_ox = BaseUnificadaOx(cfgs)
     alvaro = AbordagemAlvaro(cfgs, base_ox, casador_manual)
@@ -329,7 +329,7 @@ def predizer_sinonimos(cfgs, criterio='frequencia', usar_gabarito=True, indice=-
     # Fonte para selecionar as definicoes e fonte para selecionar os candidatos
     # fontes_def, fontes_cands = raw_input("Digite a fonte para definicoes: "), ['oxford', 'wordnet']
     fontes_def, fontes_cands = fontes_def, ['oxford', 'wordnet']
-    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tipo)
+    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tp)
 
     # TODOS CASOS DE ENTRADA
     if indice == -1:
@@ -544,76 +544,91 @@ if __name__ == '__main__':
 
         exit(0)
 
-    validador = ValidadorSemEval(cfgs)
+    # Validador SemEval 2007
+    vldr_se = VlddrSemEval(cfgs)
+
+    if False:
+        entrada = vldr_se.carregar_caso_entrada("/mnt/ParticaoAlternat/SemEval2007/test/lexsub_test.xml")
+        gab = vldr_se.carregar_gabarito("/mnt/ParticaoAlternat/SemEval2007/task10data/scoring/gold")
+        #entrada = vldr_se.carregar_caso_entrada("/mnt/ParticaoAlternat/SemEval2007/trial/lexsub_trial.xml")
+        #gab = vldr_se.carregar_gabarito("/mnt/ParticaoAlternat/SemEval2007/trial/gold.trial")
+
+        for lexelt in entrada:
+            for reg in entrada[lexelt]:
+                lexelt2 = lexelt + " " + reg['codigo']
+                if 'Mourinho' in reg['frase']:
+                    print((reg['frase'], reg['palavra']))
+                    print(vldr_se.fltr_gabarito(gab[lexelt2]))
+                    print("\n")
+
+        exit(0)
 
     dir_saida_abordagem = "/home/isaias/Desktop/exps"
     todos_criterios = ['alvaro']
     flags_usar_gabarito = [True]
+    qtdes_exemplos = [1,2,3,4,8]
 
-    res_certos, res_errados, res_excecao = 0, 0, 0
+    res_ok, res_err, res_exc = 0, 0, 0
 
     if True:
-        todos_resultados_best = validador.avaliar_parts_originais("best").values()
-        todos_resultados_oot = validador.avaliar_parts_originais("oot").values()
+        resultados_best = vldr_se.avaliar_parts_orig("best").values()
+        resultados_oot = vldr_se.avaliar_parts_orig("oot").values()
         
         for crit in todos_criterios:
             for usar_gabarito in flags_usar_gabarito:
                 # Maximo de exemplos para criar a relacao de sinonimia
-                for max_ex in [1]:
-                    res_certos, res_errados, res_excecao = 0, 0, 0
-                    
-                    predicao, casos, gabarito = predizer_sinonimos(cfgs, usar_gabarito=usar_gabarito, criterio=crit, tipo='test', max_ex=max_ex)
+                for max_ex in qtdes_exemplos:
+                    res_ok, res_err, res_exc = 0, 0, 0
 
-                    for lexelt in gabarito:
-                        if lexelt in predicao:
-                            reg_gabarito = sorted(gabarito[lexelt], key=lambda x: x[1], reverse=True)
-                            reg_gabarito = [e[0] for e in reg_gabarito]
+                    #predicao, casos, gabarito = predizer_sins(cfgs, usar_gabarito=usar_gabarito, criterio=crit, tp='test', max_ex=max_ex)
+                    predicao, casos, gabarito = set(), set(), set()
 
-                            try:
-                                if reg_gabarito[0] == predicao[lexelt][0]: res_certos += 1
-                                else: res_errados += 1
-                            except: res_excecao += 1
+                    if False:
+                        for lexelt in gabarito:
+                            if lexelt in predicao:
+                                reg_gabarito = vldr_se.fltr_gabarito(gabarito[lexelt])
+                                try:
+                                    if reg_gabarito[0][0] == predicao[lexelt][0]: res_ok += 1
+                                    else: res_err += 1
+                                except: res_exc += 1
 
                     padrao_nome_abordagem = "%s-%d-%s-Exemplos:%d.%s"
 
                     # Out-of-Ten (filtrando quantas predicoes sao necessarias)
-                    for cont in [10]:
+                    for cont in [1,2,3]:
                         nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
+                        #vldr_se.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, cont, ":::")
                         if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                            validador.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, cont, ":::")
-                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                            todos_resultados_oot.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
+                            resultados_oot.append(vldr_se.obter_score(dir_saida_abordagem, nome_abordagem))
+
 
                     # Best
-                    nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
-                    if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                        validador.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, 1, "::")
-                    if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                        todos_resultados_best.append(validador.obter_score(dir_saida_abordagem, nome_abordagem))
+                    for cont in [3]:
+                        nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
+                        #vldr_se.formatar_submissao_final(dir_saida_abordagem+"/"+nome_abordagem, predicao, 1, "::")
+                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
+                            resultados_best.append(vldr_se.obter_score(dir_saida_abordagem, nome_abordagem))
 
     if raw_input("Calcular BEST? s/N? ") == "s":
         chave = ""
         while chave == "":
-            chave = raw_input("\nEscolha a chave pra ordenara saida BEST: " + str(todos_resultados_best[0].keys()) + ": ")
+            chave = raw_input("\nEscolha a chave pra ordenara saida BEST: " + str(resultados_best[0].keys()) + ": ")
             print("\n")
-        todos_resultados_best = sorted(todos_resultados_best, key=itemgetter(chave), reverse=True) 
+        resultados_best = sorted(resultados_best, key=itemgetter(chave), reverse=True) 
         print(chave.upper() + "\t-----------------------")
-        for e in todos_resultados_best: print(e)
+        for e in resultados_best: print(e)
 
     print("\n\n\n")
 
     if raw_input("Calcular Out-of-Ten? s/N? ") == "s":
         chave = ""
         while chave == "":
-            chave = raw_input("\nEscolha a chave pra ordenara saida OOT: " + str(todos_resultados_oot[0].keys()) + ": ")
+            chave = raw_input("\nEscolha a chave pra ordenara saida OOT: " + str(resultados_oot[0].keys()) + ": ")
             print("\n")
-        todos_resultados_oot = sorted(todos_resultados_oot, key=itemgetter(chave), reverse=True)        
+        resultados_oot = sorted(resultados_oot, key=itemgetter(chave), reverse=True)        
         print(chave.upper() + "\t-----------------------")
-        for e in todos_resultados_oot:
-            if 'alvaro' in e['nome']:
-                if 'alvaro-10-' in e['nome']: print(e)
-            else:
-                print(e)
+        for e in resultados_oot:
+            print(e)
 
     exit(0)
 

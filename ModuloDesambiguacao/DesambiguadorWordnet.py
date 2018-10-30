@@ -352,7 +352,7 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 			signature = [i for i in word_tokenize(signature) \
 						if i not in string.punctuation]
 
-			signature = Util.processar_contexto(signature, stop=stop, lematizar=lemma, stem=stem)
+			signature = Util.processar_ctx(signature, stop=stop, lematizar=lemma, stem=stem)
 
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))
 

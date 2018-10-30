@@ -80,12 +80,12 @@ class DesambiguadorOxford(object):
 
         # Tirando palavras de tamanho 1
         ctx = [p for p in word_tokenize(ctx.lower()) if len(p) > 1]
-        ctx = Util.processar_contexto(ctx, stop=stop, lematizar=lematizar, stem=stem)
+        ctx = Util.processar_ctx(ctx, stop=stop, lematizar=lematizar, stem=stem)
 
         pontuacao = [ ]
 
         for a in assinaturas:
-            ass_definicao = Util.processar_contexto(a[3], stop=stop, lematizar=lematizar, stem=stem)
+            ass_definicao = Util.processar_ctx(a[3], stop=stop, lematizar=lematizar, stem=stem)
             registro_definicao = a[:3]
             pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), registro_definicao))
 
@@ -146,7 +146,7 @@ class DesambiguadorOxford(object):
                     indice += 1
 
         for s in assinaturas_significados:
-            s[3] = Util.processar_contexto(s[3], stop=True, lematizar=True, stem=True)
+            s[3] = Util.processar_ctx(s[3], stop=True, lematizar=True, stem=True)
 
         return [tuple(a) for a in assinaturas_significados]
 

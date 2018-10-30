@@ -1,12 +1,12 @@
 import pywsd
 import re
-from SemEval2007 import ValidadorSemEval
+from SemEval2007 import VlddrSemEval
 
 def ler_entrada(configs, fonte="wordnet"):
     total_entradas_validas = 0
     total_entradas_invalidas = 0
 
-    validador = ValidadorSemEval(configs)
+    validador = VlddrSemEval(configs)
 
     tipo = raw_input("Test ou trial? ").lower()
     dir_casos_entrada, dir_gabarito = configs['semeval2007'][tipo].values()

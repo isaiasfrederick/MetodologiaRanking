@@ -298,7 +298,7 @@ class Util(object):
         return os.path.isfile(pasta + nome_arquivo) 
 
     @staticmethod
-    def processar_contexto(lista_ctx, stop=True, lematizar=True, stem=True):
+    def processar_ctx(lista_ctx, stop=True, lematizar=True, stem=True):
         if stop:
             lista_ctx = [i for i in lista_ctx if i not in stopwords.words('english')]
         if lematizar:
