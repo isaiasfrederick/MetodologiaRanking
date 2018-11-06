@@ -1,5 +1,5 @@
 from nltk.corpus import wordnet as wn
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
 
 
 class ValidadorInventarioWordnet(object):
@@ -57,7 +57,7 @@ class ValidadorInventarioOxford(object):
         
     @staticmethod
     def caso_entrada_(palavra, gabarito, top10):
-        base_ox = BaseUnificadaOx(None)
+        base_ox = BaseOx(None)
 
         total_corretos = list(set(gabarito.keys()) & set(top10))
         best_gabarito = gabarito[sorted(gabarito.keys(), reverse=True)[0]]
@@ -66,7 +66,7 @@ class ValidadorInventarioOxford(object):
         diferenca_palavras_oxford = [ ]
 
         obj_unificado_oxford = base_ox.obter_obj_unificado(palavra)
-        todas_definicoes = base_ox.obter_todas_definicoes(palavra)
+        todas_definicoes = base_ox.obter_definicoes(palavra)
 
         for definicao in todas_definicoes:
             pass

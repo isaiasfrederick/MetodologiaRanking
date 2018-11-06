@@ -10,6 +10,7 @@ from Utilitarios import Util
 # URL:
 # For license information, see LICENSE.md
 
+import os
 import re
 import string
 from itertools import chain
@@ -21,14 +22,77 @@ from nltk import word_tokenize, pos_tag
 from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.utils import lemmatize, porter, lemmatize_sentence, synset_properties
 
+import pywsd.lesk
+
 EN_STOPWORDS = stopwords.words('english')
 
 import traceback
 
-class DesambiguadorWordnet(object):    
+class DesWordnet(object):    
     cache_assinaturas = dict()
 
-    def __init__(self, configs): pass
+    def __init__(self, configs):
+        self.usar_cache = False
+        self.dir_cache = configs['wordnet']['cache']['desambiguador']
+
+	# Converte o resultado da desambiguacao 
+    def converter_resultado(self, res_desambiguacao_wn):
+        res_desambiguacao = [ ]
+
+        for reg in res_desambiguacao_wn:
+            rnome = reg[0].name()
+            rdefinicao = reg[0].definition()
+            rfrases = reg[0].examples()
+            pt = reg[1]
+
+            res_desambiguacao.append([[rnome, rdefinicao, rfrases], pt])
+
+        return res_desambiguacao
+
+    def cosine_lesk(self, context_sentence, ambiguous_word, \
+                    pos=None, lemma=True, stem=True, hyperhypo=True, \
+                    stop=True, context_is_lemmatized=False, \
+                    nbest=False):
+
+        if self.usar_cache:
+            vars_locais = dict(locals())
+
+            del vars_locais['self']
+            del vars_locais['ambiguous_word']
+
+            vars_locais = [",".join((str(k),str(v))) for k, v in vars_locais.iteritems()]
+            chave_vars_locais = "::".join(vars_locais)
+
+            dir_completo_obj = self.dir_cache+"/"+ ambiguous_word+".json"
+
+            if ambiguous_word+'.json' in os.listdir(self.dir_cache):
+                obj_cache = Util.abrir_json(dir_completo_obj)
+            else:
+                obj_cache = Util.abrir_json(dir_completo_obj, criar=True)
+
+            if chave_vars_locais in obj_cache:
+                # Converter as bagacas aqui
+                raw_input("@@@\t entrei neste trecho!!")
+                return obj_cache[chave_vars_locais]
+
+        #res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, \
+        #            pos=pos, lemma=lemma, stem=stem, hyperhypo=hyperhypo, \
+        #            stop=stop, context_is_lemmatized=context_is_lemmatized, \
+        #            nbest=nbest)
+
+        if pos:
+            pos = Util.conversor_pos_semeval_wn(pos)
+
+        res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, pos=pos, nbest=True)
+
+        if self.usar_cache:
+            print((ambiguous_word, context_sentence))
+            print("\nEstou nesse trecho:\n")
+            raw_input(res_des)
+            obj_cache[chave_vars_locais] = [ ]  # <<<<<<<<<<<<<<<<<<<<<<<
+            Util.salvar_json(dir_completo_obj, obj_cache)
+
+        return res_des
 
     def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
         return isaias_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
@@ -340,10 +404,10 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 
 	chave_assinatura = "%s.%s.%s.%s.%s.%s" % (ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla)
 
-	if not chave_assinatura in DesambiguadorWordnet.cache_assinaturas:
+	if not chave_assinatura in DesWordnet.cache_assinaturas:
 		synsets_signatures = simple_signature(ambiguous_word, pos, lemma, stem, hyperhypo, busca_ampla=busca_ampla)
 
-		DesambiguadorWordnet.cache_assinaturas[chave_assinatura] = [ ]
+		DesWordnet.cache_assinaturas[chave_assinatura] = [ ]
 
 		for ss, signature in synsets_signatures.items():
 			# Lowercase and replace "_" with spaces.
@@ -356,10 +420,10 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))
 
-			DesambiguadorWordnet.cache_assinaturas[chave_assinatura].append((ss, signature))
+			DesWordnet.cache_assinaturas[chave_assinatura].append((ss, signature))
 
 	else:
-		synsets_signatures = DesambiguadorWordnet.cache_assinaturas[chave_assinatura]
+		synsets_signatures = DesWordnet.cache_assinaturas[chave_assinatura]
 
 		for ss, signature in synsets_signatures:
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))

@@ -18,7 +18,7 @@ import json
 import time
 
 # Esta classe faz o merge de objetos do coletor
-class BaseUnificadaOx(object):
+class BaseOx(object):
     # Salva os pares <<palavra, definicao> : sinonimos>
     # Para os dados de Oxford
     sinonimos_extraidos_definicao = dict()
@@ -43,7 +43,7 @@ class BaseUnificadaOx(object):
 
         if pos != None:
             if len(pos) == 1:
-                todas_pos = [Util.conversor_pos_wn_oxford(pos)]
+                todas_pos = [Util.cvrsr_pos_wn_oxford(pos)]
         else:
             todas_pos = obj_unificado.keys()
 
@@ -64,23 +64,23 @@ class BaseUnificadaOx(object):
 
     # Mescla objetos obtidos via coletor-web e objeto unificado ClienteAPI
     def obter_obj_unificado(self, palavra):
-        BaseUnificadaOx.objs_unificados = {}
+        BaseOx.objs_unificados = {}
 
         palavra = Util.normalizar_palavra(palavra)
 
-        if palavra in BaseUnificadaOx.objs_unificados:
+        if palavra in BaseOx.objs_unificados:
             print('@@@ Achei os dados no cache!\nPalavra: ' + palavra)
 
-            if not BaseUnificadaOx.objs_unificados[palavra]:
+            if not BaseOx.objs_unificados[palavra]:
                 print('NULO!\n')
 
-            return BaseUnificadaOx.objs_unificados[palavra]
+            return BaseOx.objs_unificados[palavra]
 
         obj_cli_unificado = self.cliente_api_oxford.iniciar_coleta(palavra)
         obj_coletado = self.coletor_web_oxford.iniciar_coleta(palavra)
 
         if not obj_cli_unificado or not obj_coletado:
-            BaseUnificadaOx.objs_unificados[palavra] = None
+            BaseOx.objs_unificados[palavra] = None
             return None
 
         obj_coletado = dict(obj_coletado)
@@ -91,15 +91,15 @@ class BaseUnificadaOx(object):
                     sinonimos = self.obter_sinonimos_fonte_obj_api(pos, def_primaria, obj_cli_unificado)
 
                     try:
-                        sinonimos = BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria]
+                        sinonimos = BaseOx.sinonimos_extraidos_definicao[palavra][def_primaria]
                     except: pass
 
                     if sinonimos.__len__() == 0:
                         sinonimos = self.extrair_sinonimos_candidatos_definicao(def_primaria, pos)
 
-                        if not palavra in BaseUnificadaOx.sinonimos_extraidos_definicao:
-                            BaseUnificadaOx.sinonimos_extraidos_definicao[palavra] = {}                
-                        BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
+                        if not palavra in BaseOx.sinonimos_extraidos_definicao:
+                            BaseOx.sinonimos_extraidos_definicao[palavra] = {}                
+                        BaseOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
 
                     obj_coletado[pos][def_primaria]['sinonimos'] = sinonimos
 
@@ -109,36 +109,36 @@ class BaseUnificadaOx(object):
                             sinonimos = self.obter_sinonimos_fonte_obj_api(pos, def_primaria, obj_cli_unificado)
 
                             try:
-                                sinonimos = BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria]
+                                sinonimos = BaseOx.sinonimos_extraidos_definicao[palavra][def_primaria]
                             except: pass
 
                             if sinonimos.__len__() == 0:
                                 sinonimos = self.extrair_sinonimos_candidatos_definicao(def_sec, pos)
 
-                                if not palavra in BaseUnificadaOx.sinonimos_extraidos_definicao:
-                                    BaseUnificadaOx.sinonimos_extraidos_definicao[palavra] = {}                
-                                BaseUnificadaOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
+                                if not palavra in BaseOx.sinonimos_extraidos_definicao:
+                                    BaseOx.sinonimos_extraidos_definicao[palavra] = {}                
+                                BaseOx.sinonimos_extraidos_definicao[palavra][def_primaria] = sinonimos
 
 
                         obj_coletado[pos][def_primaria]['def_secs'][def_sec]['sinonimos'] = sinonimos
         except:
             traceback.print_exc()
-            BaseUnificadaOx.objs_unificados[palavra] = None
+            BaseOx.objs_unificados[palavra] = None
             return None
 
         obj_unificado = dict(obj_coletado)
-        BaseUnificadaOx.objs_unificados[palavra] = obj_unificado
+        BaseOx.objs_unificados[palavra] = obj_unificado
 
         return obj_unificado
 
     # Obtem sinonimos a partir da palavra, definicao, pos
-    def obter_sinonimos(self, palavra, definicao, pos=None):
+    def obter_sins(self, palavra, definicao, pos=None):
         obj_unificado = self.obter_obj_unificado(palavra)
 
         if pos == None:
             lista_pos = [pos for pos in obj_unificado.keys()]
         elif len(pos) == 1:
-            lista_pos = [Util.conversor_pos_wn_oxford(pos)]
+            lista_pos = [Util.cvrsr_pos_wn_oxford(pos)]
 
         try:
             for pos in lista_pos:
@@ -157,7 +157,7 @@ class BaseUnificadaOx(object):
     # Obtem exemplos a partir do objeto unificado
     def obter_exemplos__(self, pos, definicao, obj_unificado):
         if len(pos) == 1:
-            pos = Util.conversor_pos_wn_oxford(pos)
+            pos = Util.cvrsr_pos_wn_oxford(pos)
 
         try:
             for def_primaria in obj_unificado[pos]:
@@ -174,13 +174,13 @@ class BaseUnificadaOx(object):
         return None
 
     # Obter todas as definicoes
-    def obter_todas_definicoes(self, palavra, pos=None):
+    def obter_definicoes(self, palavra, pos=None):
         obj_unificado = self.obter_obj_unificado(palavra)
 
         try:
             # Se POS = None, pegue todas as POS
             if pos != None:
-                pos = Util.conversor_pos_wn_oxford(pos)
+                pos = Util.cvrsr_pos_wn_oxford(pos)
 
                 if pos in obj_unificado:
                     obj_unificado = { pos: obj_unificado[pos] }
@@ -192,7 +192,7 @@ class BaseUnificadaOx(object):
             todas_definicoes = [ ]
         except (TypeError, AttributeError), e:
             try:
-                return self.obter_todas_definicoes(Word(palavra).singularize(), pos)
+                return self.obter_definicoes(Word(palavra).singularize(), pos)
             except:
                 return [ ]
 
@@ -213,7 +213,7 @@ class BaseUnificadaOx(object):
     # Definicao deve vir com ponto e caixa baixa
     def obter_sinonimos_fonte_obj_api(self, pos, definicao_oxford, obj_cli_api):
         # retirando o ponto final e colocando em caixa baixa
-        pos = Util.conversor_pos_wn_oxford(pos)
+        pos = Util.cvrsr_pos_wn_oxford(pos)
 
         todas_versoes_definicoes = [ ]
 
@@ -271,7 +271,7 @@ class ClienteOxfordAPI(object):
     # retorna todas informacoes da API de Oxford
     def iniciar_coleta(self, palavra):
         definicoes_tmp = self.obter_definicoes(palavra) # Objeto 1
-        sinonimos_tmp = exemplos_tmp = self.obter_sinonimos(palavra) # Objeto 2
+        sinonimos_tmp = exemplos_tmp = self.obter_sins(palavra) # Objeto 2
 
         if sinonimos_tmp:
             sinonimos_tmp = self.converter_obj_sinonimos(sinonimos_tmp)        
@@ -353,7 +353,7 @@ class ClienteOxfordAPI(object):
     def obter_frequencia(self, palavra):
         dir_cache = self.configs['oxford']['cache']['frequencias']
 
-        todos_arquivos_cache = Util.listar_arqs(self.configs['oxford']['cache']['frequencias'])
+        todos_arquivos_cache = Util.list_arqs(self.configs['oxford']['cache']['frequencias'])
         todos_arquivos_cache = [c.split("/")[-1] for c in todos_arquivos_cache]
 
         if palavra + ".json" in todos_arquivos_cache:
@@ -416,7 +416,7 @@ class ClienteOxfordAPI(object):
             print('ClienteOxford: URL errada: ' + palavra)
             return None
 
-    def obter_sinonimos(self, palavra):
+    def obter_sins(self, palavra):
         if palavra in self.obj_urls_invalidas_sinonimos:
             #print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
             print('ClienteOxford: URL evitada: ' + palavra)
@@ -707,8 +707,8 @@ class ColetorOxfordWeb(object):
     def classificar_exemplos(self, lemma, synset, funcao_sintatica):
         dtmp = synset.definition().split(' ')
 
-        is_stop_word = Util.Utils.is_stop_word
-        frase_valida = Util.Utils.retornar_valida
+        is_stop_word = Util.Util.is_stop_word
+        frase_valida = Util.Util.retornar_valida
 
         dados_coletados = self.iniciar_coleta(lemma)[funcao_sintatica]
         definicoes_principais = list(dados_coletados)
@@ -743,10 +743,10 @@ class ColetorOxfordWeb(object):
                     text1 = " ".join(list(d))
                     text2 = " ".join(list(synset.definition()))
 
-                    v1 = Util.Utils.texto_para_vetor(text1)
-                    v2 = Util.Utils.texto_para_vetor(text2)
+                    v1 = Util.Util.texto_para_vetor(text1)
+                    v2 = Util.Util.texto_para_vetor(text2)
 
-                    distancia = Util.Utils.get_cosine(v1, v2)
+                    distancia = Util.Util.get_cosine(v1, v2)
                     print('\t\t' + str(distancia) + ' - '+ d)
 
 

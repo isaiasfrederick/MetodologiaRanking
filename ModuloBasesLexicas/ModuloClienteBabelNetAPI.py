@@ -1,6 +1,8 @@
 from Utilitarios import Util
 import requests
 import json
+from lxml import html, etree
+import re
 
 class ClienteBabelAPI(object):
     def __init__(self, configs):

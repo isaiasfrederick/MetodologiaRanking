@@ -3,7 +3,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
 from Utilitarios import Util
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from nltk.corpus import stopwords, wordnet
 import re

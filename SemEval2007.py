@@ -1,5 +1,5 @@
 #! coding: utf-8
-from RepositorioCentralConceitos import BaseUnificadaOx
+from RepositorioCentralConceitos import BaseOx
 from Abordagens import IndexadorWhoosh, AbordagemEdmonds
 from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
 from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
@@ -36,7 +36,7 @@ class VlddrSemEval(object):
     # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
     def avaliar_parts_orig(self, tarefa):
         resultados_json = {}
-        todos_participantes = [p for p in Util.listar_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
+        todos_participantes = [p for p in Util.list_arqs(self.dir_respostas_competidores) if '.' + tarefa in p]
 
         for participante in todos_participantes:
             resultados_json[participante] = self.obter_score(self.dir_respostas_competidores, participante)
@@ -58,15 +58,18 @@ class VlddrSemEval(object):
 
         comando = "perl %s %s %s -t %s > %s" % args
 
-        system(comando)
+        try:
+            system(comando)
 
-        # Le a saida do formatoo <chave>:<valor> por linha
-        obj = self.ler_registro(arquivo_tmp)
-        obj['nome'] = participante
+            # Le a saida do formatoo <chave>:<valor> por linha
+            obj = self.ler_registro(arquivo_tmp)
+            obj['nome'] = participante
 
-        system('rm ' + arquivo_tmp)
+            system('rm ' + arquivo_tmp)
 
-        return obj
+            return obj
+        except:
+            return None
 
     def filtrar_participantes(self, participantes, tarefa):
         return [p for p in participantes if tarefa in p]
@@ -109,11 +112,14 @@ class VlddrSemEval(object):
         return nome_abordagem
 
     # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
-    def formatar_submissao_final(self, dir_arquivo_saida, entrada, limite_resposta, separador):
+    def formtr_submissao(self, dir_arquivo_saida, predicao, limite_resposta, separador):
+        if predicao in [set(), None]:
+            return
+
         arquivo_saida = open(dir_arquivo_saida, 'w')
 
-        for lexelt in entrada:
-            respostas = entrada[lexelt][:limite_resposta]
+        for lexelt in predicao:
+            respostas = predicao[lexelt][:limite_resposta]
             args = (lexelt, separador, ';'.join(respostas))
             arquivo_saida.write("%s %s %s\n" % args)
         

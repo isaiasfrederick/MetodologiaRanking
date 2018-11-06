@@ -43,7 +43,7 @@ class Util(object):
         return res if res.status_code == 200 else None
 
     @staticmethod
-    def conversor_pos_wn_oxford(pos):
+    def cvrsr_pos_wn_oxford(pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
         
         if pos == 'n': pos = 'Noun'
@@ -267,14 +267,14 @@ class Util(object):
 
     # Retorna todos arquivos da pasta. SOMENTE arquivos
     @staticmethod
-    def listar_arqs(dir_arqs, caminho_completo=True):
+    def list_arqs(dir_arqs, caminho_completo=True):
         if caminho_completo:
             return [f for f in os.listdir(dir_arqs) if os.path.isfile(os.path.join(dir_arqs, f))]
         else:
             return os.listdir(dir_arqs)
 
     @staticmethod
-    def limpar_console():
+    def cls():
         system('clear')
 
     @staticmethod
@@ -292,6 +292,8 @@ class Util(object):
 
     @staticmethod
     def arq_existe(pasta, nome_arquivo):
+        if pasta == None:
+            return os.path.isfile(nome_arquivo)
         if pasta[-1] != "/":
             pasta = pasta + "/"
 

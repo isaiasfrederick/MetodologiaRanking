@@ -13,7 +13,7 @@ import re
 import os
 
 
-class DesambiguadorOxford(object):
+class DesOx(object):
     def __init__(self, configs, base_ox):
         self.configs = configs
         self.base_ox = base_ox
@@ -73,7 +73,7 @@ class DesambiguadorOxford(object):
                 return obj_cache[chave_vars_locais]
 
         if len(pos) == 1:
-            pos = Util.conversor_pos_wn_oxford(pos)
+            pos = Util.cvrsr_pos_wn_oxford(pos)
 
         assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usar_exemplos)
         assinaturas = [a for a in assinaturas if pos == a[0].split('.')[1]]
@@ -157,7 +157,7 @@ class DesambiguadorOxford(object):
         limite = 10000 if limite == None else limite
 
         if pos.__len__() == 1:
-            pos = Util.conversor_pos_wn_oxford(pos)
+            pos = Util.cvrsr_pos_wn_oxford(pos)
 
         resultado = self.base_ox.obter_obj_unificado(palavra)
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from Utilitarios import Util
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
 from nltk.corpus import wordnet
 
 wn = wordnet
@@ -13,7 +13,7 @@ class CasadorManual(object):
         # self.configs['dir_base_casada_manualmente']
         self.diretorio_base_casada_manualmente = self.configs['dir_base_casada_manualmente']
         self.base_casada_manualmente = Util.abrir_json(self.diretorio_base_casada_manualmente)
-        self.base_ox = BaseUnificadaOx(self.configs)
+        self.base_ox = BaseOx(self.configs)
 
         if self.base_casada_manualmente == None:
             self.base_casada_manualmente = {}
@@ -40,7 +40,7 @@ class CasadorManual(object):
 
         if not wn.synsets(unicode(termo), pos)[0].name() in self.base_casada_manualmente[termo]:
             obj_oxford = self.base_ox.obter_obj_unificado(termo)       
-            pos_oxford = Util.conversor_pos_wn_oxford(pos)
+            pos_oxford = Util.cvrsr_pos_wn_oxford(pos)
 
             try:
                 obj_oxford = obj_oxford[pos_oxford]
@@ -82,7 +82,7 @@ class CasadorManual(object):
     def recuperar_exemplos(self, nome_synset=""):
         termo = wn.synset(nome_synset).lemma_names()[0]
         pos_oxford = wn.synset(nome_synset).pos()
-        pos_oxford = Util.conversor_pos_wn_oxford(pos_oxford)
+        pos_oxford = Util.cvrsr_pos_wn_oxford(pos_oxford)
 
         try:
             obj_unificado = self.base_ox.obter_obj_unificado(termo)[pos_oxford]            

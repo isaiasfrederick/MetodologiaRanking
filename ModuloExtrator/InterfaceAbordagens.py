@@ -3,12 +3,12 @@ from ModuloBasesLexicas.ModuloClienteOxfordAPI import ClienteOxfordAPI
 from Utilitarios import Util
 
 # importando desambiguadores
-from ModuloDesambiguacao.DesambiguadorOxford import DesambiguadorOxford
-from ModuloDesambiguacao.DesambiguadorWordnet import DesambiguadorWordnet
+from ModuloDesambiguacao.DesambiguadorOxford import DesOx
+from ModuloDesambiguacao.DesambiguadorWordnet import DesWordnet
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 
 # Representacao Vetorial
-from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
+from Abordagens.RepresentacaoVetorial import RepVetorial
 # Abordagem do Wander
 from Abordagens import PonderacaoSinonimia
 
@@ -27,14 +27,14 @@ class InterfaceAbordagens(object):
         self.desambiguador_oxford = None
         self.desambiguador_unificado = None
 
-        self.desambiguador_oxford = DesambiguadorOxford(configs, base_ox)
+        self.desambiguador_oxford = DesOx(configs, base_ox)
         self.desambiguador_unificado = DesambiguadorUnificado(configs, base_ox)
-        self.desambiguador_wordnet = DesambiguadorWordnet(configs)
+        self.desambiguador_wordnet = DesWordnet(configs)
 
         self.cli_oxford_api = cli_oxford
         self.cli_babelnet_api = cli_babelnet
 
-        self.representacao_vetorial = RepresentacaoVetorial(configs)
+        self.representacao_vetorial = RepVetorial(configs)
         self.representacao_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
 
         self.contadores = Util.abrir_json(dir_contadores)

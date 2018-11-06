@@ -1,4 +1,4 @@
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseUnificadaOx
+from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
 from RepositorioCentralConceitos import CasadorConceitos
 from pywsd.utils import lemmatize, porter, lemmatize_sentence
 from Utilitarios import Util
@@ -24,8 +24,8 @@ class DesambiguadorUnificado(object):
     def obter_assinatura_definicao_casada(self, configs, lema, pos, synset_lema):
         assinatura = [ ]
 
-        if pos.__len__() == 1:
-            pos = Util.conversor_pos_wn_oxford(pos)
+        if len(pos) == 1:
+            pos = Util.cvrsr_pos_wn_oxford(pos)
 
         casador_conceitos = CasadorConceitos(configs, self.base_ox)
         casamentos = casador_conceitos.iniciar_casamento(lema, pos)
@@ -222,7 +222,7 @@ class DesambiguadorUnificado(object):
         return sinonimos[:max_sinonimos]
 
     def construir_inventario_estendido(self, palavra, pos, usar_ontologia=True):
-        pos = Util.conversor_pos_wn_oxford(pos)
+        pos = Util.cvrsr_pos_wn_oxford(pos)
 
         inventario = [ ]
 
@@ -268,7 +268,7 @@ class DesambiguadorUnificado(object):
         return inventario
 
     def construir_inventario_unificado(self, palavra, pos, usar_ontologia=True):
-        pos = Util.conversor_pos_wn_oxford(pos)
+        pos = Util.cvrsr_pos_wn_oxford(pos)
 
         inventario = [ ]
         # indexado (def_oxford, synset_name)
