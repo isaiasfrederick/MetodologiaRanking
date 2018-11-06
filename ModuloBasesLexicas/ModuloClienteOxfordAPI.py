@@ -271,7 +271,7 @@ class ClienteOxfordAPI(object):
     # retorna todas informacoes da API de Oxford
     def iniciar_coleta(self, palavra):
         definicoes_tmp = self.obter_definicoes(palavra) # Objeto 1
-        sinonimos_tmp = exemplos_tmp = self.obter_sins(palavra) # Objeto 2
+        sinonimos_tmp = exemplos_tmp = self.obter_sinonimos(palavra) # Objeto 2
 
         if sinonimos_tmp:
             sinonimos_tmp = self.converter_obj_sinonimos(sinonimos_tmp)        
@@ -416,7 +416,7 @@ class ClienteOxfordAPI(object):
             print('ClienteOxford: URL errada: ' + palavra)
             return None
 
-    def obter_sins(self, palavra):
+    def obter_sinonimos(self, palavra):
         if palavra in self.obj_urls_invalidas_sinonimos:
             #print('ClienteOxford: URL evitada: ' + palavra + '\t\tHeaders: ' + str(self.headers))
             print('ClienteOxford: URL evitada: ' + palavra)

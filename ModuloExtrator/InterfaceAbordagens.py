@@ -8,7 +8,7 @@ from ModuloDesambiguacao.DesambiguadorWordnet import DesWordnet
 from ModuloDesambiguacao.DesambiguadorUnificado import DesambiguadorUnificado
 
 # Representacao Vetorial
-from Abordagens.RepresentacaoVetorial import RepVetorial
+from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
 # Abordagem do Wander
 from Abordagens import PonderacaoSinonimia
 
@@ -34,7 +34,7 @@ class InterfaceAbordagens(object):
         self.cli_oxford_api = cli_oxford
         self.cli_babelnet_api = cli_babelnet
 
-        self.representacao_vetorial = RepVetorial(configs)
+        self.representacao_vetorial = RepresentacaoVetorial(configs)
         self.representacao_vetorial.carregar_modelo('/home/isaias/Desktop/glove.6B.300d.txt', binario=False)
 
         self.contadores = Util.abrir_json(dir_contadores)

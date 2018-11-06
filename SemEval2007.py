@@ -43,6 +43,14 @@ class VlddrSemEval(object):
 
         return resultados_json
 
+    def submissao_invalida(self, dir_entrada, tarefa):
+        submissao = self.carregar_arquivo_submissao(self.configs, dir_entrada, tarefa)
+        resp = False
+        for lexelt in submissao:
+            if len(submissao[lexelt]) > 0:
+                resp = True
+        return resp == False
+
     def obter_score(self, dir_pasta_submissao, participante):
         tarefa = participante.split('.')[1]
         arquivo_tmp = "%s/%s.tmp" % (self.dir_tmp, participante)
@@ -53,6 +61,9 @@ class VlddrSemEval(object):
         comando_scorer = self.comando_scorer
         dir_entrada = dir_pasta_submissao + '/' + participante
         dir_saida = dir_pasta_submissao + '/' + arquivo_tmp
+
+        if self.submissao_invalida(dir_entrada, tarefa):
+            raise Exception("Esta submissao nao sugeriu nenhuma resposta!")
 
         args = (comando_scorer, dir_entrada, self.gold_file_test, tarefa, arquivo_tmp)
 
@@ -90,28 +101,6 @@ class VlddrSemEval(object):
         return obj
 
     # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
-    def formatar_submissao(self, nome_abordagem, entrada):
-        metrica = nome_abordagem.split('.').pop()
-
-        todas_metricas = self.configs['semeval2007']['tarefas']
-        limite_respostas = int(todas_metricas['limites'][metrica])
-
-        dir_arquivo_saida = self.configs['dir_saidas_rankeador'] + '/' + nome_abordagem
-        arquivo_saida = open(dir_arquivo_saida, 'w')
-
-        separador = todas_metricas['separadores'][metrica]
-
-        for lemma in entrada:
-            for id_entrada in entrada[lemma]:
-                respostas = entrada[lemma][id_entrada][:limite_respostas]
-                args = (lemma, id_entrada, separador, ';'.join(respostas))
-                arquivo_saida.write("%s %s %s %s\n" % args)
-        
-        arquivo_saida.close()
-
-        return nome_abordagem
-
-    # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
     def formtr_submissao(self, dir_arquivo_saida, predicao, limite_resposta, separador):
         if predicao in [set(), None]:
             return
@@ -122,8 +111,6 @@ class VlddrSemEval(object):
             respostas = predicao[lexelt][:limite_resposta]
             args = (lexelt, separador, ';'.join(respostas))
             arquivo_saida.write("%s %s %s\n" % args)
-        
-        arquivo_saida.close()
 
     # Carregar o caso de entrada para gerar o ranking de sinonimos
     def carregar_caso_entrada(self, dir_arq_caso_entrada):
@@ -205,8 +192,8 @@ class VlddrSemEval(object):
                     indice += 1
 
                 saida[chave] = resposta_linha
-            except:
-                traceback.print_exc()
+            except: # Se linha está sem predição
+                pass
         
         return saida
 

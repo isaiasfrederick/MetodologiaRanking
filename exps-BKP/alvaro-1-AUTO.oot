@@ -1,0 +1,1703 @@
+mad.a 1446 ::: 
+mad.a 1447 ::: insane
+mad.a 1444 ::: wild
+mad.a 1445 ::: 
+mad.a 1442 ::: insane
+mad.a 1443 ::: 
+mad.a 1441 ::: wild
+clean.v 390 ::: repair
+mad.a 1448 ::: 
+mad.a 1449 ::: wild
+heap.n 426 ::: bundle
+heap.n 427 ::: 
+heap.n 424 ::: 
+heap.n 425 ::: mound
+heap.n 422 ::: 
+heap.n 423 ::: mound
+heap.n 421 ::: mound
+heap.n 428 ::: 
+heap.n 429 ::: 
+special.a 542 ::: exceptional
+special.a 543 ::: exceptional
+special.a 541 ::: unique
+special.a 546 ::: exceptional
+special.a 547 ::: 
+special.a 544 ::: anomalous
+special.a 545 ::: 
+bug.n 577 ::: 
+bug.n 576 ::: 
+special.a 548 ::: exceptional
+special.a 549 ::: exceptional
+bug.n 573 ::: 
+bug.n 572 ::: 
+bug.n 571 ::: 
+external.a 1330 ::: outside
+pound.n 720 ::: beat
+phone.n 692 ::: 
+phone.n 693 ::: 
+phone.n 691 ::: 
+phone.n 696 ::: 
+phone.n 697 ::: 
+phone.n 694 ::: 
+phone.n 695 ::: 
+phone.n 698 ::: 
+phone.n 699 ::: 
+skip.v 1072 ::: hop
+skip.v 1073 ::: hop
+skip.v 1071 ::: 
+skip.v 1076 ::: jump
+skip.v 1077 ::: jump
+skip.v 1074 ::: jump
+skip.v 1075 ::: 
+skip.v 1078 ::: 
+skip.v 1079 ::: jump
+strange.a 1659 ::: odd
+strange.a 1658 ::: odd
+strange.a 1655 ::: odd
+strange.a 1654 ::: odd
+strange.a 1657 ::: unusual
+strange.a 1656 ::: odd
+strange.a 1651 ::: unusual
+strange.a 1653 ::: unusual
+strange.a 1652 ::: odd
+think.v 340 ::: assume
+blow.n 1780 ::: hit
+heavy.a 640 ::: hard
+mass.n 668 ::: magnitude
+mass.n 669 ::: density
+mass.n 662 ::: volume
+mass.n 663 ::: quantity
+mass.n 661 ::: majority
+mass.n 666 ::: majority
+mass.n 667 ::: majority
+mass.n 664 ::: majority
+mass.n 665 ::: expanse
+clear.a 1241 ::: obvious
+clear.a 1243 ::: obvious
+clear.a 1242 ::: obvious
+clear.a 1245 ::: obvious
+clear.a 1244 ::: obvious
+clear.a 1247 ::: obvious
+clear.a 1246 ::: 
+clear.a 1249 ::: obvious
+clear.a 1248 ::: obvious
+mission.n 1465 ::: work
+soil.n 1630 ::: earth
+new.a 460 ::: fresh
+pass.v 1904 ::: 
+pass.v 1905 ::: hand
+pass.v 1906 ::: hand
+pass.v 1907 ::: 
+pass.v 1901 ::: 
+pass.v 1902 ::: 
+pass.v 1903 ::: 
+pass.v 1908 ::: 
+pass.v 1909 ::: 
+yet.r 1762 ::: however
+execution.n 1824 ::: implementation
+yet.r 1763 ::: still
+yet.r 1761 ::: still
+yet.r 1767 ::: still
+full.a 420 ::: entire
+yet.r 1764 ::: still
+yet.r 1765 ::: still
+steady.a 1636 ::: unbroken
+steady.a 1637 ::: regular
+steady.a 1634 ::: stable
+steady.a 1635 ::: unvarying
+steady.a 1632 ::: stable
+steady.a 1633 ::: stable
+steady.a 1631 ::: constant
+steady.a 1638 ::: uninterrupted
+steady.a 1639 ::: stable
+therefore.r 1125 ::: thus
+mad.a 1450 ::: 
+bug.n 579 ::: 
+bug.n 578 ::: 
+bug.n 575 ::: 
+bug.n 574 ::: 
+pot.n 1499 ::: saucepan
+pot.n 1498 ::: container
+time.n 795 ::: 
+pot.n 1495 ::: vessel
+pot.n 1494 ::: container
+pot.n 1497 ::: vessel
+pot.n 1496 ::: vessel
+pot.n 1491 ::: 
+pot.n 1493 ::: casserole
+pot.n 1492 ::: vessel
+really.r 508 ::: completely
+really.r 509 ::: absolutely
+really.r 504 ::: 
+really.r 505 ::: definitely
+really.r 506 ::: genuinely
+really.r 507 ::: genuinely
+really.r 501 ::: absolutely
+really.r 502 ::: 
+really.r 503 ::: 
+scrap.n 1951 ::: remainder
+fresh.a 960 ::: unprocessed
+pound.n 719 ::: 
+pound.n 718 ::: 
+pound.n 711 ::: 
+pound.n 713 ::: 
+pound.n 712 ::: 
+pound.n 715 ::: 
+pound.n 714 ::: 
+pound.n 717 ::: 
+pound.n 716 ::: 
+test.n 1699 ::: exam
+test.n 1698 ::: exam
+test.n 1691 ::: evaluation
+test.n 1693 ::: analysis
+test.n 1692 ::: exam
+test.n 1695 ::: analysis
+test.n 1694 ::: analysis
+test.n 1697 ::: analysis
+test.n 1696 ::: exam
+hold.v 1390 ::: grasp
+apparently.r 811 ::: seemingly
+apparently.r 813 ::: evidently
+apparently.r 812 ::: supposedly
+apparently.r 815 ::: evidently
+apparently.r 814 ::: supposedly
+apparently.r 817 ::: evidently
+apparently.r 816 ::: evidently
+apparently.r 819 ::: evidently
+apparently.r 818 ::: evidently
+loud.a 1438 ::: resonant
+loud.a 1439 ::: forceful
+inner.a 1408 ::: internal
+inner.a 1409 ::: inside
+inner.a 1406 ::: interior
+inner.a 1407 ::: interior
+loud.a 1436 ::: 
+loud.a 1437 ::: clear
+inner.a 1402 ::: interior
+inner.a 1403 ::: mental
+loud.a 1432 ::: resonant
+inner.a 1401 ::: internal
+time.n 792 ::: moment
+vital.a 1750 ::: essential
+light.a 991 ::: undemanding
+flat.a 1345 ::: total
+flat.a 1344 ::: 
+flat.a 1347 ::: 
+flat.a 1346 ::: 
+flat.a 1341 ::: 
+flat.a 1343 ::: 
+flat.a 1342 ::: straight
+flat.a 1349 ::: 
+flat.a 1348 ::: fixed
+thus.r 349 ::: so
+thus.r 348 ::: therefore
+thus.r 345 ::: therefore
+thus.r 344 ::: so
+thus.r 347 ::: therefore
+thus.r 346 ::: therefore
+thus.r 341 ::: so
+thus.r 343 ::: so
+thus.r 342 ::: so
+true.a 1730 ::: actual
+often.r 469 ::: frequently
+often.r 468 ::: frequently
+often.r 465 ::: occasionally
+often.r 464 ::: frequently
+often.r 467 ::: frequently
+often.r 466 ::: regularly
+often.r 461 ::: frequently
+often.r 463 ::: at times
+often.r 462 ::: frequently
+mission.n 1469 ::: 
+mission.n 1468 ::: calling
+new.a 459 ::: latest
+new.a 458 ::: extra
+new.a 457 ::: latest
+new.a 456 ::: recent
+new.a 455 ::: modern
+mission.n 1462 ::: 
+new.a 453 ::: distinct
+mission.n 1464 ::: 
+mission.n 1467 ::: 
+mission.n 1466 ::: 
+shade.n 1598 ::: tone
+shade.n 1599 ::: degree
+shade.n 1594 ::: colour
+shade.n 1595 ::: cover
+shade.n 1596 ::: cover
+shade.n 1597 ::: 
+shade.n 1591 ::: cover
+shade.n 1592 ::: degree
+shade.n 1593 ::: 
+close.n 876 ::: conclusion
+close.n 877 ::: conclusion
+close.n 874 ::: conclusion
+close.n 875 ::: conclusion
+close.n 872 ::: conclusion
+close.n 873 ::: conclusion
+close.n 871 ::: end
+profound.a 1503 ::: great
+close.n 878 ::: conclusion
+close.n 879 ::: conclusion
+strike.v 1667 ::: 
+profound.a 1504 ::: intense
+dry.a 409 ::: 
+dry.a 408 ::: 
+return.v 520 ::: earn
+dry.a 401 ::: 
+dry.a 403 ::: 
+dry.a 402 ::: 
+dry.a 405 ::: 
+dry.a 404 ::: 
+dry.a 407 ::: 
+dry.a 406 ::: 
+dismiss.v 910 ::: lay off
+paper.n 1900 ::: document
+touch.v 1140 ::: 
+job.n 440 ::: place
+really.r 510 ::: absolutely
+render.v 1560 ::: make
+hold.v 1388 ::: have
+hold.v 1389 ::: keep
+hold.v 1382 ::: lift
+hold.v 1383 ::: support
+hold.v 1381 ::: have
+hold.v 1386 ::: 
+hold.v 1387 ::: conduct
+hold.v 1384 ::: clasp
+hold.v 1385 ::: have
+call.v 1220 ::: phone
+inner.a 1410 ::: internal
+therefore.r 1121 ::: as a result
+therefore.r 1122 ::: so
+therefore.r 1123 ::: thus
+therefore.r 1124 ::: so
+clear.v 870 ::: 
+therefore.r 1126 ::: thus
+therefore.r 1127 ::: thus
+therefore.r 1128 ::: thus
+therefore.r 1129 ::: accordingly
+vital.a 1749 ::: crucial
+vital.a 1748 ::: crucial
+pulse.n 490 ::: 
+vital.a 1743 ::: crucial
+vital.a 1742 ::: requisite
+vital.a 1741 ::: crucial
+vital.a 1747 ::: crucial
+vital.a 1746 ::: crucial
+vital.a 1745 ::: crucial
+vital.a 1744 ::: crucial
+rest.n 1929 ::: 
+flat.a 1350 ::: 
+lead.n 1890 ::: 
+true.a 1721 ::: factual
+true.a 1722 ::: genuine
+true.a 1723 ::: factual
+true.a 1724 ::: factual
+true.a 1725 ::: factual
+true.a 1726 ::: factual
+true.a 1727 ::: genuine
+true.a 1728 ::: actual
+true.a 1729 ::: factual
+often.r 470 ::: frequently
+acute.a 1180 ::: severe
+time.n 800 ::: opportunity
+decline.v 1278 ::: decrease
+decline.v 1279 ::: drop
+decline.v 1274 ::: drop
+decline.v 1275 ::: drop
+decline.v 1276 ::: drop
+decline.v 1277 ::: get worse
+decline.v 1271 ::: 
+decline.v 1272 ::: drop
+decline.v 1273 ::: drop
+likewise.r 1009 ::: additionally
+likewise.r 1008 ::: the same
+get.v 1380 ::: 
+likewise.r 1002 ::: correspondingly
+likewise.r 1001 ::: 
+likewise.r 1007 ::: also
+likewise.r 1006 ::: additionally
+likewise.r 1005 ::: 
+likewise.r 1004 ::: additionally
+tap.v 1120 ::: use
+charge.v 370 ::: 
+dry.a 410 ::: 
+dismiss.v 904 ::: lay off
+dismiss.v 905 ::: 
+dismiss.v 906 ::: 
+dismiss.v 907 ::: discharge
+dismiss.v 901 ::: lay off
+dismiss.v 902 ::: 
+dismiss.v 903 ::: release
+dismiss.v 908 ::: discharge
+dismiss.v 909 ::: lay off
+put.v 499 ::: get
+put.v 498 ::: position
+put.v 495 ::: place
+put.v 494 ::: place
+put.v 497 ::: leave
+put.v 496 ::: 
+put.v 491 ::: assemble
+put.v 493 ::: position
+put.v 492 ::: lay down
+wind.v 1998 ::: 
+wind.v 1999 ::: 
+wind.v 1994 ::: 
+wind.v 1995 ::: 
+wind.v 1996 ::: 
+wind.v 1997 ::: 
+wind.v 1991 ::: 
+wind.v 1992 ::: 
+wind.v 1993 ::: 
+touch.v 1131 ::: 
+touch.v 1132 ::: 
+touch.v 1133 ::: influence
+touch.v 1134 ::: 
+touch.v 1135 ::: 
+touch.v 1136 ::: influence
+touch.v 1137 ::: 
+touch.v 1138 ::: 
+touch.v 1139 ::: 
+job.n 439 ::: work
+job.n 438 ::: position
+job.n 435 ::: task
+job.n 434 ::: duty
+job.n 437 ::: work
+job.n 436 ::: work
+job.n 431 ::: task
+job.n 433 ::: task
+job.n 432 ::: work
+account.n 1160 ::: 
+shot.n 1980 ::: inoculation
+ring.n 1949 ::: circle
+late.r 450 ::: 
+call.v 1211 ::: 
+call.v 1213 ::: 
+call.v 1212 ::: 
+call.v 1215 ::: telephone
+call.v 1214 ::: telephone
+call.v 1217 ::: 
+call.v 1216 ::: phone
+call.v 1219 ::: 
+call.v 1218 ::: phone
+clear.v 868 ::: absolve
+clear.v 869 ::: remove
+clear.v 862 ::: 
+clear.v 863 ::: 
+clear.v 861 ::: remove
+clear.v 866 ::: release
+clear.v 867 ::: remove
+clear.v 864 ::: remove
+clear.v 865 ::: 
+therefore.r 1130 ::: so
+range.n 1538 ::: 
+range.n 1539 ::: 
+range.n 1536 ::: access
+range.n 1537 ::: 
+range.n 1534 ::: 
+range.n 1535 ::: 
+range.n 1532 ::: 
+range.n 1533 ::: extent
+range.n 1531 ::: 
+pulse.n 484 ::: 
+pulse.n 485 ::: 
+pulse.n 486 ::: 
+pulse.n 487 ::: 
+pulse.n 481 ::: 
+pulse.n 482 ::: heart
+pulse.n 483 ::: 
+pulse.n 488 ::: 
+pulse.n 489 ::: 
+lead.n 1887 ::: 
+lead.n 1884 ::: 
+lead.n 1885 ::: 
+lead.n 1882 ::: 
+lead.n 1883 ::: 
+lead.n 1881 ::: 
+lead.n 1888 ::: 
+lead.n 1889 ::: 
+rhythm.n 1565 ::: beat
+rhythm.n 1564 ::: beat
+rhythm.n 1567 ::: beat
+rhythm.n 1566 ::: beat
+rhythm.n 1561 ::: beat
+rhythm.n 1563 ::: beat
+rhythm.n 1562 ::: pulse
+rhythm.n 1569 ::: beat
+rhythm.n 1568 ::: beat
+bring.v 1200 ::: take
+carry.v 1237 ::: take
+carry.v 1236 ::: perform
+carry.v 1235 ::: execute
+carry.v 1234 ::: bear
+carry.v 1233 ::: transport
+carry.v 1232 ::: bear
+tell.v 320 ::: recount
+carry.v 1239 ::: execute
+carry.v 1238 ::: take
+caravan.n 1227 ::: company
+caravan.n 1226 ::: cavalcade
+caravan.n 1225 ::: group
+caravan.n 1224 ::: 
+caravan.n 1223 ::: 
+caravan.n 1222 ::: 
+caravan.n 1221 ::: cavalcade
+likewise.r 1010 ::: also
+caravan.n 1229 ::: 
+caravan.n 1228 ::: cavalcade
+civil.a 380 ::: courteous
+charge.v 361 ::: 
+charge.v 363 ::: 
+charge.v 362 ::: 
+charge.v 365 ::: 
+charge.v 364 ::: 
+charge.v 367 ::: 
+charge.v 366 ::: 
+charge.v 369 ::: 
+charge.v 368 ::: 
+execution.n 1830 ::: implementation
+fall.v 1838 ::: 
+fall.v 1839 ::: 
+fall.v 1831 ::: 
+fall.v 1832 ::: 
+fall.v 1833 ::: take
+fall.v 1834 ::: 
+fall.v 1835 ::: 
+fall.v 1836 ::: come down
+fall.v 1837 ::: 
+open.a 1489 ::: unobstructed
+open.a 1488 ::: available
+open.a 1481 ::: available
+open.a 1483 ::: 
+open.a 1482 ::: accessible
+open.a 1485 ::: 
+open.a 1484 ::: free
+open.a 1487 ::: free
+open.a 1486 ::: 
+extended.a 1318 ::: long
+extended.a 1319 ::: lengthy
+extended.a 1311 ::: 
+extended.a 1312 ::: prolonged
+extended.a 1313 ::: long
+extended.a 1314 ::: 
+extended.a 1315 ::: lengthy
+extended.a 1316 ::: lengthy
+extended.a 1317 ::: lengthy
+cry.v 898 ::: shout
+cry.v 899 ::: bawl
+cry.v 896 ::: 
+cry.v 897 ::: 
+cry.v 894 ::: shout
+cry.v 895 ::: 
+cry.v 892 ::: shout
+cry.v 893 ::: shout
+cry.v 891 ::: bawl
+let.v 980 ::: release
+pull.v 1530 ::: stop
+thus.r 350 ::: so
+account.n 1158 ::: 
+account.n 1159 ::: 
+account.n 1151 ::: 
+account.n 1152 ::: 
+account.n 1153 ::: 
+account.n 1154 ::: 
+account.n 1155 ::: 
+account.n 1156 ::: 
+account.n 1157 ::: 
+rest.n 1921 ::: 
+fresh.a 956 ::: new
+fresh.a 957 ::: new
+fresh.a 954 ::: new
+fresh.a 955 ::: new
+fresh.a 952 ::: new
+fresh.a 953 ::: new
+fresh.a 951 ::: new
+instead.r 641 ::: as an alternative
+instead.r 643 ::: 
+instead.r 642 ::: 
+instead.r 645 ::: 
+instead.r 644 ::: 
+instead.r 647 ::: as an alternative
+instead.r 646 ::: 
+late.r 446 ::: 
+late.r 447 ::: 
+late.r 444 ::: 
+late.r 445 ::: 
+late.r 442 ::: 
+late.r 443 ::: 
+late.r 441 ::: 
+late.r 448 ::: 
+late.r 449 ::: 
+show.v 1990 ::: present
+quick.a 1050 ::: swift
+acquire.v 1166 ::: obtain
+acquire.v 1167 ::: obtain
+acquire.v 1164 ::: obtain
+acquire.v 1165 ::: obtain
+acquire.v 1162 ::: obtain
+acquire.v 1163 ::: obtain
+acquire.v 1161 ::: gain
+acquire.v 1168 ::: obtain
+acquire.v 1169 ::: procure
+figure.n 1850 ::: illustration
+forth.r 949 ::: forwards
+forth.r 948 ::: out
+forth.r 943 ::: 
+forth.r 942 ::: forwards
+forth.r 941 ::: on
+forth.r 947 ::: on
+forth.r 946 ::: out
+forth.r 945 ::: onward
+forth.r 944 ::: out
+acute.a 1178 ::: severe
+acute.a 1179 ::: critical
+acute.a 1176 ::: critical
+acute.a 1177 ::: intense
+acute.a 1174 ::: serious
+acute.a 1175 ::: severe
+acute.a 1172 ::: severe
+acute.a 1173 ::: severe
+acute.a 1171 ::: severe
+mission.n 1470 ::: 
+endure.v 1310 ::: tolerate
+rhythm.n 1570 ::: beat
+softly.r 539 ::: 
+softly.r 538 ::: indifferently
+softly.r 531 ::: 
+softly.r 533 ::: 
+softly.r 532 ::: 
+softly.r 535 ::: 
+softly.r 534 ::: 
+softly.r 537 ::: 
+softly.r 536 ::: 
+right.r 1940 ::: directly
+execution.n 1829 ::: 
+execution.n 1828 ::: 
+execution.n 1827 ::: 
+execution.n 1826 ::: discharge
+execution.n 1825 ::: running
+letter.n 1430 ::: communication
+execution.n 1823 ::: completion
+execution.n 1822 ::: carrying out
+execution.n 1821 ::: 
+open.a 1490 ::: approachable
+secret.a 1970 ::: 
+extended.a 1320 ::: lengthy
+jam.n 1880 ::: 
+strike.v 1664 ::: 
+strike.v 1665 ::: arrive at
+strike.v 1666 ::: hammer
+profound.a 1502 ::: extensive
+profound.a 1505 ::: intense
+strike.v 1661 ::: bang
+strike.v 1662 ::: take
+strike.v 1663 ::: 
+profound.a 1509 ::: thorough
+profound.a 1508 ::: significant
+strike.v 1668 ::: 
+strike.v 1669 ::: begin
+pull.v 1528 ::: 
+pull.v 1529 ::: squeeze
+pull.v 1521 ::: remove
+pull.v 1522 ::: 
+pull.v 1523 ::: stop
+pull.v 1524 ::: 
+pull.v 1525 ::: 
+pull.v 1526 ::: 
+pull.v 1527 ::: stop
+caravan.n 1230 ::: cavalcade
+solid.a 1090 ::: strong
+check.v 858 ::: test
+check.v 859 ::: confirm
+check.v 851 ::: 
+check.v 852 ::: confirm
+check.v 853 ::: 
+check.v 854 ::: inspect
+check.v 855 ::: 
+check.v 856 ::: confirm
+check.v 857 ::: inspect
+instead.r 650 ::: 
+rude.a 749 ::: unfinished
+render.v 1554 ::: make
+render.v 1555 ::: represent
+render.v 1556 ::: represent
+render.v 1557 ::: make
+render.v 1551 ::: make
+render.v 1552 ::: create
+render.v 1553 ::: 
+render.v 1558 ::: make
+render.v 1559 ::: make
+pot.n 1500 ::: 
+post.n 710 ::: crossing
+show.v 1988 ::: present
+show.v 1989 ::: give
+show.v 1984 ::: present
+show.v 1985 ::: come
+show.v 1986 ::: present
+show.v 1987 ::: display
+show.v 1981 ::: 
+show.v 1982 ::: present
+show.v 1983 ::: exhibit
+quick.a 1049 ::: hurried
+quick.a 1048 ::: speedy
+rest.n 1923 ::: 
+rest.n 1922 ::: balance
+rest.n 1925 ::: 
+rest.n 1924 ::: 
+rest.n 1927 ::: balance
+rest.n 1926 ::: 
+quick.a 1041 ::: rapid
+rest.n 1928 ::: 
+quick.a 1043 ::: swift
+quick.a 1042 ::: swift
+quick.a 1045 ::: fast
+quick.a 1044 ::: fast
+quick.a 1047 ::: fast
+quick.a 1046 ::: fast
+think.v 339 ::: assume
+think.v 338 ::: expect
+acquire.v 1170 ::: obtain
+think.v 331 ::: believe
+think.v 333 ::: believe
+think.v 332 ::: assume
+think.v 335 ::: reason
+think.v 334 ::: expect
+think.v 337 ::: reason
+think.v 336 ::: believe
+forth.r 950 ::: on
+blow.n 1772 ::: hit
+blow.n 1773 ::: knock
+blow.n 1771 ::: hit
+blow.n 1776 ::: hit
+blow.n 1777 ::: knock
+blow.n 1774 ::: knock
+blow.n 1775 ::: 
+blow.n 1778 ::: knock
+blow.n 1779 ::: hit
+informal.a 1400 ::: casual
+endure.v 1308 ::: put up with
+endure.v 1309 ::: put up with
+endure.v 1301 ::: tolerate
+endure.v 1302 ::: 
+endure.v 1303 ::: have
+endure.v 1304 ::: tolerate
+endure.v 1305 ::: tolerate
+endure.v 1306 ::: have
+endure.v 1307 ::: 
+see.v 1060 ::: witness
+decline.v 1280 ::: decrease
+forward.r 1351 ::: ahead
+letter.n 1424 ::: communication
+letter.n 1425 ::: 
+letter.n 1426 ::: 
+letter.n 1427 ::: correspondence
+letter.n 1421 ::: message
+letter.n 1422 ::: message
+letter.n 1423 ::: 
+letter.n 1428 ::: message
+letter.n 1429 ::: communication
+steady.a 1640 ::: regular
+go.v 961 ::: move
+blue.a 850 ::: 
+worldwide.a 1751 ::: international
+worldwide.a 1753 ::: international
+worldwide.a 1752 ::: international
+worldwide.a 1755 ::: international
+worldwide.a 1754 ::: international
+worldwide.a 1757 ::: international
+worldwide.a 1756 ::: international
+worldwide.a 1759 ::: international
+worldwide.a 1758 ::: international
+possibly.r 1038 ::: 
+possibly.r 1039 ::: 
+possibly.r 1032 ::: 
+possibly.r 1033 ::: 
+possibly.r 1031 ::: 
+possibly.r 1036 ::: 
+possibly.r 1037 ::: 
+possibly.r 1034 ::: at all
+possibly.r 1035 ::: at all
+paper.n 1898 ::: document
+paper.n 1899 ::: document
+paper.n 1892 ::: 
+paper.n 1893 ::: document
+paper.n 1891 ::: document
+paper.n 1896 ::: 
+paper.n 1897 ::: 
+paper.n 1894 ::: document
+paper.n 1895 ::: 
+way.n 556 ::: method
+way.n 557 ::: 
+way.n 554 ::: aspect
+way.n 555 ::: 
+way.n 552 ::: aspect
+way.n 553 ::: means
+way.n 551 ::: fashion
+profound.a 1510 ::: significant
+way.n 559 ::: method
+investigator.n 1420 ::: 
+solid.a 1089 ::: strong
+solid.a 1088 ::: strong
+solid.a 1085 ::: secure
+solid.a 1084 ::: stable
+solid.a 1087 ::: hard
+solid.a 1086 ::: sturdy
+solid.a 1081 ::: set
+solid.a 1083 ::: hard
+solid.a 1082 ::: strong
+away.r 839 ::: 
+away.r 838 ::: 
+away.r 831 ::: 
+away.r 833 ::: 
+away.r 832 ::: 
+away.r 835 ::: 
+away.r 834 ::: 
+away.r 837 ::: 
+away.r 836 ::: 
+check.v 860 ::: inspect
+truly.r 1737 ::: genuinely
+truly.r 1736 ::: genuinely
+truly.r 1735 ::: genuinely
+truly.r 1734 ::: genuinely
+truly.r 1733 ::: perfectly
+truly.r 1732 ::: perfectly
+truly.r 1731 ::: genuinely
+truly.r 1739 ::: fully
+truly.r 1738 ::: genuinely
+full.a 411 ::: complete
+strong.a 1100 ::: tough
+poor.a 1913 ::: unlucky
+poor.a 1912 ::: hapless
+poor.a 1911 ::: 
+poor.a 1917 ::: 
+poor.a 1916 ::: unlucky
+poor.a 1915 ::: 
+poor.a 1914 ::: 
+poor.a 1919 ::: 
+poor.a 1918 ::: 
+post.n 707 ::: 
+post.n 706 ::: 
+post.n 705 ::: 
+post.n 704 ::: 
+post.n 703 ::: 
+post.n 702 ::: 
+post.n 701 ::: 
+serious.a 1590 ::: important
+post.n 709 ::: situation
+heap.n 430 ::: mound
+phone.n 700 ::: 
+rest.n 1930 ::: balance
+figure.n 1848 ::: image
+figure.n 1849 ::: 
+figure.n 1846 ::: 
+figure.n 1847 ::: 
+figure.n 1844 ::: picture
+figure.n 1845 ::: 
+figure.n 1842 ::: 
+figure.n 1843 ::: 
+figure.n 1841 ::: 
+side.n 301 ::: 
+side.n 302 ::: 
+side.n 303 ::: 
+side.n 304 ::: 
+side.n 305 ::: 
+side.n 306 ::: 
+side.n 307 ::: 
+side.n 308 ::: 
+side.n 309 ::: 
+easy.a 1296 ::: 
+easy.a 1297 ::: straightforward
+easy.a 1294 ::: straightforward
+easy.a 1295 ::: straightforward
+easy.a 1292 ::: uncomplicated
+easy.a 1293 ::: 
+easy.a 1291 ::: 
+light.a 1000 ::: 
+easy.a 1299 ::: straightforward
+near.r 1479 ::: 
+come.v 888 ::: occur
+come.v 889 ::: fall
+come.v 886 ::: occur
+come.v 887 ::: occur
+come.v 884 ::: appear
+come.v 885 ::: reach
+come.v 882 ::: 
+come.v 883 ::: 
+come.v 881 ::: appear
+tell.v 319 ::: 
+tell.v 318 ::: communicate
+tell.v 317 ::: 
+tell.v 316 ::: 
+tell.v 315 ::: 
+tell.v 314 ::: 
+tell.v 313 ::: 
+tell.v 312 ::: 
+tell.v 311 ::: 
+now.r 1012 ::: immediately
+now.r 1013 ::: 
+now.r 1011 ::: 
+now.r 1016 ::: 
+now.r 1017 ::: 
+now.r 1014 ::: 
+now.r 1015 ::: 
+now.r 1018 ::: 
+now.r 1019 ::: 
+ring.n 1941 ::: band
+education.n 600 ::: teaching
+yard.n 806 ::: garden
+yard.n 807 ::: area
+yard.n 805 ::: 
+yard.n 802 ::: area
+yard.n 803 ::: 
+yard.n 801 ::: garden
+yard.n 808 ::: courtyard
+yard.n 809 ::: 
+go.v 970 ::: 
+near.r 1477 ::: 
+near.r 1476 ::: 
+near.r 1475 ::: 
+near.r 1474 ::: 
+near.r 1473 ::: 
+near.r 1472 ::: 
+near.r 1471 ::: 
+blue.a 841 ::: 
+blue.a 843 ::: 
+blue.a 842 ::: 
+blue.a 845 ::: 
+blue.a 844 ::: 
+blue.a 847 ::: 
+blue.a 846 ::: 
+way.n 560 ::: 
+jam.n 1878 ::: 
+forward.r 1360 ::: 
+close.n 880 ::: conclusion
+worthy.a 1148 ::: commendable
+work.v 2010 ::: operate
+hard.r 629 ::: firmly
+hard.r 628 ::: 
+hard.r 625 ::: closely
+hard.r 624 ::: 
+hard.r 627 ::: 
+hard.r 626 ::: 
+hard.r 621 ::: closely
+hard.r 623 ::: 
+hard.r 622 ::: firmly
+bull.n 584 ::: rubbish
+bull.n 585 ::: 
+bull.n 586 ::: 
+bull.n 587 ::: 
+yet.r 1766 ::: however
+bull.n 581 ::: 
+bull.n 582 ::: 
+bull.n 583 ::: 
+yet.r 1768 ::: in spite of that
+yet.r 1769 ::: 
+bull.n 588 ::: 
+bull.n 589 ::: 
+make.v 1460 ::: produce
+time.n 797 ::: 
+time.n 791 ::: instant
+time.n 793 ::: moment
+get.v 1379 ::: 
+get.v 1378 ::: 
+get.v 1377 ::: 
+get.v 1376 ::: 
+get.v 1375 ::: 
+get.v 1374 ::: 
+get.v 1373 ::: 
+get.v 1372 ::: 
+get.v 1371 ::: 
+serious.a 1587 ::: significant
+serious.a 1586 ::: severe
+serious.a 1585 ::: important
+serious.a 1584 ::: important
+serious.a 1583 ::: significant
+serious.a 1582 ::: 
+serious.a 1581 ::: significant
+serious.a 1589 ::: significant
+serious.a 1588 ::: significant
+drop.v 1283 ::: 
+drop.v 1282 ::: send
+drop.v 1281 ::: deliver
+drop.v 1287 ::: abandon
+drop.v 1286 ::: 
+drop.v 1285 ::: 
+drop.v 1284 ::: abandon
+drop.v 1289 ::: leave
+drop.v 1288 ::: 
+side.n 310 ::: 
+function.n 1870 ::: 
+informal.a 1399 ::: casual
+informal.a 1398 ::: casual
+informal.a 1395 ::: casual
+informal.a 1394 ::: casual
+informal.a 1397 ::: casual
+informal.a 1396 ::: casual
+informal.a 1391 ::: casual
+informal.a 1393 ::: relaxed
+informal.a 1392 ::: casual
+heavy.a 636 ::: severe
+heavy.a 637 ::: weighty
+heavy.a 634 ::: onerous
+heavy.a 635 ::: strong
+heavy.a 632 ::: severe
+heavy.a 633 ::: tough
+heavy.a 631 ::: weighty
+shed.v 530 ::: emit
+heavy.a 638 ::: difficult
+heavy.a 639 ::: 
+charge.n 1815 ::: payment
+charge.n 1814 ::: 
+charge.n 1817 ::: payment
+charge.n 1816 ::: 
+charge.n 1811 ::: 
+charge.n 1813 ::: 
+charge.n 1812 ::: 
+burst.v 1210 ::: break
+wind.n 358 ::: 
+charge.n 1819 ::: fee
+charge.n 1818 ::: 
+let.v 973 ::: allow
+coach.n 400 ::: teacher
+field.n 1339 ::: province
+field.n 1338 ::: area
+coach.n 399 ::: 
+coach.n 398 ::: 
+coach.n 395 ::: 
+coach.n 394 ::: instructor
+coach.n 397 ::: 
+coach.n 396 ::: 
+coach.n 391 ::: 
+coach.n 393 ::: instructor
+coach.n 392 ::: 
+field.n 1335 ::: region
+let.v 978 ::: release
+field.n 1334 ::: area
+good.a 620 ::: 
+wind.n 353 ::: gust
+come.v 890 ::: happen
+remainder.n 740 ::: 
+light.a 993 ::: 
+prominent.a 1520 ::: noticeable
+board.n 1782 ::: committee
+light.a 996 ::: trivial
+light.a 997 ::: 
+light.a 994 ::: 
+light.a 995 ::: casual
+yard.n 810 ::: garden
+right.r 1939 ::: directly
+right.r 1938 ::: directly
+right.r 1931 ::: straight
+right.r 1933 ::: exactly
+right.r 1932 ::: straight
+right.r 1935 ::: 
+right.r 1934 ::: straight
+right.r 1936 ::: totally
+order.v 1030 ::: direct
+go.v 969 ::: attempt
+go.v 968 ::: take
+forward.r 1352 ::: ahead
+forward.r 1353 ::: ahead
+forward.r 1354 ::: ahead
+forward.r 1355 ::: ahead
+forward.r 1356 ::: ahead
+forward.r 1357 ::: ahead
+forward.r 1358 ::: ahead
+forward.r 1359 ::: 
+go.v 963 ::: take
+go.v 962 ::: move
+go.v 965 ::: move
+go.v 964 ::: take
+go.v 967 ::: move
+go.v 966 ::: 
+work.v 2008 ::: cooperate
+work.v 2009 ::: engage
+work.v 2004 ::: labour
+work.v 2005 ::: toil
+work.v 2006 ::: engage
+work.v 2007 ::: operate
+work.v 2001 ::: engage
+work.v 2002 ::: labour
+work.v 2003 ::: engage
+cry.v 900 ::: shout
+bull.n 590 ::: rubbish
+yet.r 1770 ::: still
+worthy.a 1145 ::: admirable
+worthy.a 1144 ::: laudable
+worthy.a 1147 ::: commendable
+worthy.a 1146 ::: deserving
+worthy.a 1141 ::: laudable
+jam.n 1879 ::: 
+worthy.a 1143 ::: laudable
+worthy.a 1142 ::: deserving
+jam.n 1874 ::: 
+jam.n 1875 ::: 
+jam.n 1876 ::: 
+jam.n 1877 ::: 
+worthy.a 1149 ::: deserving
+jam.n 1871 ::: 
+jam.n 1872 ::: 
+jam.n 1873 ::: 
+closely.r 1262 ::: 
+closely.r 1263 ::: 
+closely.r 1261 ::: 
+closely.r 1266 ::: 
+closely.r 1267 ::: 
+closely.r 1264 ::: 
+closely.r 1265 ::: 
+closely.r 1268 ::: 
+closely.r 1269 ::: 
+saint.n 751 ::: 
+saint.n 752 ::: 
+saint.n 753 ::: 
+saint.n 754 ::: 
+saint.n 755 ::: 
+saint.n 756 ::: 
+saint.n 757 ::: 
+saint.n 758 ::: 
+saint.n 759 ::: 
+board.n 1788 ::: 
+board.n 1789 ::: 
+board.n 1784 ::: 
+board.n 1785 ::: 
+board.n 1786 ::: committee
+board.n 1787 ::: committee
+board.n 1781 ::: committee
+suspect.v 1680 ::: wonder about
+board.n 1783 ::: 
+drop.v 1290 ::: 
+carry.v 1231 ::: bear
+function.n 1868 ::: operation
+function.n 1869 ::: job
+function.n 1866 ::: job
+function.n 1867 ::: 
+function.n 1864 ::: job
+function.n 1865 ::: correspondence
+function.n 1862 ::: correspondence
+function.n 1863 ::: task
+function.n 1861 ::: 
+live.a 656 ::: 
+live.a 657 ::: 
+live.a 654 ::: 
+live.a 655 ::: 
+live.a 652 ::: 
+live.a 653 ::: 
+live.a 651 ::: 
+live.a 658 ::: 
+live.a 659 ::: 
+shed.v 529 ::: 
+shed.v 528 ::: 
+shed.v 527 ::: emit
+shed.v 526 ::: 
+shed.v 525 ::: 
+shed.v 524 ::: emit
+shed.v 523 ::: shine
+shed.v 522 ::: 
+shed.v 521 ::: 
+burst.v 1209 ::: rush
+burst.v 1208 ::: break
+burst.v 1203 ::: explode
+burst.v 1202 ::: deflate
+burst.v 1201 ::: rush
+burst.v 1207 ::: fracture
+burst.v 1206 ::: rush
+burst.v 1205 ::: explode
+burst.v 1204 ::: break
+change.v 1810 ::: amend
+worldwide.a 1760 ::: international
+education.n 599 ::: teaching
+education.n 598 ::: schooling
+education.n 597 ::: schooling
+education.n 596 ::: 
+education.n 595 ::: instruction
+education.n 594 ::: schooling
+education.n 593 ::: schooling
+education.n 592 ::: training
+education.n 591 ::: teaching
+strange.a 1660 ::: unusual
+prominent.a 1516 ::: 
+prominent.a 1517 ::: notable
+prominent.a 1514 ::: conspicuous
+prominent.a 1515 ::: 
+prominent.a 1512 ::: 
+prominent.a 1513 ::: 
+prominent.a 1511 ::: 
+prominent.a 1518 ::: visible
+prominent.a 1519 ::: notable
+straight.a 771 ::: honest
+straight.a 772 ::: genuine
+straight.a 775 ::: 
+straight.a 774 ::: 
+straight.a 777 ::: direct
+straight.a 776 ::: correct
+straight.a 779 ::: truthful
+straight.a 778 ::: uninterrupted
+mood.n 690 ::: mode
+only.r 480 ::: exclusively
+shortly.r 1067 ::: abruptly
+shortly.r 1064 ::: 
+shortly.r 1065 ::: abruptly
+shortly.r 1062 ::: 
+hard.r 630 ::: firmly
+shortly.r 1061 ::: immediately
+shortly.r 1068 ::: 
+shortly.r 1069 ::: abruptly
+order.v 1021 ::: put in order
+order.v 1023 ::: tell
+order.v 1022 ::: 
+order.v 1025 ::: direct
+order.v 1024 ::: sort
+investigator.n 1418 ::: 
+investigator.n 1419 ::: 
+order.v 1029 ::: sort
+investigator.n 1417 ::: 
+investigator.n 1414 ::: 
+investigator.n 1415 ::: 
+investigator.n 1412 ::: 
+investigator.n 1413 ::: 
+investigator.n 1411 ::: 
+rude.a 748 ::: rudimentary
+loud.a 1434 ::: 
+loud.a 1435 ::: resonant
+rude.a 741 ::: primitive
+rude.a 742 ::: 
+rude.a 743 ::: 
+rude.a 744 ::: rough
+rude.a 745 ::: vulgar
+rude.a 746 ::: vulgar
+rude.a 747 ::: offensive
+suspect.v 1673 ::: presume
+suspect.v 1672 ::: think
+suspect.v 1671 ::: think
+inner.a 1405 ::: internal
+suspect.v 1677 ::: think
+suspect.v 1676 ::: 
+suspect.v 1675 ::: think
+suspect.v 1674 ::: think
+tremendous.a 1715 ::: enormous
+tremendous.a 1714 ::: enormous
+suspect.v 1679 ::: imagine
+suspect.v 1678 ::: surmise
+tremendous.a 1711 ::: great
+tremendous.a 1713 ::: enormous
+loud.a 1431 ::: 
+fire.v 1859 ::: 
+fire.v 1858 ::: 
+fire.v 1857 ::: 
+fire.v 1856 ::: 
+fire.v 1855 ::: 
+loud.a 1433 ::: 
+fire.v 1853 ::: 
+fire.v 1852 ::: 
+fire.v 1851 ::: 
+worthy.a 1150 ::: deserving
+closely.r 1270 ::: 
+saint.n 760 ::: 
+scene.n 1580 ::: 
+skip.v 1080 ::: jump
+throw.v 1704 ::: demand
+throw.v 1705 ::: project
+throw.v 1706 ::: toss
+throw.v 1707 ::: hurl
+throw.v 1701 ::: hurl
+throw.v 1702 ::: toss
+throw.v 1703 ::: hurl
+throw.v 1708 ::: toss
+throw.v 1709 ::: toss
+board.n 1790 ::: group
+see.v 1059 ::: watch
+see.v 1058 ::: perceive
+see.v 1055 ::: notice
+see.v 1054 ::: notice
+see.v 1057 ::: note
+see.v 1056 ::: discover
+see.v 1051 ::: notice
+see.v 1053 ::: watch
+see.v 1052 ::: watch
+poor.a 1920 ::: wretched
+likewise.r 1003 ::: equally
+change.v 1802 ::: vary
+change.v 1803 ::: transform
+change.v 1801 ::: amend
+change.v 1806 ::: adjust
+change.v 1807 ::: alter
+change.v 1804 ::: modify
+change.v 1805 ::: modify
+change.v 1808 ::: transform
+change.v 1809 ::: adjust
+cap.n 1800 ::: 
+carry.v 1240 ::: clutch
+way.n 558 ::: 
+now.r 1020 ::: 
+below.r 1190 ::: underneath
+girl.n 608 ::: female
+girl.n 609 ::: 
+girl.n 606 ::: 
+girl.n 607 ::: female
+girl.n 604 ::: 
+girl.n 605 ::: 
+girl.n 602 ::: female
+girl.n 603 ::: female
+girl.n 601 ::: female
+mood.n 689 ::: temperament
+mood.n 688 ::: temperament
+mood.n 685 ::: frame of mind
+mood.n 684 ::: outlook
+mood.n 687 ::: outlook
+mood.n 686 ::: 
+mood.n 681 ::: humour
+mood.n 683 ::: temperament
+mood.n 682 ::: 
+draw.v 914 ::: 
+away.r 840 ::: 
+shortly.r 1070 ::: 
+wind.v 2000 ::: 
+mass.n 670 ::: 
+rude.a 750 ::: rough
+strain.n 784 ::: melody
+strain.n 785 ::: form
+strain.n 786 ::: line
+strain.n 787 ::: 
+strain.n 781 ::: 
+strain.n 782 ::: 
+strain.n 783 ::: 
+strain.n 788 ::: 
+strain.n 789 ::: 
+match.n 679 ::: association
+match.n 678 ::: 
+match.n 673 ::: 
+match.n 672 ::: correlation
+match.n 671 ::: 
+match.n 677 ::: 
+match.n 676 ::: association
+match.n 675 ::: 
+match.n 674 ::: 
+raw.a 729 ::: inexperienced
+raw.a 728 ::: untreated
+raw.a 721 ::: unprocessed
+raw.a 723 ::: unprocessed
+raw.a 722 ::: unprocessed
+raw.a 725 ::: 
+raw.a 724 ::: 
+raw.a 727 ::: basic
+raw.a 726 ::: basic
+strike.v 1670 ::: 
+terrible.a 330 ::: bad
+only.r 479 ::: just
+only.r 478 ::: just
+only.r 471 ::: just
+only.r 473 ::: just
+only.r 472 ::: just
+only.r 475 ::: uniquely
+only.r 474 ::: uniquely
+only.r 477 ::: just
+only.r 476 ::: just
+throw.v 1710 ::: toss
+easy.a 1300 ::: 
+so.r 1610 ::: approximately
+stiff.a 1648 ::: severe
+stiff.a 1649 ::: hard
+stiff.a 1646 ::: 
+stiff.a 1647 ::: firm
+stiff.a 1644 ::: tough
+stiff.a 1645 ::: 
+stiff.a 1642 ::: firm
+stiff.a 1643 ::: hard
+stiff.a 1641 ::: firm
+charge.n 1820 ::: 
+mission.n 1461 ::: 
+terrible.a 322 ::: bad
+mission.n 1463 ::: 
+ring.n 1947 ::: band
+ring.n 1946 ::: 
+ring.n 1945 ::: 
+ring.n 1944 ::: group
+ring.n 1943 ::: band
+ring.n 1942 ::: band
+scene.n 1579 ::: 
+scene.n 1578 ::: 
+scene.n 1577 ::: area
+scene.n 1576 ::: environment
+scene.n 1575 ::: 
+scene.n 1574 ::: 
+scene.n 1573 ::: 
+scene.n 1572 ::: 
+scene.n 1571 ::: stage
+new.a 452 ::: further
+new.a 451 ::: recent
+suffer.v 1110 ::: experience
+good.a 613 ::: significant
+good.a 612 ::: 
+good.a 611 ::: reasonable
+time.n 796 ::: moment
+good.a 617 ::: considerable
+good.a 616 ::: 
+good.a 615 ::: 
+good.a 614 ::: 
+good.a 619 ::: competent
+good.a 618 ::: 
+time.n 799 ::: occasion
+time.n 798 ::: chance
+tender.a 1689 ::: loving
+tender.a 1688 ::: delicate
+tender.a 1687 ::: delicate
+tender.a 1686 ::: soft
+tender.a 1685 ::: delicate
+tender.a 1684 ::: soft
+tender.a 1683 ::: delicate
+tender.a 1682 ::: delicate
+tender.a 1681 ::: delicate
+remainder.n 731 ::: 
+remainder.n 732 ::: 
+remainder.n 733 ::: 
+remainder.n 734 ::: 
+remainder.n 735 ::: 
+remainder.n 736 ::: 
+remainder.n 737 ::: 
+remainder.n 738 ::: 
+remainder.n 739 ::: 
+field.n 1337 ::: 
+field.n 1336 ::: area
+field.n 1331 ::: area
+field.n 1333 ::: area
+field.n 1332 ::: area
+light.a 992 ::: 
+entirely.r 931 ::: altogether
+entirely.r 932 ::: totally
+entirely.r 933 ::: totally
+entirely.r 934 ::: totally
+entirely.r 935 ::: totally
+entirely.r 936 ::: totally
+entirely.r 937 ::: totally
+entirely.r 938 ::: totally
+entirely.r 939 ::: totally
+light.a 998 ::: 
+light.a 999 ::: 
+below.r 1183 ::: underneath
+below.r 1182 ::: underneath
+below.r 1181 ::: underneath
+below.r 1187 ::: underneath
+below.r 1186 ::: underneath
+below.r 1185 ::: underneath
+below.r 1184 ::: lower down
+below.r 1189 ::: underneath
+below.r 1188 ::: underneath
+girl.n 610 ::: female
+match.n 680 ::: association
+draw.v 918 ::: haul
+draw.v 919 ::: withdraw
+strain.n 790 ::: form
+draw.v 912 ::: pull
+draw.v 913 ::: 
+draw.v 911 ::: attract
+draw.v 916 ::: 
+draw.v 917 ::: make
+bug.n 580 ::: 
+draw.v 915 ::: 
+still.a 769 ::: stationary
+still.a 768 ::: peaceful
+still.a 763 ::: calm
+still.a 762 ::: calm
+still.a 761 ::: calm
+still.a 767 ::: windless
+still.a 766 ::: peaceful
+still.a 765 ::: unmoving
+still.a 764 ::: tranquil
+raw.a 730 ::: rudimentary
+terrible.a 329 ::: bad
+terrible.a 328 ::: awful
+terrible.a 325 ::: dreadful
+terrible.a 324 ::: dreadful
+terrible.a 327 ::: dreadful
+terrible.a 326 ::: dreadful
+terrible.a 321 ::: horrible
+terrible.a 323 ::: awful
+put.v 500 ::: set
+instead.r 649 ::: 
+instead.r 648 ::: 
+new.a 454 ::: fresh
+earlier.r 930 ::: 
+test.n 1700 ::: exam
+fresh.a 958 ::: new
+truly.r 1740 ::: genuinely
+fresh.a 959 ::: new
+so.r 1602 ::: 
+so.r 1603 ::: 
+so.r 1601 ::: 
+so.r 1606 ::: 
+so.r 1607 ::: 
+so.r 1604 ::: 
+so.r 1605 ::: 
+stiff.a 1650 ::: powerful
+so.r 1608 ::: 
+so.r 1609 ::: 
+shortly.r 1066 ::: 
+live.a 660 ::: 
+shortly.r 1063 ::: abruptly
+bring.v 1191 ::: draw
+bring.v 1193 ::: institute
+bring.v 1192 ::: convey
+bring.v 1195 ::: take
+bring.v 1194 ::: institute
+bring.v 1197 ::: get
+bring.v 1196 ::: draw
+bring.v 1199 ::: carry
+bring.v 1198 ::: 
+ring.n 1950 ::: circle
+suffer.v 1108 ::: experience
+suffer.v 1109 ::: experience
+suffer.v 1101 ::: experience
+suffer.v 1102 ::: experience
+suffer.v 1103 ::: experience
+suffer.v 1104 ::: endure
+suffer.v 1105 ::: experience
+suffer.v 1106 ::: experience
+suffer.v 1107 ::: endure
+close.r 1260 ::: 
+make.v 1455 ::: give rise to
+make.v 1454 ::: produce
+make.v 1457 ::: construct
+make.v 1456 ::: generate
+make.v 1451 ::: construct
+make.v 1453 ::: 
+make.v 1452 ::: cause
+make.v 1459 ::: 
+make.v 1458 ::: 
+order.v 1027 ::: sort
+tender.a 1690 ::: soft
+order.v 1026 ::: manage
+investigator.n 1416 ::: 
+order.v 1028 ::: tell
+field.n 1340 ::: subject
+scrap.n 1958 ::: 
+scrap.n 1959 ::: bit
+ring.n 1948 ::: circle
+fall.v 1840 ::: 
+scrap.n 1952 ::: shred
+scrap.n 1953 ::: fragment
+scrap.n 1954 ::: piece
+scrap.n 1955 ::: fragment
+scrap.n 1956 ::: piece
+scrap.n 1957 ::: 
+softly.r 540 ::: 
+tremendous.a 1719 ::: enormous
+tremendous.a 1718 ::: enormous
+scrap.n 1960 ::: 
+tremendous.a 1717 ::: enormous
+tremendous.a 1716 ::: enormous
+wind.n 360 ::: gust
+tremendous.a 1720 ::: huge
+fire.v 1860 ::: 
+still.a 770 ::: unmoving
+tremendous.a 1712 ::: enormous
+strong.a 1093 ::: powerful
+strong.a 1092 ::: powerful
+strong.a 1091 ::: vigorous
+strong.a 1097 ::: powerful
+strong.a 1096 ::: firm
+strong.a 1095 ::: powerful
+strong.a 1094 ::: firm
+strong.a 1099 ::: robust
+strong.a 1098 ::: firm
+soft.a 1611 ::: 
+soft.a 1612 ::: 
+soft.a 1613 ::: 
+soft.a 1614 ::: yielding
+soft.a 1615 ::: cushioned
+soft.a 1616 ::: 
+soft.a 1617 ::: 
+soft.a 1618 ::: 
+soft.a 1619 ::: 
+fire.v 1854 ::: 
+fundamental.a 1362 ::: primary
+fundamental.a 1363 ::: elementary
+fundamental.a 1361 ::: elemental
+fundamental.a 1366 ::: elemental
+fundamental.a 1367 ::: basic
+fundamental.a 1364 ::: elemental
+fundamental.a 1365 ::: elementary
+fundamental.a 1368 ::: elemental
+fundamental.a 1369 ::: elemental
+earlier.r 928 ::: 
+earlier.r 929 ::: 
+earlier.r 922 ::: 
+earlier.r 923 ::: 
+earlier.r 921 ::: 
+earlier.r 926 ::: 
+earlier.r 927 ::: 
+earlier.r 924 ::: 
+earlier.r 925 ::: 
+rather.r 1549 ::: quite
+rather.r 1548 ::: 
+rather.r 1541 ::: 
+rather.r 1543 ::: 
+rather.r 1542 ::: 
+rather.r 1545 ::: 
+rather.r 1544 ::: 
+rather.r 1547 ::: fairly
+rather.r 1546 ::: 
+about.r 569 ::: here and there
+about.r 568 ::: 
+about.r 566 ::: approximately
+about.r 565 ::: 
+about.r 564 ::: approximately
+about.r 563 ::: 
+about.r 562 ::: approximately
+about.r 561 ::: 
+range.n 1540 ::: 
+shot.n 1974 ::: 
+shot.n 1975 ::: 
+shot.n 1976 ::: 
+shot.n 1977 ::: 
+shot.n 1971 ::: 
+shot.n 1972 ::: 
+shot.n 1973 ::: 
+shot.n 1978 ::: 
+shot.n 1979 ::: 
+close.r 1252 ::: 
+close.r 1253 ::: 
+close.r 1251 ::: 
+close.r 1256 ::: 
+close.r 1257 ::: almost
+close.r 1254 ::: 
+close.r 1255 ::: 
+close.r 1258 ::: 
+close.r 1259 ::: 
+post.n 708 ::: 
+profound.a 1501 ::: 
+loud.a 1440 ::: 
+apparently.r 820 ::: evidently
+civil.a 379 ::: public
+civil.a 378 ::: community
+civil.a 377 ::: well mannered
+civil.a 376 ::: general
+civil.a 375 ::: 
+civil.a 374 ::: courteous
+civil.a 373 ::: civic
+civil.a 372 ::: civic
+civil.a 371 ::: civic
+liberal.a 990 ::: tolerant
+possibly.r 1040 ::: 
+profound.a 1507 ::: intellectual
+blue.a 849 ::: 
+blue.a 848 ::: 
+around.r 830 ::: 
+profound.a 1506 ::: extensive
+let.v 976 ::: allow
+let.v 977 ::: release
+let.v 974 ::: allow
+let.v 975 ::: 
+let.v 972 ::: allow
+wind.n 359 ::: gust
+let.v 971 ::: allow
+wind.n 354 ::: blast
+wind.n 355 ::: 
+wind.n 356 ::: 
+wind.n 357 ::: gust
+wind.n 351 ::: 
+wind.n 352 ::: 
+let.v 979 ::: 
+return.v 518 ::: 
+return.v 519 ::: produce
+return.v 514 ::: 
+return.v 515 ::: 
+return.v 516 ::: 
+return.v 517 ::: 
+return.v 511 ::: 
+return.v 512 ::: 
+return.v 513 ::: 
+soft.a 1620 ::: cushioned
+near.r 1478 ::: 
+clean.v 389 ::: 
+clean.v 388 ::: 
+clean.v 383 ::: mend
+clean.v 382 ::: 
+clean.v 381 ::: 
+clean.v 387 ::: 
+clean.v 386 ::: 
+clean.v 385 ::: restore
+clean.v 384 ::: remove
+fundamental.a 1370 ::: elementary
+special.a 550 ::: exceptional
+external.a 1323 ::: outer
+external.a 1322 ::: outside
+external.a 1321 ::: outside
+external.a 1327 ::: exterior
+external.a 1326 ::: outside
+external.a 1325 ::: outside
+external.a 1324 ::: outside
+external.a 1329 ::: exterior
+external.a 1328 ::: exterior
+rather.r 1550 ::: 
+about.r 570 ::: 
+cap.n 1791 ::: 
+cap.n 1793 ::: 
+cap.n 1792 ::: 
+cap.n 1795 ::: 
+cap.n 1794 ::: 
+cap.n 1797 ::: 
+cap.n 1796 ::: 
+cap.n 1799 ::: 
+cap.n 1798 ::: 
+secret.a 1961 ::: 
+secret.a 1962 ::: 
+secret.a 1963 ::: 
+secret.a 1964 ::: 
+secret.a 1965 ::: 
+secret.a 1966 ::: 
+secret.a 1967 ::: 
+secret.a 1968 ::: 
+secret.a 1969 ::: 
+straight.a 780 ::: direct
+liberal.a 981 ::: 
+liberal.a 982 ::: 
+liberal.a 983 ::: 
+liberal.a 984 ::: 
+liberal.a 985 ::: 
+liberal.a 986 ::: social
+liberal.a 987 ::: tolerant
+liberal.a 988 ::: 
+liberal.a 989 ::: 
+clear.a 1250 ::: distinct
+soil.n 1627 ::: earth
+soil.n 1626 ::: dirt
+soil.n 1625 ::: earth
+soil.n 1624 ::: dirt
+soil.n 1623 ::: dirt
+soil.n 1622 ::: dirt
+soil.n 1621 ::: earth
+entirely.r 940 ::: totally
+soil.n 1629 ::: earth
+soil.n 1628 ::: earth
+pass.v 1910 ::: experience
+inner.a 1404 ::: internal
+around.r 829 ::: 
+around.r 828 ::: approximately
+around.r 821 ::: 
+around.r 823 ::: 
+around.r 822 ::: 
+around.r 825 ::: 
+around.r 824 ::: 
+around.r 827 ::: here and there
+around.r 826 ::: approximately
+tap.v 1118 ::: use
+tap.v 1119 ::: 
+tap.v 1112 ::: take advantage of
+tap.v 1113 ::: 
+near.r 1480 ::: 
+tap.v 1111 ::: 
+tap.v 1116 ::: 
+tap.v 1117 ::: 
+tap.v 1114 ::: use
+tap.v 1115 ::: draw on
+draw.v 920 ::: play
+full.a 419 ::: whole
+full.a 418 ::: 
+full.a 415 ::: total
+full.a 414 ::: complete
+full.a 417 ::: complete
+full.a 416 ::: complete
+shade.n 1600 ::: 
+full.a 413 ::: entire
+full.a 412 ::: 

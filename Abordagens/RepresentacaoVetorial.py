@@ -12,7 +12,7 @@ import re
 wn = wordnet
 
 # Esta classe trabalha com WordEmbbedings para realizar a tarefa de prediçao de sinonimos
-class RepVetorial(object):
+class RepresentacaoVetorial(object):
     def __init__(self, configs):
         self.modelo = None
         self.configs = configs

@@ -24,7 +24,7 @@ class DesambiguadorUnificado(object):
     def obter_assinatura_definicao_casada(self, configs, lema, pos, synset_lema):
         assinatura = [ ]
 
-        if len(pos) == 1:
+        if pos.__len__() == 1:
             pos = Util.cvrsr_pos_wn_oxford(pos)
 
         casador_conceitos = CasadorConceitos(configs, self.base_ox)

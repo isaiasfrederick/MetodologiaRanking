@@ -1,15 +1,6 @@
 #! coding: utf-8
 from Utilitarios import Util
 
-
-#!/usr/bin/env python -*- coding: utf-8 -*-
-#
-# Python Word Sense Disambiguation (pyWSD)
-#
-# Copyright (C) 2014-2017 alvations
-# URL:
-# For license information, see LICENSE.md
-
 import os
 import re
 import string
@@ -54,27 +45,6 @@ class DesWordnet(object):
                     stop=True, context_is_lemmatized=False, \
                     nbest=False):
 
-        if self.usar_cache:
-            vars_locais = dict(locals())
-
-            del vars_locais['self']
-            del vars_locais['ambiguous_word']
-
-            vars_locais = [",".join((str(k),str(v))) for k, v in vars_locais.iteritems()]
-            chave_vars_locais = "::".join(vars_locais)
-
-            dir_completo_obj = self.dir_cache+"/"+ ambiguous_word+".json"
-
-            if ambiguous_word+'.json' in os.listdir(self.dir_cache):
-                obj_cache = Util.abrir_json(dir_completo_obj)
-            else:
-                obj_cache = Util.abrir_json(dir_completo_obj, criar=True)
-
-            if chave_vars_locais in obj_cache:
-                # Converter as bagacas aqui
-                raw_input("@@@\t entrei neste trecho!!")
-                return obj_cache[chave_vars_locais]
-
         #res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, \
         #            pos=pos, lemma=lemma, stem=stem, hyperhypo=hyperhypo, \
         #            stop=stop, context_is_lemmatized=context_is_lemmatized, \
@@ -84,13 +54,6 @@ class DesWordnet(object):
             pos = Util.conversor_pos_semeval_wn(pos)
 
         res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, pos=pos, nbest=True)
-
-        if self.usar_cache:
-            print((ambiguous_word, context_sentence))
-            print("\nEstou nesse trecho:\n")
-            raw_input(res_des)
-            obj_cache[chave_vars_locais] = [ ]  # <<<<<<<<<<<<<<<<<<<<<<<
-            Util.salvar_json(dir_completo_obj, obj_cache)
 
         return res_des
 
