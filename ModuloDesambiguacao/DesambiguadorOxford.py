@@ -51,48 +51,54 @@ class DesOx(object):
 
         return assinatura
 
+    # "lematizar,True::nbest,True::stop,True::ctx,frase.::pos,r::usar_ontologia,False::stem,True::usar_exemplos,True::busca_ampla,False"
+    def gerar_chave_cache(self, vars_locais):
+        vars_locais = [",".join((str(k),str(v))) for k, v in vars_locais.iteritems()]
+        return "::".join(vars_locais)
+
     """ Metodo Cosseno feito para o dicionario de Oxford """
-    def cosine_lesk(self, ctx, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usar_exemplos=False, busca_ampla=False):
+    def cosine_lesk(self, ctx, ambigua, pos, nbest=True, lematizar=True, stem=True, stop=True, usar_ontologia=False, usr_ex=False, busca_ampla=False):
         if self.usar_cache:
             vars_locais = dict(locals())
 
-            del vars_locais['self']
-            del vars_locais['ambigua']
+            del vars_locais['self']; del vars_locais['ambigua']
 
-            vars_locais = [",".join((str(k),str(v))) for k, v in vars_locais.iteritems()]
-            chave_vars_locais = "::".join(vars_locais)
-
-            dir_completo_obj = self.dir_cache+"/"+ ambigua+".json"
+            chave_vars = self.gerar_chave_cache(vars_locais)
+            dir_completo_obj = self.dir_cache+"/"+ambigua+".json"
 
             if ambigua+'.json' in os.listdir(self.dir_cache):
                 obj_cache = Util.abrir_json(dir_completo_obj)
             else:
                 obj_cache = Util.abrir_json(dir_completo_obj, criar=True)
 
-            if chave_vars_locais in obj_cache:
-                return obj_cache[chave_vars_locais]
+            if chave_vars in obj_cache:
+                return obj_cache[chave_vars]
 
         if len(pos) == 1:
             pos = Util.cvrsr_pos_wn_oxford(pos)
 
-        assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usar_exemplos)
-        assinaturas = [a for a in assinaturas if pos == a[0].split('.')[1]]
+        todas_assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usr_ex)
+        todas_assinaturas = [assinatura for assinatura in todas_assinaturas if pos == assinatura[0].split('.')[1]]
 
         # Tirando palavras de tamanho 1
-        ctx = [p for p in word_tokenize(ctx.lower()) if len(p) > 1]
+        ctx = [p for p in word_tokenize(ctx.lower()) if len(p)>1]
         ctx = Util.processar_ctx(ctx, stop=stop, lematizar=lematizar, stem=stem)
 
         pontuacao = [ ]
 
-        for a in assinaturas:
-            ass_definicao = Util.processar_ctx(a[3], stop=stop, lematizar=lematizar, stem=stem)
-            registro_definicao = a[:3]
-            pontuacao.append((cos_sim(" ".join(ctx), " ".join(ass_definicao)), registro_definicao))
+        for assinatura in todas_assinaturas:
+            ass_definicao = Util.processar_ctx(assinatura[3], stop=stop, lematizar=lematizar, stem=stem)
+
+            label_def, desc_def, frase_def, ass_def = assinatura
+            reg_def = (label_def, desc_def, frase_def)
+            
+            distancia_cosseno = cos_sim(" ".join(ctx), " ".join(ass_definicao))
+            pontuacao.append((distancia_cosseno, reg_def))
 
         res_des = [(s, p) for p, s in sorted(pontuacao, reverse=True)]
 
         if self.usar_cache:
-            obj_cache[chave_vars_locais] = res_des
+            obj_cache[chave_vars] = res_des
             Util.salvar_json(dir_completo_obj, obj_cache)
 
         return res_des
@@ -109,32 +115,32 @@ class DesOx(object):
         assinaturas_significados = [ ]  #(nome, definicao, exemplos)
 
         for pos in resultado.keys():
-            significados = resultado[pos].keys()
+            todos_significados = resultado[pos].keys()
 
             indice = 1
-            for s in significados:
+            for sig in todos_significados:
                 nome_sig = "%s.%s.%d" % (lema, pos, indice)
                 indice += 1
 
                 if usar_exemplos:
-                    exemplos = resultado[pos][s]['exemplos']
+                    exemplos = resultado[pos][sig]['exemplos']
                 else:
                     exemplos = [ ]
 
                 # nome, definicao, exemplos, assinatura
-                definicao_corrente = [nome_sig, s, exemplos, [ ]]
+                definicao_corrente = [nome_sig, sig, exemplos, [ ]]
                 assinaturas_significados.append(definicao_corrente)
 
                 # Colocando exemplos na assinatura
-                definicao_corrente[len(definicao_corrente)-1] += self.assinatura_significado_aux(lema, pos, s, exemplos)
+                definicao_corrente[len(definicao_corrente)-1] += self.assinatura_significado_aux(lema, pos, sig, exemplos)
         
-                sig_secundarios = resultado[pos][s]['def_secs']
+                sig_secundarios = resultado[pos][sig]['def_secs']
 
                 for ss in sig_secundarios:
                     nome_sig_sec = "%s.%s.%d" % (lema, pos, indice)
 
                     if usar_exemplos:
-                        exemplos_secundarios = resultado[pos][s]['def_secs'][ss]['exemplos']
+                        exemplos_secundarios = resultado[pos][sig]['def_secs'][ss]['exemplos']
                     else:
                         exemplos_secundarios = [ ]
 
@@ -145,8 +151,8 @@ class DesOx(object):
 
                     indice += 1
 
-        for s in assinaturas_significados:
-            s[3] = Util.processar_ctx(s[3], stop=True, lematizar=True, stem=True)
+        for sig in assinaturas_significados:
+            sig[3] = Util.processar_ctx(sig[3], stop=True, lematizar=True, stem=True)
 
         return [tuple(a) for a in assinaturas_significados]
 
@@ -204,7 +210,7 @@ class DesOx(object):
         obter_sinonimos_oxford = self.base_ox.obter_sinonimos_fonte_obj_unificado
 
         try:
-            resultado = self.cosine_lesk(ctx, palavra, pos, usar_exemplos=usar_exemplos, busca_ampla=busca_ampla)
+            resultado = self.cosine_lesk(ctx, palavra, pos, usr_ex=usar_exemplos, busca_ampla=busca_ampla)
         except Exception, e:
             resultado = [ ]
 

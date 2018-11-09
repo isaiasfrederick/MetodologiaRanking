@@ -27,11 +27,11 @@ class DesWordnet(object):
         self.dir_cache = configs['wordnet']['cache']['desambiguador']
 
 	# Converte o resultado da desambiguacao 
-    def converter_resultado(self, res_desambiguacao_wn):
+    def converter_resultado(self, res_desambiguacao_wn, ambiguous_word):
         res_desambiguacao = [ ]
 
         for reg in res_desambiguacao_wn:
-            rnome = reg[0].name()
+            rnome = reg[0].name()+";"+ambiguous_word
             rdefinicao = reg[0].definition()
             rfrases = reg[0].examples()
             pt = reg[1]
@@ -43,19 +43,22 @@ class DesWordnet(object):
     def cosine_lesk(self, context_sentence, ambiguous_word, \
                     pos=None, lemma=True, stem=True, hyperhypo=True, \
                     stop=True, context_is_lemmatized=False, \
-                    nbest=False):
+                    nbest=False, remove_ambiguous_word=True, convert=True):
 
-        #res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, \
-        #            pos=pos, lemma=lemma, stem=stem, hyperhypo=hyperhypo, \
-        #            stop=stop, context_is_lemmatized=context_is_lemmatized, \
-        #            nbest=nbest)
+        if remove_ambiguous_word:
+            context_sentence = context_sentence.replace(ambiguous_word, "")
 
         if pos:
-            pos = Util.conversor_pos_semeval_wn(pos)
+            pos = Util.cvsr_pos_semeval_wn(pos)
 
         res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, pos=pos, nbest=True)
 
-        return res_des
+		# Converte para o padrao:
+		# [[u'clean.Verb.1', u'Make clean; remove dirt, marks, or stains from.', []], 0.1]
+        if convert:
+            return self.converter_resultado(res_des, ambiguous_word)
+        else:
+            return res_des
 
     def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
         return isaias_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)

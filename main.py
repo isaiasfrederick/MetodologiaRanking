@@ -29,37 +29,6 @@ from CasadorManual import CasadorManual
 
 wn = wordnet
 
-def desambiguar_word_embbedings(configs, ctx, palavra):
-    rep_vetorial = RepresentacaoVetorial(configs)
-    rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
-
-    p = ctx.split(" ")
-
-    palavras_correlatas = rep_vetorial.obter_palavras_relacionadas(positivos=[palavra], negativos=[ ], topn=60)
-    palavras_correlatas_ctx = rep_vetorial.obter_palavras_relacionadas(positivos=p, negativos=[ ], topn=60)
-    palavras_correlatas_ctx = [ ]
-
-    for reg in palavras_correlatas:
-        print("\t- " + str(reg))
-    print("\n_______________________________________________________\n")
-    for reg in palavras_correlatas_ctx:
-        print("\t- " + str(reg))
-
-    print("\n")
-
-
-def criar_vetores_wordnet(configs):
-    rep_vetorial = RepresentacaoVetorial(configs)
-    rep_vetorial.carregar_modelo(configs['modelos']['word2vec-default'])
-
-    while raw_input("\nContinuar? S/n: ").lower() != 'n':
-        p = raw_input("Positivas: ").split(",")
-        n = raw_input("Negativas: ").split(",")
-
-        res = rep_vetorial.obter_palavras_relacionadas(positivos=p, negativos=None, topn= 40)
-
-        print([e[0] for e in res])
-
     
 def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte='wordnet'):
     base_ox = BaseOx(configs)
@@ -167,9 +136,7 @@ def medir_seletor_candidatos(configs):
             nova_chave = "%s %s" % (lexema, registro['codigo'])
             casos_testes_dict[nova_chave] = [frase, palavra, pos]
 
-    casos_testes_list = [ ]
-    gabarito_list = [ ]
-    lexemas_list = [ ]
+    casos_testes_list, gabarito_list, lexemas_list = [ ], [ ], [ ]
 
     resultados_persistiveis = [ ]
 
@@ -215,9 +182,9 @@ def medir_seletor_candidatos(configs):
             candidatos_selecionados_alvaro = list()
 
             if usar_sinonimos_wordnet == True:
-                candidatos_selecionados_alvaro += alvaro.selecionar_candidatos(palavra, pos, fontes=['wordnet'])
+                candidatos_selecionados_alvaro += alvaro.selec_candidatos(palavra, pos, fontes=['wordnet'])
             if usar_sinonimos_oxford == True:
-                candidatos_selecionados_alvaro += alvaro.selecionar_candidatos(palavra, pos, fontes=['oxford'])
+                candidatos_selecionados_alvaro += alvaro.selec_candidatos(palavra, pos, fontes=['oxford'])
             if usar_sinonimos_word_embbedings == True:
                 palavras_relacionadas = rep_vet.obter_palavras_relacionadas(positivos=[palavra], topn=max_resultados)
                 palavras_relacionadas = [p[0] for p in palavras_relacionadas]
@@ -269,7 +236,6 @@ def medir_seletor_candidatos(configs):
     print("\n\nTotal com resposta: " + str(total_com_resposta))
     print("\nTotal sem resposta: " + str(total_sem_resposta))
 
-
 def carregar_bases(configs, tipo_base):
     casos_testes = gabarito = None
     validador = VlddrSemEval(configs)
@@ -310,15 +276,41 @@ def carregar_bases(configs, tipo_base):
 
     return casos_testes_dict, gabarito_dict
 
-# Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
-# Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
-#   criterio = frequencia OU alvaro OU embbedings
-def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tp=None, max_ex=-1):
+def avaliar_desambiguador(cfgs, fonte='oxford'):
     casador_manual = CasadorManual(cfgs)
     base_ox = BaseOx(cfgs)
     alvaro = AbordagemAlvaro(cfgs, base_ox, casador_manual)
 
-    if max_ex == -1: max_ex = sys.maxint
+    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, "test")
+
+    contador_instancias_validas = 0
+    contador_instancias_invalidas = 0
+
+    for lexelt in set(casos_testes_dict.keys())&set(gabarito_dict.keys()):
+        frase, palavra, pos = casos_testes_dict[lexelt]
+        frase = Util.descontrair(frase).replace("  ", " ")
+        palavra = lexelt.split(".")[0]
+
+        if fonte=='oxford':
+            des_ox = DesOx(cfgs, base_ox)
+            res_des = des_ox.cosine_lesk(frase, palavra, pos, nbest=True, usr_ex=True)
+            contador_instancias_validas+=int(bool(sum([reg[1] for reg in res_des])))
+        elif fonte=='wordnet':
+            des_wn = DesWordnet(cfgs)
+            contador_instancias_validas+=int(bool(sum([reg[1] for reg in des_wn.cosine_lesk(frase, palavra, pos, nbest=True)])))
+        print("\n\nRESULTADO: " + str(contador_instancias_validas))
+
+# Este metodo usa a abordagem do Alvaro sobre as bases do SemEval
+# Ela constroi uma relacao (score) entre diferentes definicoes, possivelmente sinonimos
+#   criterio = frequencia OU alvaro OU embbedings
+def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1,
+        fontes_def='oxford', tipo=None, max_ex=-1, usr_ex=False, aceitar_nulos=False):
+    casador_manual = CasadorManual(cfgs)
+    base_ox = BaseOx(cfgs)
+    alvaro = AbordagemAlvaro(cfgs, base_ox, casador_manual)
+
+    if max_ex == -1:
+        max_ex = sys.maxint
 
     separador = "###"
 
@@ -328,9 +320,8 @@ def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fo
     # Fonte para selecionar as definicoes e fonte para selecionar os candidatos
     # fontes_def, fontes_cands = raw_input("Digite a fonte para definicoes: "), ['oxford', 'wordnet']
     fontes_def, fontes_cands = fontes_def, ['oxford', 'wordnet']
-    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tp)
+    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tipo)
 
-    # TODOS CASOS DE ENTRADA
     if indice == -1:
         casos_testes_dict_tmp = list(casos_testes_dict.keys())    
     else: # SO O CASO DE ENTRADA INFORMADO
@@ -349,14 +340,17 @@ def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fo
         if usar_gabarito == True:
             cands = [e[0] for e in gabarito_dict[lexelt] if not Util.e_multipalavra(e[0])]
         else:
-            cands = alvaro.selecionar_candidatos(palavra, pos, fontes=fontes_cands)
+            cands = alvaro.selec_candidatos(palavra, pos, fontes=fontes_cands)
             cands = [p for p in cands if p.istitle() == False]
 
         cands = [p for p in cands if not Util.e_multipalavra(p)]
 
         print("Processando a entrada " + str(lexelt))
-        print("%d / %d\n" % (cont+1, len(list(set(casos_testes_dict_tmp) & set(gabarito_dict.keys())))))
-        cont += 1
+        print("%d / %d\n" % (cont+1, len(list(set(casos_testes_dict_tmp)&set(gabarito_dict.keys())))))
+
+        #criterio='frequencia', usar_gabarito=True, indice=-1, fontes_def='oxford', tp=None, max_ex=-1, usr_ex=False
+        #args_msg = (criterio, usar_gabarito, indice, str(fontes_def), max_ex, usr_ex)
+        #print("Criterio=%s, Usar gabarito=%s, Indice=%d, Fontes Def=%s, MaxExemplos=%d, UsarExemplos=%s" % args_msg)
 
         if criterio == 'embbedings':
             rep_vet = RepresentacaoVetorial(cfgs)
@@ -379,95 +373,115 @@ def predizer_sins(cfgs, criterio='frequencia', usar_gabarito=True, indice=-1, fo
             res_predicao = [reg[0] for reg in sorted(cands_ponts, key=lambda x:x[1], reverse=True)]
             predicao_final[lexelt] = res_predicao
 
-            gabs = sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)
-
-            try:
-                if gabs[0][0] == res_predicao[0]: certos += 1
-                else: errados += 1
-            except: pass
-
         elif criterio == 'alvaro':
-            res_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def, fontes_cands=fontes_cands, cands=cands, max_ex=max_ex)
-            res_sinonimia.reverse()
-
             if fontes_def == 'oxford':
                 des_ox = DesOx(cfgs, base_ox)
-                res_desambiguacao = des_ox.cosine_lesk(frase, palavra, pos, usar_exemplos=False)
+                res_desambiguacao = des_ox.cosine_lesk(frase, palavra, pos, usr_ex=usr_ex)
+                # [[u'clean.Verb.1', u'Make clean; remove dirt, marks, or stains from.', []], 0.11]
             elif fontes_def == 'wordnet':
-                des_wn = DesWordnet(configs)
-                res_desambiguacao = des_wn.cosine_lesk(frase, palavra, pos=pos, nbest=True)
-                res_desambiguacao = des_wn.converter_resultado(res_desambiguacao_wn)
+                des_wn = DesWordnet(cfgs)
+                # [[u'huffy.s.02', u'roused to anger', []], 0.0]
+                res_desambiguacao = des_wn.cosine_lesk(frase, palavra, pos=pos, nbest=True)                
 
-            res_agregado = dict()
+            # Se o desambiguador consegue predizer o significado da palavra
+            if sum([reg_des[1] for reg_des in res_desambiguacao]) > 0.00 or aceitar_nulos:
+                rel_sinonimia = alvaro.iniciar(palavra, pos, frase, fontes_def=fontes_def,\
+                 fontes_cands=fontes_cands, cands=cands, max_ex=max_ex, usr_ex=usr_ex)
+                rel_sinonimia.reverse()
 
-            for res_des in res_desambiguacao:
-                label_des, def_des, frases_reg, pontuacao_reg = res_des[0][0], res_des[0][1], res_des[0][2], res_des[1]
-                if not label_des in res_agregado:
+                #print((palavra, pos, frase))
+                #for e in rel_sinonimia:
+                #    print("\t- " + str(e))
+                #raw_input("\n\n<enter>")
+
+                res_agregado = dict()
+
+                for res_des in res_desambiguacao:
+                    label_des = res_des[0][0]
                     res_agregado[label_des] = list()
 
-            for reg_sin in res_sinonimia:
-                label_des = reg_sin[1].split(";")[-1]
-                res_agregado[label_des].append(reg_sin)
-            
-            definicoes_sinonimos = set()
-            saida_sinonimos_tmp = [ ]
+                for reg_sin in rel_sinonimia:
+                    label_sin, label_des = reg_sin[:2]
 
-            # ITERANDO RESULTADO DAS DESAMBIGUACAO
-            for res_des in res_desambiguacao:
-                label_des, def_des, frases_reg, pontuacao_reg = res_des[0][0], res_des[0][1], res_des[0][2], res_des[1]
-                rel_ordenada = sorted(res_agregado[label_des], key=lambda x :x[1], reverse=False)
+                    if fontes_def == 'oxford':
+                        label_des = label_des.split(";")[-1] # "definicao;war.Noun.1" -> "war.Noun.1"
+                    elif fontes_def == 'wordnet':
+                        label_des = label_des # label_des = war.n.1;war
+                    
+                    res_agregado[label_des].append(reg_sin)
 
-                res_agregado_tmp = dict()
+                saida_sinonimos_tmp = [ ]
 
-                # ITERANDO RELACAO DE SINONIMIA COMPUTADA ANTERIORMENTE
-                for reg_sin in rel_ordenada:
-                    def_sin = reg_sin[0]
-                    def_sin, lema_sin = def_sin.split(';')[:-1][0], def_sin.split(';')[-1]
-                    pontuacao_tmp = reg_sin[3]
-                    chave_definicoes = "%s%s%s" % (reg_sin[0], separador, reg_sin[1])
+                # Iterando resultado de desambiguacao
+                for res_des in res_desambiguacao:
+                    label_des, def_des = res_des[0][:2]
 
-                    # Agregando pontuacoes de frases de exemplos distintas
-                    if not chave_definicoes in res_agregado_tmp:
-                        res_agregado_tmp[chave_definicoes] = list()
+                    rel_ordenada = sorted(res_agregado[label_des], key=lambda x :x[1], reverse=False)
+                    res_agregado_tmp = dict()
 
-                    # Adicionando pontuacao da nova frase
-                    res_agregado_tmp[chave_definicoes].append(pontuacao_tmp)
+                    # Iterando relacao de sinonimia computada anteriormente
+                    for reg_sin in rel_ordenada:
+                        def_sin = reg_sin[0]
+                        def_sin, lema_sin = def_sin.split(';')[:-1][0], def_sin.split(';')[-1]
+                        pont_rel = reg_sin[3]
 
-                # Agregando scores
-                res_agregado_tmp_array = [ ]
-                for chave_definicoes in res_agregado_tmp:
-                    res_agregado_tmp_array.append((chave_definicoes, media(res_agregado_tmp[chave_definicoes])))
+                        ch_defs = "%s%s%s" % (reg_sin[0], separador, reg_sin[1])
 
-                # Ordenando agregado
-                res_agregado_tmp = sorted(res_agregado_tmp_array, key=lambda x: x[1], reverse=True)
+                        # Agregando pontuacoes de frases de exemplos distintas
+                        if not ch_defs in res_agregado_tmp:
+                            res_agregado_tmp[ch_defs] = list()
 
-                for reg_agregado in res_agregado_tmp:
-                    def_des = reg_agregado[0].split(separador)[0]
-                    def_des, lema_des = def_des.split(';')[:-1][0], def_des.split(';')[-1]
+                        # Adicionando pontuacao da nova frase
+                        res_agregado_tmp[ch_defs].append(pont_rel)
 
-                    try:
-                        sins_reg = base_ox.obter_sins(lema_des, def_des)
-                    except:
-                        sins_reg = [ ]
+                    res_agregado_tmp_array = [(ch_defs, media(res_agregado_tmp[ch_defs])) for ch_defs in res_agregado_tmp]
+                    res_agregado_tmp = sorted(res_agregado_tmp_array, key=lambda x: x[1], reverse=True)
 
-                    saida_sinonimos_tmp += sins_reg
+                    for reg_agregado in res_agregado_tmp:
+                        def_des = reg_agregado[0].split(separador)[0]
+                        def_des, lema_des = def_des.split(';')[:-1][0], def_des.split(';')[-1]
 
-            saida_sins = [ ]
-            for sin in saida_sinonimos_tmp:
-                if usar_gabarito == True:
-                    if sin in [p[0] for p in gabarito_dict[lexelt]] and not sin in saida_sins:
+                        pontuacao_agregado = reg_agregado[1]
+
+                        # Se o sinonimo/por definicao tem score
+                        if pontuacao_agregado > 0.00 or aceitar_nulos:
+                            # Wordnet: 'angry.s.02', u'furious'
+                            # Oxford: (u'Having all the necessary or appropriate parts.', u'complete')
+                            try:
+                                if fontes_def == 'oxford':
+                                    sins_reg = base_ox.obter_sins(lema_des, def_des)
+                                elif fontes_def == 'wordnet':
+                                    # Wordnet lema_des = name synset
+                                    sins_reg = wn.synset(def_des).lemma_names()
+                            except:
+                                raw_input('\nExcecao aqui para o lema %s!' % lema_des)
+                                sins_reg = [ ]
+
+                            if len(sins_reg) > 0: saida_sinonimos_tmp += sins_reg
+
+                saida_sins = [ ]
+                for sin in saida_sinonimos_tmp:
+                    if usar_gabarito == True:
+                        if sin in [p[0] for p in gabarito_dict[lexelt]] and not sin in saida_sins:
+                            saida_sins.append(sin)
+                    else:
                         saida_sins.append(sin)
-                else:
-                    saida_sins.append(sin)
 
-            predicao_final[lexelt] = saida_sins
+                predicao_final[lexelt] = saida_sins
+            else:
+                predicao_final[lexelt] = [ ]
+
+            if lexelt in predicao_final:
+                print("Lexelt %s recebeu a sugestao %s\n" % (lexelt, str(predicao_final[lexelt])))
+            else:
+                print("Lexelt %s nao possui sugestoes!")
 
     # Predicao, caso de entrada, gabarito
     return predicao_final, casos_testes_dict, gabarito_dict
 
-def testar_casamento(configs):
-    base_unificada = BaseOx(configs)
-    casador = CasadorConceitos(configs, base_unificada)
+def testar_casamento(cfgs):
+    base_unificada = BaseOx(cfgs)
+    casador = CasadorConceitos(cfgs, base_unificada)
 
     palavra = raw_input('Palavra: ')
     pos = raw_input('POS: ')
@@ -499,151 +513,89 @@ def testar_casamento_manual(configs):
     casador = CasadorManual(configs, configs['dir_base_casada_manualmente'])
     casador.iniciar_casamento(raw_input('Digite o termo: '), raw_input('POS: '))       
 
+
+#807 = sem exemplos
+#1669 = com exemplos
 if __name__ == '__main__':
     if len(argv) < 2:
-        print('\nParametrizacao errada!')
-        print('Tente py ./main <dir_config_file>\n\n')
+        print('\nParametrizacao errada!\nTente py ./main <dir_config_file>\n\n')
         exit(0)
 
     Util.cls()
-    cfgs = Util.carregar_configuracoes(argv[1])
+    cfgs = Util.carregar_cfgs(argv[1])
     vldr_se = VlddrSemEval(cfgs) # Validador SemEval 2007
-
-    if False:
-        import Experimentalismo
-        Experimentalismo.ler_entrada(cfgs)
-        #medir_seletor_candidatos(configs)
-        exit(0)
-    if False:
-        criar_vetores_wordnet(cfgs)
-    if False:
-        palavra = raw_input("Palavra: ")
-        ns = raw_input(str(wn.synsets(palavra)) + ": ")
-        print("\n")
-        rep_vetorial = RepresentacaoVetorial(cfgs)
-        rep_vetorial.carregar_modelo(cfgs['modelos']['word2vec-default'])
-
-        for p in rep_vetorial.criar_vetor_synset(palavra, ns):
-            print(p)
-
-        exit(0)
 
     dir_saida_abordagem = "/home/isaias/Desktop/exps"
     todos_criterios = ['alvaro']
-    flags_usar_gabarito = [True]
-    qtdes_exemplos = [1,]
-    qtde_sugestoes_oot = [1,2,3]
+    qtdes_exemplos = [1]
     qtde_sugestoes_best = [3]
-    indice = 100
+    qtde_sugestoes_oot = [1,2,3]
+    todas_fontes_def = ['oxford', 'wordnet']
+    tipos_base = ['test']
 
-    exe = raw_input("[R]ealizar predicao? > ")
+    flags_usar_gabarito = [True]
+    flag_aceitar_nulos = [True, False]
+    flag_usr_exemplos = [False,]
 
-    if True:
-        resultados_best = vldr_se.avaliar_parts_orig("best").values()
-        resultados_oot = vldr_se.avaliar_parts_orig("oot").values()
-        
-        for crit in todos_criterios:
-            for usar_gabarito in flags_usar_gabarito:
-                # Maximo de exemplos para criar a relacao de sinonimia
+    #indice = int(raw_input("Total de indices: "))
+    indice = -1
+
+    exe = raw_input("[R]ealizar predicao ou [F] formatar submissoes? > ").lower()
+
+    if not exe in ['r', 'f']:
+        raise Exception('Opcao invalida!')
+
+    res_best = vldr_se.avaliar_parts_orig("best").values()
+    res_oot = vldr_se.avaliar_parts_orig("oot").values()
+    
+    for crit in todos_criterios:
+        for usr_gab in flags_usar_gabarito:
+            for tipo in tipos_base:
                 for max_ex in qtdes_exemplos:
-                    predicao=casos=gabarito= set()
+                    for aceitar_nulos in flag_aceitar_nulos:
+                        for usr_ex in flag_usr_exemplos:
+                            for fonte_def in todas_fontes_def:
+                                predicao=casos=gabarito = set()
 
-                    if exe=='r':
-                        predicao, casos, gabarito = predizer_sins(cfgs, indice=indice, usar_gabarito=usar_gabarito, criterio=crit, tp='test', max_ex=max_ex)
+                                if exe=='r':
+                                    predicao, casos, gabarito = predizer_sins(cfgs, indice=indice, usar_gabarito=usr_gab, criterio=crit,\
+                                    tipo=tipo, max_ex=max_ex, usr_ex=usr_ex, fontes_def=fonte_def, aceitar_nulos=aceitar_nulos)
 
-                    padrao_nome_abordagem = "%s-%d-%s-Exemplos:%d.%s"
+                                for cont in qtde_sugestoes_oot:
+                                    nome_abrdgm = cfgs['padrao_nome_submissao']
+                                    nome_abrdgm = nome_abrdgm % (crit, usr_gab, tipo, max_ex, usr_ex, fonte_def, aceitar_nulos, 'oot')
 
-                    # Out-of-Ten (filtrando quantas predicoes sao necessarias)
-                    for cont in qtde_sugestoes_oot:
-                        nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "oot")
-                        vldr_se.formtr_submissao(dir_saida_abordagem+"/"+nome_abordagem, predicao, cont, ":::")
-                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                            try:
-                                resultados_oot.append(vldr_se.obter_score(dir_saida_abordagem, nome_abordagem))
-                            except: pass
+                                    vldr_se.formtr_submissao(dir_saida_abordagem+"/"+nome_abrdgm, predicao, cont, ":::")
+                                    if Util.arq_existe(dir_saida_abordagem, nome_abrdgm):
+                                        try:
+                                            res_oot.append(vldr_se.obter_score(dir_saida_abordagem, nome_abrdgm))
+                                        except: pass
+                                            
+                                for cont in qtde_sugestoes_best:
+                                    nome_abrdgm = cfgs['padrao_nome_submissao']
+                                    nome_abrdgm = nome_abrdgm % (crit, usr_gab, tipo, max_ex, usr_ex, fonte_def, aceitar_nulos, 'best')
+                                    
+                                    vldr_se.formtr_submissao(dir_saida_abordagem+"/"+nome_abrdgm, predicao, 1, "::")
+                                    if Util.arq_existe(dir_saida_abordagem, nome_abrdgm):
+                                        try:
+                                            res_best.append(vldr_se.obter_score(dir_saida_abordagem, nome_abrdgm))
+                                        except: pass
 
+    res_tarefas = {'best': res_best, 'oot': res_oot} 
 
-                    # Best
-                    for cont in qtde_sugestoes_best:
-                        nome_abordagem = padrao_nome_abordagem % (crit, cont, "AUTO" if usar_gabarito else "NOAUTO", max_ex, "best")
-                        vldr_se.formtr_submissao(dir_saida_abordagem+"/"+nome_abordagem, predicao, 1, "::")
-                        if Util.arq_existe(dir_saida_abordagem, nome_abordagem):
-                            try:
-                                resultados_best.append(vldr_se.obter_score(dir_saida_abordagem, nome_abordagem))
-                            except: pass
+    for k in res_tarefas:
+        res_tarefa = res_tarefas[k]
+        chave = raw_input("\nEscolha a chave pra ordenara saida "+k.upper()+": " + str(res_tarefa[0].keys()) + ": ")
 
-    if raw_input("Calcular BEST? s/N? ") == "s":
-        chave = ""
-        while chave == "":
-            chave = raw_input("\nEscolha a chave pra ordenara saida BEST: " + str(resultados_best[0].keys()) + ": ")
-            print("\n")
-        resultados_best = sorted(resultados_best, key=itemgetter(chave), reverse=True) 
+        res_tarefa = sorted(res_best, key=itemgetter(chave), reverse=True) 
         print(chave.upper() + "\t-----------------------")
-        for e in resultados_best: print(e)
 
-    print("\n\n\n")
+        for e in res_tarefa:
+            print(e['nome'])
+            etmp = dict(e); del etmp['nome']
+            print(etmp)
+            print('\n')
 
-    if raw_input("Calcular Out-of-Ten? s/N? ") == "s":
-        chave = ""
-        while chave == "":
-            chave = raw_input("\nEscolha a chave pra ordenara saida OOT: " + str(resultados_oot[0].keys()) + ": ")
-            print("\n")
-        resultados_oot = sorted(resultados_oot, key=itemgetter(chave), reverse=True)        
-        print(chave.upper() + "\t-----------------------")
-        for e in resultados_oot:
-            print(e)
+        print("\n")
 
-    exit(0)
-
-    if False:
-        desambiguar_word_embbedings(cfgs, raw_input("Frase: "), raw_input("Palavra: "))
-    exit(0)
-
-    # Realiza o SemEval2007 para as minhas abordagens implementadas (baselines)
-    #print('\nIniciando o Semantic Evaluation 2007!')
-    #iniciar_se2007(configs)
-    #print('\n\nSemEval2007 realizado!\n\n')
-    aplicar_metrica_gap = False
-
-    if aplicar_metrica_gap:
-        validador_gap = GeneralizedAveragePrecisionMelamud(cfgs)
-        # Obtem os gabaritos informados por ambos
-        # anotadores no formato <palavra.pos.id -> gabarito>
-        gold_rankings_se2007 = obter_gabarito_rankings_semeval(cfgs)
-
-        # Lista todos aquivos .best ou .oot do SemEval2007
-        lista_todas_submissoes_se2007 = Util.list_arqs(cfgs['dir_saidas_rankeador'])
-
-        # Usa, originalmente, oot
-        lista_todas_submissoes_se2007 = [s for s in lista_todas_submissoes_se2007 if '.oot' in s]
-        submissoes_se2007_carregadas = dict()
-
-        resultados_gap = dict()
-
-        for dir_submissao_se2007 in lista_todas_submissoes_se2007:
-            submissao_carregada = carregar_arquivo_submissao_se2007(cfgs, dir_submissao_se2007)
-            nome_abordagem = dir_submissao_se2007.split('/').pop()
-
-            submissoes_se2007_carregadas[nome_abordagem] = submissao_carregada
-            resultados_gap[nome_abordagem] = dict()
-
-        for nome_abordagem in submissoes_se2007_carregadas:
-            minha_abordagem = submissoes_se2007_carregadas[nome_abordagem]
-            
-            for lema in gold_rankings_se2007:
-                ranking_gold = [(k, gold_rankings_se2007[lema][k]) for k in gold_rankings_se2007[lema]]
-                if lema in minha_abordagem:
-                    meu_ranking = [(k, minha_abordagem[lema][k]) for k in minha_abordagem[lema]]
-                    pontuacao_gap = validador_gap.calcular(ranking_gold, meu_ranking)
-
-                    resultados_gap[nome_abordagem][lema] = pontuacao_gap
-
-            # GAP medio
-            resultados_gap[nome_abordagem] = statistics.mean(resultados_gap[nome_abordagem].values())
-
-        for nome_abordagem in resultados_gap:
-            gap_medio = resultados_gap[nome_abordagem]
-            print('%s\t\tGAP Medio: %s' % (nome_abordagem, str(gap_medio)))
-
-        print('\n\n\nFim do __main__')
-
+    print('\n\nFim do __main__')

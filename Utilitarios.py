@@ -18,6 +18,8 @@ from collections import Counter
 import requests
 from nltk import pos_tag as pt, word_tokenize as wt
 from nltk.corpus import stopwords, wordnet
+import hashlib
+import bencode
 
 wn = wordnet
 
@@ -43,6 +45,13 @@ class Util(object):
         return res if res.status_code == 200 else None
 
     @staticmethod
+    def md5sum(objeto):
+        import hashlib
+        import bencode
+        data_md5 = hashlib.md5(bencode.bencode(objeto)).hexdigest()
+        return data_md5
+
+    @staticmethod
     def cvrsr_pos_wn_oxford(pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
         
@@ -54,7 +63,7 @@ class Util(object):
         return pos
 
     @staticmethod
-    def conversor_pos_semeval_wn(pos):
+    def cvsr_pos_semeval_wn(pos):
         if pos == 'a': return 's'
         
         return pos
@@ -96,7 +105,7 @@ class Util(object):
         return [e for e in lista if Util.e_multipalavra(e) == False]
 
     @staticmethod
-    def carregar_configuracoes(dir_configs):
+    def carregar_cfgs(dir_configs):
         arq = open(dir_configs, 'r')
         obj = json.loads(arq.read())
         arq.close()

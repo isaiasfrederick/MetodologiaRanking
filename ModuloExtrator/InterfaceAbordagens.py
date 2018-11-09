@@ -49,7 +49,7 @@ class InterfaceAbordagens(object):
         flag_oxford = True
         flag_unificado = True
 
-        pos_wn = Util.conversor_pos_semeval_wn(pos)
+        pos_wn = Util.cvsr_pos_semeval_wn(pos)
         pos_ox = pos
 
 #        if metodo == 'simples_wordnet':

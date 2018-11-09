@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 from ModuloDesambiguacao.DesambiguadorOxford import DesOx
+from ModuloDesambiguacao.DesambiguadorWordnet import DesWordnet
 from CasadorManual import CasadorManual
 from Utilitarios import Util
 from nltk.corpus import wordnet
@@ -21,22 +22,16 @@ class AbordagemAlvaro(object):
     # def iniciar(self, palavra, pos, contexto, fontes_arg=['wordnet'],\
     # anotar_exemplos=False, usar_fontes_secundarias=False, usar_ctx=False, candidatos=None):
     # max_en = maximo de exemplos utilizaveis
-    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None, max_ex=sys.maxint):
+    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None, max_ex=sys.maxint, usr_ex=False):
         nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
         dir_cache = self.cfgs['aplicacao']['dir_cache_relacao_sinonimia']
-        todos_arqs_cache = [arq.split("/")[-1] for arq in Util.list_arqs(dir_cache)]
+        arqs_cache = [arq.split("/")[-1] for arq in Util.list_arqs(dir_cache)]
 
-        if nome_arquivo_cache in todos_arqs_cache:
-            #obj = Util.abrir_json(dir_cache + "/" + nome_arquivo_cache)
-            #raw_input(obj)
+        if nome_arquivo_cache in arqs_cache:
+            #obj = Util.abrir_json(dir_cache+"/"+nome_arquivo_cache)
             pass
         
         resultados = list()
-        ctx = None
-
-        if type(fontes_def) != str:
-            raise Exception("O tipo deste argumento deve ser string!")
-
         # Todas definicoes candidatas
         todas_defs_cands = [ ]
 
@@ -44,12 +39,11 @@ class AbordagemAlvaro(object):
             for candidato in cands:
                 todas_defs_cands += [(candidato, d) for d in self.base_ox.obter_definicoes(candidato, pos)]
             definicoes_palavra = [(palavra, d) for d in self.base_ox.obter_definicoes(palavra, pos)]
-
         elif fontes_def == 'wordnet':
             for candidato in cands:
-                for def_candidata in wn.synsets(candidato, pos):
-                    todas_defs_cands.append((candidato, def_candidata))
-            definicoes_palavra = [(palavra, d) for d in wn.synsets(palavra, pos)]
+                for synset in wn.synsets(candidato, pos):
+                    todas_defs_cands.append((candidato, synset))
+            definicoes_palavra = [(palavra, synset) for synset in wn.synsets(palavra, pos)]
 
         # Retira os significados da palavra passada como argumento
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
@@ -58,85 +52,88 @@ class AbordagemAlvaro(object):
 
         # Todas definicoes candidatas:
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
-        for def_candidata in todas_defs_cands:
+        for reg_def_cand in todas_defs_cands:
             if an_exemplos == True and fontes_def == ['wordnet'] and False:
-                lema, definicao = def_candidata
+                lema, def_des = reg_def_cand
                 # Solicita a anotacao dos termos para casar as definicoes, caso nao existam
-                nome_synset_sinonimo = definicao.lemma_names()[0]
-                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, definicao.pos(), corrigir=False)
+                nome_synset_sinonimo = def_des.lemma_names()[0]
+                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, def_des.pos(), corrigir=False)
 
             todos_exemplos = [ ]
 
             try:
                 # definicao_candidata é uma tupla no formato (palavra, definicao)
-                lema_cand, def_cand = def_candidata
                 if fontes_def == 'wordnet':
-                    todos_exemplos = def_candidata.examples()
+                    lema_cand, synset = reg_def_cand
+                    todos_exemplos = synset.examples()
                 elif fontes_def == 'oxford':
+                    lema_cand, def_cand = reg_def_cand
                     todos_exemplos = self.base_ox.obter_atributo(lema_cand, pos, def_cand, 'exemplos')
-            except:
-                pass
+            except: pass
 
-            if not todos_exemplos: todos_exemplos = [ ]
+            if not todos_exemplos:
+                todos_exemplos = [ ]
+
             todos_exemplos = todos_exemplos[:max_ex]
 
             try:
                 if fts_secs == True:
                     if fontes_def == ['wordnet']:
-                        lema, definicao = def_candidata
-                        todos_exemplos += self.casador_manual.recuperar_exemplos(definicao.name())
+                        lema, def_des = reg_def_cand
+                        todos_exemplos += self.casador_manual.recuperar_exemplos(def_des.name())
             except:
                 traceback.print_exc()
 
             # Usar contexto na estapa de discriminação (desambiguação)
-            if usar_ctx == True:
+            if usar_ctx == True:                
                 todos_exemplos.append(ctx)
-
             if todos_exemplos == None:
                 todos_exemplos = [ ]
 
             for exemplo in todos_exemplos:
                 if fontes_def == 'wordnet':
-                    resultado_desambiguador = [ ]
+                    res_desambiguador = [ ]
                     try:
-                        resultado_desambiguador = cosine_lesk(exemplo, palavra, pos=pos, nbest=True)
+                        des_wn = DesWordnet(self.cfgs)
+                        res_desambiguador = des_wn.cosine_lesk(exemplo, palavra, pos=pos, nbest=True, convert=False)
                     except KeyboardInterrupt, ke:
-                        raw_input("\t\t@@@ " + str((exemplo, palavra, pos)) + "")
+                        raw_input("\t\t@@@ ERRO " + str((exemplo, palavra, pos)) + "")
 
                 elif fontes_def == 'oxford':
-                    desambiguador_ox = DesOx(self.cfgs, self.base_ox)
-                    resultado_desambiguador = desambiguador_ox.cosine_lesk(exemplo, palavra, pos=pos)
+                    des_ox = DesOx(self.cfgs, self.base_ox)
+                    res_desambiguador = des_ox.cosine_lesk(exemplo, palavra, pos=pos, usr_ex=usr_ex)
 
-                for registro in resultado_desambiguador:
-                    # definicao = synset ou definica = (definicao, palavra)
-                    definicao, pontuacao = registro
-
+                for reg_def_des in res_desambiguador:
+                    def_des, pontuacao = reg_def_des
                     if fontes_def == 'wordnet':
-                        reg_ponderacao = def_candidata[0].name(), definicao.name(), exemplo, pontuacao
+                        # ('def;lema', 'def;lema', 'exemplo', 0.00)
+                        label_tuple = reg_def_cand[1].name()+";"+reg_def_cand[0], def_des.name()+";"+palavra
+                        reg_ponderacao = label_tuple + (exemplo, pontuacao) # Concatenacao
                     elif fontes_def == 'oxford':
                         # self.base_ox.obter_atributo(lema, pos, def_candidata, 'exemplos')                        
                         # (def, lema), (def, lema), exemplo, score
                         # ('def;lema', 'def;lema', 'exemplo', 0.00)
-                        reg_ponderacao = ";".join(def_candidata[::-1]), ";".join(definicao[:2][::-1]), exemplo, pontuacao
-                        
+                        reg_ponderacao = ";".join(reg_def_cand[::-1]), ";".join(def_des[:2][::-1]), exemplo, pontuacao
+
                     resultados.append(reg_ponderacao)
+
+        #807 = sem exemplos, #1669 = com exemplos
 
         # Retornando ordenado PELA PONTUACAO
         # ('def;lema', 'def;lema', 'exemplo', 0.00)
         obj_retorno = sorted(resultados, key=lambda x: x[3], reverse=True)
-        Util.salvar_json(dir_cache + "/" + nome_arquivo_cache, obj_retorno)
+        #Util.salvar_json(dir_cache + "/" + nome_arquivo_cache, obj_retorno)
 
         return obj_retorno
 
     # Gabarito no formato [[palavra, voto], ...]
     def possui_moda(self, gabarito):
         todos_votos = sorted([v[1] for v in gabarito], reverse=True)
-        # Se caso de entrada possui uma moda
-        return todos_votos.count(todos_votos[0]) != 1
+        return todos_votos.count(todos_votos[0])!=1
 
     # Seletor candidatos desconsiderando a questao da polissemia sob este aspecto
     # este metodo seleciona todos os candidatos 
-    def selecionar_candidatos(self, palavra, pos, fontes=['wordnet']):
+    def selec_candidatos(self, palavra, pos, fontes=['wordnet']):
         candidatos = set()
 
         if fontes in [[ ], None]:

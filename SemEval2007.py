@@ -79,7 +79,8 @@ class VlddrSemEval(object):
             system('rm ' + arquivo_tmp)
 
             return obj
-        except:
+        except Exception, e:
+            print(e)
             return None
 
     def filtrar_participantes(self, participantes, tarefa):
