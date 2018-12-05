@@ -44,11 +44,11 @@ class BaselineOrdenadorFrequencia(object):
             for sinonimo in gabarito[entrada]:
                 gabarito_anotado.append([sinonimo, gabarito[entrada][sinonimo]])
 
-            print('\n')
-            print('1. Gabarito: ' + str(gabarito[entrada]))
-            print('2. Gabarito: ' + str(gabarito_anotado))
-            print('Minha sugestao: ' + str(vetor))
-            print('\n')
+            Util.print_formatado('\n')
+            Util.print_formatado('1. Gabarito: ' + str(gabarito[entrada]))
+            Util.print_formatado('2. Gabarito: ' + str(gabarito_anotado))
+            Util.print_formatado('Minha sugestao: ' + str(vetor))
+            Util.print_formatado('\n')
 
             gap = validador_gap.calcular(gabarito_anotado, vetor)
             print('-> GAP: ' + str(gap))

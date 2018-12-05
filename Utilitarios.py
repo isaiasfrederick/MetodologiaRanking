@@ -12,7 +12,6 @@ from sys import version_info
 import random, string
 import unicodedata
 import re, math
-import os
 from nltk.corpus import stopwords
 from collections import Counter
 import requests
@@ -20,6 +19,7 @@ from nltk import pos_tag as pt, word_tokenize as wt
 from nltk.corpus import stopwords, wordnet
 import hashlib
 import bencode
+import textblob
 
 wn = wordnet
 
@@ -27,9 +27,14 @@ class Util(object):
     configs = None
     # Contadores Corpus
     contadores = None
+    verbose_ativado = True
 
     @staticmethod
-    def normalizar_palavra(palavra):
+    def media(vetor):
+        return sum(vetor)/len(vetor)
+
+    @staticmethod
+    def norm_palavra(palavra):
         try: return palavra
         except: pass
 
@@ -43,6 +48,18 @@ class Util(object):
             res = requests.get(url)
 
         return res if res.status_code == 200 else None
+
+    @staticmethod
+    def pontuacao_valida(operando_variavel, medida_similaridade):
+        if medida_similaridade == 'word_move_distance':
+            return True
+        elif medida_similaridade == 'cosine' and (operando_variavel > 0.00):
+            return True
+        return False
+
+    @staticmethod
+    def singularize(palavra):
+        return textblob.Word(palavra).singularize().replace("'", "")
 
     @staticmethod
     def md5sum(objeto):
@@ -61,6 +78,10 @@ class Util(object):
         elif pos == 'a': pos = 'Adjective'
 
         return pos
+
+    @staticmethod
+    def cvsr_pos_semeval_ox(pos):
+        return Util.cvrsr_pos_wn_oxford(pos)
 
     @staticmethod
     def cvsr_pos_semeval_wn(pos):
@@ -105,6 +126,11 @@ class Util(object):
         return [e for e in lista if Util.e_multipalavra(e) == False]
 
     @staticmethod
+    def print_log(msg):
+        pass
+        
+
+    @staticmethod
     def carregar_cfgs(dir_configs):
         arq = open(dir_configs, 'r')
         obj = json.loads(arq.read())
@@ -113,6 +139,12 @@ class Util(object):
         Util.configs = obj
 
         return obj
+
+    @staticmethod
+    def limpar_arquivo(caminho_completo_arquivo):
+        try:
+            os.system('rm '+caminho_completo_arquivo)
+        except: pass
 
     @staticmethod
     def cosseno(doc1, doc2):
@@ -165,6 +197,7 @@ class Util(object):
         try:
             obj = json.loads(arq.read())
         except Exception:
+            raw_input("\nErro ao abrir o .json : "+str(arq))
             arq = open(diretorio, 'w')
             arq.write("{ }")
             obj = { }
@@ -213,10 +246,15 @@ class Util(object):
 
             return True
         except:
-            import traceback
-            traceback.print_exc()
-            raw_input('ERRO')
+            #import traceback
+            #traceback.print_stack()
+            #raw_input('\n\nERRO: '+diretorio)
             return False
+
+    @staticmethod
+    def print_formatado(mensagem, visivel=True):
+        if Util.verbose_ativado and visivel:
+            print(mensagem)
 
     @staticmethod
     def extrair_sinonimos_candidatos_definicao(definicao, pos):
@@ -261,11 +299,8 @@ class Util(object):
 
             for l in tmp:
                 try:
-                    if wn.synsets(l, pos):
-                        raw_input('Adicionando %s para %s' % (l, definicao))
-                        resultado.append(l)
-                except:
-                    resultado.append(l)
+                    if wn.synsets(l, pos): resultado.append(l)
+                except: resultado.append(l)
 
         if not resultado:
             # retirando pontuacao

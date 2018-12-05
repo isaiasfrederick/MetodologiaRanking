@@ -13,23 +13,28 @@ from pywsd.lesk import cosine_lesk
 wn = wordnet
 
 class AbordagemAlvaro(object):
-    def __init__(self, configs, base_ox, casador_manual):
+    def __init__(self, configs, base_ox, casador_manual, rep_vetorial):
         self.cfgs = configs
         self.base_ox = base_ox
         self.casador_manual = casador_manual
+        self.rep_vetorial = rep_vetorial
 
     # CONSTRUIR RELACAO ENTRE AS DEFINICOES
     # def iniciar(self, palavra, pos, contexto, fontes_arg=['wordnet'],\
     # anotar_exemplos=False, usar_fontes_secundarias=False, usar_ctx=False, candidatos=None):
     # max_en = maximo de exemplos utilizaveis
-    def iniciar(self, palavra, pos, ctx, fontes_def='oxford', fontes_cands=['oxford', 'wordnet'], an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None, max_ex=sys.maxint, usr_ex=False):
-        nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
+    def construir_sinonimia(self, palavra, pos, ctx,\
+                    fontes_def='oxford', fontes_cands=['oxford', 'wordnet'],\
+                    an_exemplos=False, fts_secs=False, usar_ctx=False, cands=None,\
+                    max_ex=sys.maxint, usr_ex=False, med_sim='cosine'):
+
+        """nome_arquivo_cache = "%s-%s.json" % (palavra, pos)
         dir_cache = self.cfgs['aplicacao']['dir_cache_relacao_sinonimia']
-        arqs_cache = [arq.split("/")[-1] for arq in Util.list_arqs(dir_cache)]
+        arqs_cache = Util.list_arqs(dir_cache, caminho_completo=False)
 
         if nome_arquivo_cache in arqs_cache:
-            #obj = Util.abrir_json(dir_cache+"/"+nome_arquivo_cache)
-            pass
+            raw_input("$$$\t"+dir_cache+"/"+nome_arquivo_cache)
+            obj = Util.abrir_json(dir_cache+"/"+nome_arquivo_cache)"""
         
         resultados = list()
         # Todas definicoes candidatas
@@ -47,18 +52,17 @@ class AbordagemAlvaro(object):
 
         # Retira os significados da palavra passada como argumento
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
-        todas_defs_cands = set(set(todas_defs_cands) - set(definicoes_palavra))
-        todas_defs_cands = list(todas_defs_cands)
+        todas_defs_cands = list(set(set(todas_defs_cands) - set(definicoes_palavra)))
 
+        total_exemplos_computados = 0
         # Todas definicoes candidatas:
         # (u'The creation of something as part of a physical, biological, or chemical process.', u'production')
         for reg_def_cand in todas_defs_cands:
-            if an_exemplos == True and fontes_def == ['wordnet'] and False:
-                lema, def_des = reg_def_cand
+            #if an_exemplos == True and fontes_def == ['wordnet'] and False:
+                #lema, def_des = reg_def_cand
                 # Solicita a anotacao dos termos para casar as definicoes, caso nao existam
-                nome_synset_sinonimo = def_des.lemma_names()[0]
-                self.casador_manual.iniciar_casamento(nome_synset_sinonimo, def_des.pos(), corrigir=False)
-
+                #nome_synset_sinonimo = def_des.lemma_names()[0]
+                #self.casador_manual.iniciar_casamento(nome_synset_sinonimo, def_des.pos(), corrigir=False)
             todos_exemplos = [ ]
 
             try:
@@ -69,26 +73,22 @@ class AbordagemAlvaro(object):
                 elif fontes_def == 'oxford':
                     lema_cand, def_cand = reg_def_cand
                     todos_exemplos = self.base_ox.obter_atributo(lema_cand, pos, def_cand, 'exemplos')
-            except: pass
-
-            if not todos_exemplos:
+            except Exception, e:
+                #raw_input(e)
+                todos_exemplos = [ ]
+                
+            if None == todos_exemplos:
                 todos_exemplos = [ ]
 
             todos_exemplos = todos_exemplos[:max_ex]
-
-            try:
-                if fts_secs == True:
-                    if fontes_def == ['wordnet']:
-                        lema, def_des = reg_def_cand
-                        todos_exemplos += self.casador_manual.recuperar_exemplos(def_des.name())
-            except:
-                traceback.print_exc()
 
             # Usar contexto na estapa de discriminação (desambiguação)
             if usar_ctx == True:                
                 todos_exemplos.append(ctx)
             if todos_exemplos == None:
                 todos_exemplos = [ ]
+
+            total_exemplos_computados+=len(todos_exemplos)
 
             for exemplo in todos_exemplos:
                 if fontes_def == 'wordnet':
@@ -100,8 +100,10 @@ class AbordagemAlvaro(object):
                         raw_input("\t\t@@@ ERRO " + str((exemplo, palavra, pos)) + "")
 
                 elif fontes_def == 'oxford':
-                    des_ox = DesOx(self.cfgs, self.base_ox)
-                    res_desambiguador = des_ox.cosine_lesk(exemplo, palavra, pos=pos, usr_ex=usr_ex)
+                    des_ox = DesOx(self.cfgs, self.base_ox, self.rep_vetorial)
+                    res_desambiguador = des_ox.desambiguar(exemplo,\
+                                        palavra, pos=pos, usr_ex=usr_ex,\
+                                        med_sim=med_sim)
 
                 for reg_def_des in res_desambiguador:
                     def_des, pontuacao = reg_def_des
@@ -117,7 +119,9 @@ class AbordagemAlvaro(object):
 
                     resultados.append(reg_ponderacao)
 
-        #807 = sem exemplos, #1669 = com exemplos
+        if not total_exemplos_computados:
+            Util.print_formatado("\nA entrada %s nao possui NENHUM exemplo!\n" % str((palavra, pos, ctx)))
+            Util.print_formatado("\nTodas defs candidatas: "+str(todas_defs_cands))
 
         # Retornando ordenado PELA PONTUACAO
         # ('def;lema', 'def;lema', 'exemplo', 0.00)
@@ -126,6 +130,27 @@ class AbordagemAlvaro(object):
 
         return obj_retorno
 
+
+    # Obtem a palavra mais usual para o significado mais usual para uma palavra
+    def sugestao_contingencia(self, palavra, pos, fontes_def='oxford'):
+        if fontes_def == 'wordnet':
+            for syn in wn.synsets(palavra, pos):
+                for lema in syn.lemma_names():
+                    if not Util.e_multipalavra(lema) and lema != palavra:
+                        return [lema]
+        elif fontes_def == 'oxford':
+            pos_ox = Util.cvsr_pos_semeval_ox(pos)
+
+            try:
+                for def_ox in self.base_ox.obter_definicoes(palavra, pos_ox):
+                    for lema in self.base_ox.obter_atributo(palavra, pos_ox, def_ox, 'sinonimos'):
+                        if not Util.e_multipalavra(lema) and lema!=palavra:
+                            return [lema]
+            except Exception, e:
+                pass
+
+        return [""]
+            
     # Gabarito no formato [[palavra, voto], ...]
     def possui_moda(self, gabarito):
         todos_votos = sorted([v[1] for v in gabarito], reverse=True)
@@ -133,23 +158,20 @@ class AbordagemAlvaro(object):
 
     # Seletor candidatos desconsiderando a questao da polissemia sob este aspecto
     # este metodo seleciona todos os candidatos 
-    def selec_candidatos(self, palavra, pos, fontes=['wordnet']):
+    def selec_candidatos(self, palavra, pos, fontes=['wordnet'], max_por_def=4):
         candidatos = set()
 
         if fontes in [[ ], None]:
-            return [ ]
+            raise Exception("Fontes nao foram informadas!")
 
         if 'wordnet' in fontes:
             for s in wn.synsets(palavra, pos):
-                candidatos.update(s.lemma_names())
-
+                candidatos.update(s.lemma_names()[:max_por_def])
         if 'oxford' in fontes:
             todas_definicoes = self.base_ox.obter_definicoes(palavra, pos)
-
             for definicao in todas_definicoes:
-                candidatos_tmp = self.base_ox.obter_sinonimos(palavra, definicao, pos)
+                candidatos_tmp = self.base_ox.obter_sins(palavra, definicao, pos)[:max_por_def]
                 candidatos.update([ ] if candidatos_tmp == None else candidatos_tmp)
-
         if 'wordembbedings' in fontes:
             pass
 

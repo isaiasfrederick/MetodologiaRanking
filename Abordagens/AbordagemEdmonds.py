@@ -120,14 +120,14 @@ class AbordagemEdmonds(object):
                 except UnicodeDecodeError, ude:
                     traceback.print_exc()
                     raw_input('<enter>')
-                    print('Retomando fluxo de execucao...')
+                    Util.print_formatado('Retomando fluxo de execucao...')
 
                 tokens_tagueados = [e for e in tokens_tagueados_tmp if self.ftokens(e)]
                 fr_tokenizada = [e[0] for e in tokens_tagueados]                
             except Exception, e:
                 traceback.print_exc()
                 raw_input('<enter>')
-                print('Retomando fluxo de execucao...')
+                Util.print_formatado('Retomando fluxo de execucao...')
 
             for raiz in raizes:
                 try:
@@ -143,7 +143,7 @@ class AbordagemEdmonds(object):
                 except Exception, e:
                     traceback.print_exc()
                     raw_input('<enter>')
-                    print('Retomando fluxo de execucao...')
+                    Util.print_formatado('Retomando fluxo de execucao...')
 
             total_linhas += 1
 
@@ -168,8 +168,8 @@ class AbordagemEdmonds(object):
         caminho_json_saida = self.configs['aplicacao']['dir_saida_base_coocorrencia'] + '/' + nome_arq_saida
         self.salvar_json(caminho_json_saida, resultado_metricas)
         
-        print('Salvando arquivo em: ' + caminho_json_saida)
-        print('Fim desta funcao.')
+        Util.print_formatado('Salvando arquivo em: ' + caminho_json_saida)
+        Util.print_formatado('Fim desta funcao.')
 
         return caminho_json_saida
 
@@ -177,11 +177,11 @@ class AbordagemEdmonds(object):
         caminhos_corpus = carregar_caminhos_corpus(dir_arq_corpus)
         contadores = dict()
 
-        print('\nGERADO DE CONTADORES\n')
+        Util.print_formatado('\nGERADO DE CONTADORES\n')
 
         for a in caminhos_corpus:
             with open(a, 'r') as arq:
-                print('Indexando palavras do arquivo ' + a)
+                Util.print_formatado('Indexando palavras do arquivo ' + a)
                 for l in arq:
                     try:
                         try:
@@ -195,7 +195,7 @@ class AbordagemEdmonds(object):
                             contadores[token] += 1
 
                     except Exception, e:
-                        print(e)
+                        Util.print_formatado(e)
                         traceback.print_exc()
 
         self.salvar_json(caminho_saida, contadores)

@@ -1,5 +1,7 @@
 #! coding: utf-8
 
+import gensim
+
 from gensim.scripts.glove2word2vec import glove2word2vec
 from Utilitarios import Util
 from gensim.test.utils import datapath, get_tmpfile
@@ -8,20 +10,26 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import wordnet
 from sys import argv
 import re
+import io
 
 wn = wordnet
 
 # Esta classe trabalha com WordEmbbedings para realizar a tarefa de prediçao de sinonimos
-class RepresentacaoVetorial(object):
-    def __init__(self, configs):
+
+
+class RepVetorial(object):
+    def __init__(self, configs, diretorio_modelo=None, binario=True):
         self.modelo = None
-        self.configs = configs
+        self.cfgs = configs
         self.stemmer = PorterStemmer()
+
+        if diretorio_modelo:
+            self.carregar_modelo(diretorio_modelo, binario)
 
     # Dado um synset, cria uma representacao vetorial para o mesmo
     def criar_vetor_synset(self, lema_principal_synset, nome_synset):
         descritor_synset = wn.synset(nome_synset).lemma_names()
-        lista_negativa = [ ]
+        lista_negativa = []
 
         if wn.synset(nome_synset).pos() in ['n', 'v']:
             for hiper in wn.synset(nome_synset).hypernyms():
@@ -43,37 +51,46 @@ class RepresentacaoVetorial(object):
         for p in descritor_synset_tmp:
             descritor_synset += re.split("_|-", p)
 
-        print(descritor_synset)
-        print("\n\n\n")
-        print(lista_negativa)
-        print("\n\n\n")
-
         return self.obter_palavras_relacionadas(positivos=descritor_synset, negativos=lista_negativa, topn=40)
 
-    def obter_palavras_relacionadas(self, positivos=None, negativos=None, topn=1):
+    def word_move_distance(self, doc1_str, doc2_str):
+        self.modelo.init_sims(replace=True)  # normalizar vetores
+        doc1_str, doc2_str = doc1_str.split(" "),  doc2_str.split(" ")
+
+        return self.modelo.wmdistance(doc1_str, doc2_str)
+
+    def obter_palavras_relacionadas(self, positivos=None, negativos=None, pos=None, topn=1):
         try:
-            if positivos == "": positivos = None
-            if negativos == "": negativos = None
+            if positivos == "":
+                positivos = None
+            if negativos == "":
+                negativos = None
 
-            if positivos != None: positivos = [p for p in positivos if p in self.modelo]
-            if negativos != None: negativos = [p for p in negativos if p in self.modelo]
+            if positivos != None:
+                positivos = [p for p in positivos if p in self.modelo]
+            if negativos != None:
+                negativos = [p for p in negativos if p in self.modelo]
 
-            return self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
+            res = self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
+
+            if pos != None:
+                return [(palavra, score) for palavra, score in res if wn.synsets(palavra, pos) != []]
         except KeyError, ke:
-            return [ ]
+            return []
 
     def iniciar_processo(self, palavra_arg, pos_semeval, contexto, topn=10):
         if self.modelo == None:
             raw_input("Nao ha modelo carregado!")
 
-        todos_conjuntos_synsets = [ ]
+        todos_conjuntos_synsets = []
 
-        registros = self.obter_palavras_relacionadas(positivos=[palavra_arg], topn=topn)
-        saida = [ ]
+        registros = self.obter_palavras_relacionadas(
+            positivos=[palavra_arg], topn=topn)
+        saida = []
 
         for palavra_flexionada, pontuacao in registros:
             # palavra = self.stemmer.stem(palavra_flexionada)
-            palavra = palavra_flexionada            
+            palavra = palavra_flexionada
             synsets = Util.obter_synsets(palavra, pos_semeval)
 
             if not synsets in todos_conjuntos_synsets:
@@ -90,15 +107,31 @@ class RepresentacaoVetorial(object):
 
         return self.modelo.doesnt_match(lista_palavras)
 
+    # Retirado de https://fasttext.cc/docs/en/english-vectors.html
+    def load_vectors(self, fname):
+        fin = io.open(fname, 'r', encoding='utf-8', newline='\n', errors='ignore')
+        n, d = map(int, fin.readline().split())
+        data = {}
+        for line in fin:
+            tokens = line.rstrip().split(' ')
+            data[tokens[0]] = map(float, tokens[1:])
+        return data
+
     # Retirado de https://radimrehurek.com/gensim/scripts/glove2word2vec.html
     def carregar_modelo(self, diretorio, binario=True):
-        if binario == False:
-            arq_glove = diretorio
+        try:
+            if binario == False:
+                arq_glove = diretorio
 
-            dir_arquivo_tmp = diretorio.split('/').pop()
-            arq_tmp = self.configs['dir_temporarios'] + '/' + dir_arquivo_tmp + '.tmp'
+                dir_arquivo_tmp = diretorio.split('/').pop()
+                arq_tmp = self.cfgs['dir_temporarios'] + \
+                    '/' + dir_arquivo_tmp + '.tmp'
 
-            glove2word2vec(arq_glove, arq_tmp)
-            self.modelo = KeyedVectors.load_word2vec_format(arq_tmp)
-        else:
-            self.modelo = KeyedVectors.load_word2vec_format(diretorio, binary=True)
+                glove2word2vec(arq_glove, arq_tmp)
+                self.modelo = KeyedVectors.load_word2vec_format(arq_tmp)
+            else:
+                self.modelo = KeyedVectors.load_word2vec_format(
+                    diretorio, binary=True)
+        except Exception, e:
+            # Carregando vetores fasttext
+            self.modelo = self.load_vectors(diretorio)

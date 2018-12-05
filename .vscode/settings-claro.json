@@ -1,0 +1,62 @@
+{
+    "window.zoomLevel": 1,   
+    "editor.tabCompletion": true,
+    "editor.colorDecorators": true,
+    "editor.fontWeight": 1,    
+    "editor.tabSize": 4,
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [{
+            "scope": "keyword.operator.arithmetic",
+            "settings": {
+                "foreground": "#6e778c"
+            }
+        },
+        {
+            "scope": "keyword.operator.assignment",
+            "settings": {
+                "foreground": "#000000",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "meta.type",
+            "settings": {
+                "foreground": "#1216e0",
+                "fontStyle": "bold"
+            }
+        }
+    ]
+    },
+    "editor.autoClosingQuotes": "always",
+    "python.linting.enabledWithoutWorkspace": false,
+    "python.linting.enabled": false,
+    "terminal.integrated.fontSize": 11,
+    "editor.fontSize": 12,
+    "workbench.panel.location": "right",
+    "git.ignoreMissingGitWarning": true,
+    "editor.minimap.enabled": false,
+    "search.location": "panel",
+    "workbench.editor.tabCloseButton": "right",
+    "editor.suggestFontSize": 12,
+    "java.errors.incompleteClasspath.severity": "ignore",
+    "explorer.confirmDelete": false,
+    "git.autofetch": true,
+    "window.titleBarStyle": "custom",
+    "workbench.iconTheme": "seti",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "workbench.colorTheme": "dimmed",
+    "editor.renderLineHighlight": "all",
+    "workbench.editor.tabSizing": "fit",
+    "workbench.statusBar.visible": false,
+    "editor.largeFileOptimizations": false,
+    "editor.fontFamily": "'Ubuntu Mono', 'Droid Sans Mono', Symbola, monospace, 'Droid Sans Fallback'",
+    "workbench.colorCustomizations": {
+        "sideBar.border": "#5f5d6e",
+        "tab.activeBackground": "#3d3939",        
+        "titleBar.activeBackground": "#211d1d",
+        "tab.border": "#5f5d6e",
+        "editorCursor.foreground": "#b8bab3",
+        "editor.lineHighlightBackground": "#e6e6e6",
+        "editorIndentGuide.background": "#dadada"
+    }
+}

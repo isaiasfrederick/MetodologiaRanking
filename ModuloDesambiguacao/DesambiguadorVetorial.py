@@ -1,4 +1,4 @@
-from Abordagens.RepresentacaoVetorial import RepresentacaoVetorial
+from Abordagens.RepresentacaoVetorial import RepVetorial
 from nltk.corpus import wordnet as wn
 
 

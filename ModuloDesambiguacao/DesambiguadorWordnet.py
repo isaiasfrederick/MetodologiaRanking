@@ -4,7 +4,9 @@ from Utilitarios import Util
 import os
 import re
 import string
-from itertools import chain
+import itertools # Para gerar as combinacoes de desambiguacao ""all-words"
+
+import gc
 
 from nltk.corpus import wordnet as wn
 from nltk.corpus import stopwords
@@ -14,69 +16,72 @@ from pywsd.cosine import cosine_similarity as cos_sim
 from pywsd.utils import lemmatize, porter, lemmatize_sentence, synset_properties
 
 import pywsd.lesk
+from textblob import TextBlob
 
 EN_STOPWORDS = stopwords.words('english')
 
 import traceback
 
 class DesWordnet(object):    
-    cache_assinaturas = dict()
+	cache_assinaturas = dict()
 
-    def __init__(self, configs):
-        self.usar_cache = False
-        self.dir_cache = configs['wordnet']['cache']['desambiguador']
+	def __init__(self, configs):
+		self.usar_cache = False
+		self.dir_cache = configs['wordnet']['cache']['desambiguador']
+		self.configs = configs
 
 	# Converte o resultado da desambiguacao 
-    def converter_resultado(self, res_desambiguacao_wn, ambiguous_word):
-        res_desambiguacao = [ ]
+	# (Nome Synset, pontuacao) => (("Nome Synset;lema", Definicao, Frases]), Pontuacao)
+	def convert_res(self, res_desambiguacao_wn, ambiguous_word):
+		res_desambiguacao = [ ]
 
-        for reg in res_desambiguacao_wn:
-            rnome = reg[0].name()+";"+ambiguous_word
-            rdefinicao = reg[0].definition()
-            rfrases = reg[0].examples()
-            pt = reg[1]
+		for reg in res_desambiguacao_wn:
+			rnome = reg[0].name()+";"+ambiguous_word
+			rdefinicao = reg[0].definition()
+			rfrases = reg[0].examples()
+			pt = reg[1]
 
-            res_desambiguacao.append([[rnome, rdefinicao, rfrases], pt])
+			res_desambiguacao.append([[rnome, rdefinicao, rfrases], pt])
 
-        return res_desambiguacao
+		return res_desambiguacao
 
-    def cosine_lesk(self, context_sentence, ambiguous_word, \
-                    pos=None, lemma=True, stem=True, hyperhypo=True, \
-                    stop=True, context_is_lemmatized=False, \
-                    nbest=False, remove_ambiguous_word=True, convert=True):
+	# Esta funcao abstrai a funcao Cosine Lesk para a biblioteca WSD
+	def cosine_lesk(self, context_sentence, ambiguous_word, \
+					pos=None, lemma=True, stem=True, hyperhypo=True, \
+					stop=True, context_is_lemmatized=False, \
+					nbest=False, remove_ambiguous_word=True, convert=True):
 
-        if remove_ambiguous_word:
-            context_sentence = context_sentence.replace(ambiguous_word, "")
+		if remove_ambiguous_word:
+			context_sentence = context_sentence.replace(ambiguous_word, "")
 
-        if pos:
-            pos = Util.cvsr_pos_semeval_wn(pos)
+		if pos:
+			pos = Util.cvsr_pos_semeval_wn(pos)
 
-        res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, pos=pos, nbest=True)
+		res_des = pywsd.lesk.cosine_lesk(context_sentence, ambiguous_word, pos=pos, nbest=True)
 
 		# Converte para o padrao:
 		# [[u'clean.Verb.1', u'Make clean; remove dirt, marks, or stains from.', []], 0.1]
-        if convert:
-            return self.converter_resultado(res_des, ambiguous_word)
-        else:
-            return res_des
+		if convert: return self.convert_res(res_des, ambiguous_word)
+		else: return res_des
 
-    def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
-        return isaias_lesk(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
+	def adapted_cosine_lesk(self, contexto, palavra, pos=None, busca_ampla=False):
+		return cosine_lesk_inventario_estendido(contexto, palavra, pos=pos, nbest=True, busca_ampla=busca_ampla)
 
-    # Realiza o processo de desambiguacao gerando um Ranking 
-    # que usa da medida de cosseno como critério de ordenação
-    # A partir disto, realiza a coleta de palavras correlatas
-    # ao significado sugerido
-    def extrair_sinonimos(self, ctx, palavra, pos=None, usar_exemplos=False, busca_ampla=False, repetir=True, coletar_todos=True):
-        max_sinonimos = 10
+	# Realiza o processo de desambiguacao gerando um Ranking que usa da medida de cosseno como critério de ordenação
+	# A partir disto, realiza a coleta de palavras correlatas ao significado sugerido
+	def extrair_sinonimos(self, ctx, palavra, pos=None, \
+							usar_exemplos=False, busca_ampla=False, \
+							repetir=True, coletar_todos=True):
 
-        print('Executando desambiguador Wordnet...')
-        resultado = self.adapted_cosine_lesk(ctx, palavra, pos, busca_ampla=busca_ampla)
-        print('Desambiguador executado...\n')
+		max_sinonimos = 10
 
-        sinonimos = [ ]
+		print('Executando desambiguador Wordnet...')
+		resultado = self.adapted_cosine_lesk(ctx, palavra, pos, busca_ampla=busca_ampla)
+		print('Desambiguador executado...\n')
 
-        try:
+		sinonimos = [ ]
+
+		try:
 			if resultado[0][1] == 0:
 				resultado = [resultado[0]]				
 				repetir = False
@@ -93,35 +98,98 @@ class DesWordnet(object):
 					return sinonimos[:max_sinonimos]
 			else:
 				resultado = [item for item in resultado if item[1] > 0]
-        except:
+		except:
 			resultado = [ ]
 
-        continuar = bool(resultado)
-        
-        while len(sinonimos) < max_sinonimos and continuar:
-            len_sinonimos = len(sinonimos)
+		continuar = bool(resultado)
+		
+		while len(sinonimos) < max_sinonimos and continuar:
+			len_sinonimos = len(sinonimos)
 
-            for item in resultado:
-                synset, pontuacao = item
+			for item in resultado:
+				synset, pontuacao = item
 
-                if len(sinonimos) < max_sinonimos:
-                    try:
-                        sinonimos_tmp = [s for s in synset.lemma_names() if not Util.e_multipalavra(s)]
-                        sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
+				if len(sinonimos) < max_sinonimos:
+					try:
+						sinonimos_tmp = [s for s in synset.lemma_names() if not Util.e_multipalavra(s)]
+						sinonimos_tmp = list(set(sinonimos_tmp) - set(sinonimos))
 
-                        if coletar_todos: sinonimos += sinonimos_tmp
-                        elif sinonimos_tmp: sinonimos += [sinonimos_tmp[0]]
+						if coletar_todos: sinonimos += sinonimos_tmp
+						elif sinonimos_tmp: sinonimos += [sinonimos_tmp[0]]
 
-                    except: pass
-                else:
-                    continuar = False
+					except: pass
+				else:
+					continuar = False
 
-            if repetir == False: continuar = False
-            elif len_sinonimos == len(sinonimos): continuar = False
+			if repetir == False: continuar = False
+			elif len_sinonimos == len(sinonimos): continuar = False
 
-        return sinonimos[:max_sinonimos]
+		return sinonimos[:max_sinonimos]
 
-def criar_inventario_desambiguador_wordnet(lema, pos=None, busca_ampla=False):
+	def banerjee_lesk(self, ctx, ambigua, pos, nbest=True, \
+						lematizar=True, stem=True, stop=True, \
+						usr_ex=False, janela=3):
+
+		# Casamentos cartesianos das diferentes definicoes
+		solucoes_candidatas = [ ]
+
+		# nltk.help.upenn_tagset() -> Nouns, Adverbs, Verbs e Adjectives
+		tags_validas = self.configs['pos_tags_treebank']
+
+		ctx_blob = TextBlob(ctx)
+
+		cache_assinaturas_local={ }
+
+		i_tokens_validos = [ ]
+		i_amb = None # Indice palavra ambigua
+
+		i_token = 0
+
+		# [('The', 'DT'), ('titular', 'JJ'), ('threat', 'NN'), ('of', 'IN'), ...]
+		tokens_validos_tmp = [(token_tmp, tag_tmp) for (token_tmp, tag_tmp) in ctx_blob.tags if tag_tmp in tags_validas]
+
+		max_combinacoes = 1
+
+		tv = [ ]
+
+		for token_tmp, tag_tmp in tokens_validos_tmp:
+			if token_tmp == ambigua:
+				i_amb = i_token
+
+				# Delimitadores de indices
+				imin = max(i_token-janela, 0) # nao pode exister indice menor que ZERO
+				imax = min(i_token+janela, len(tokens_validos_tmp)-1) #  e nem maior que LENGTH
+
+				# Itera a janela do contexto a partir da identificacao da palavra-target
+				for i in range(imin, imax+1):
+					token, tag = tokens_validos_tmp[i]
+
+					# Excepcionalmente, 'J' corresponde à classe de adverbios:
+					# https://stackoverflow.com/questions/15388831/what-are-all-possible-pos-tags-of-nltk
+					if tag[0].lower() == 'j': pos_wn = 'a'
+					else: pos_wn = tag[0].lower()
+
+					defs = wn.synsets(token, pos_wn)
+
+					if defs:
+						max_combinacoes *= len(defs) if len(defs) > 0 else 1
+						solucoes_candidatas.append(defs)
+						#cache_assinaturas_local[token] = pywsd.lesk.simple_signature(token, pos=pos_wn)
+					elif i == i_amb: pass # Se nao ha candidato para palavra a ser desambiguada, abortar.
+
+					tv.append(token)
+					i_tokens_validos.append(i_token)
+
+			i_token+=1
+
+		print("\n")
+		print(tv)
+		raw_input("\n\nTotal de combinacoes: "+str(max_combinacoes)+"\n")
+
+		return 0.00
+
+
+def criar_inventario_des_wn(lema, pos=None, busca_ampla=False):
 	inventario = set()
 	inventario.update(wn.synsets(lema, pos))
 
@@ -205,7 +273,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 	"""
 	synsets_signatures = {}
 	#for ss in wn.synsets(ambiguous_word):
-	for ss in criar_inventario_desambiguador_wordnet(ambiguous_word, pos=pos, busca_ampla=busca_ampla):
+	for ss in criar_inventario_des_wn(ambiguous_word, pos=pos, busca_ampla=busca_ampla):
 		try: # If POS is specified.
 			if pos and str(ss.pos()) != pos:
 				continue
@@ -224,7 +292,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 
 		# Includes examples
 		ss_examples = synset_properties(ss, 'examples')
-		signature+=list(chain(*[i.split() for i in ss_examples]))
+		signature+=list(itertools.chain(*[i.split() for i in ss_examples]))
 		
 		# Includes lemma_names.
 		ss_lemma_names = synset_properties(ss, 'lemma_names')
@@ -243,7 +311,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 			ss_hypernyms = synset_properties(ss, 'hypernyms')
 			ss_hypohypernyms = ss_hypernyms+ss_hyponyms
 			ss_hypohypernyms = ss_hypernyms
-			signature+= list(chain(*[i.lemma_names() for i in ss_hypohypernyms]))
+			signature+= list(itertools.chain(*[i.lemma_names() for i in ss_hypohypernyms]))
 
 		# Optional: removes stopwords.
 		if stop == True:
@@ -319,7 +387,7 @@ def adapted_lesk(context_sentence, ambiguous_word, \
 								  ss_sub_holonyms+ss_mem_meronyms+
 								  ss_part_meronyms+ss_sub_meronyms+ ss_simto))
 
-		signature = list([j for j in chain(*[synset_properties(i, 'lemma_names')
+		signature = list([j for j in itertools.chain(*[synset_properties(i, 'lemma_names')
 											 for i in related_senses])
 						  if j not in EN_STOPWORDS])
 
@@ -342,7 +410,7 @@ def adapted_lesk(context_sentence, ambiguous_word, \
 									normalizescore=normalizescore)
 	return best_sense
 
-def isaias_lesk(context_sentence, ambiguous_word, \
+def cosine_lesk_inventario_estendido(context_sentence, ambiguous_word, \
 				pos=None, lemma=True, stem=True, hyperhypo=True, \
 				stop=True, context_is_lemmatized=False, \
 				nbest=False, synsets_signatures=None, busca_ampla=False):
@@ -358,7 +426,7 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 
 	# If ambiguous word not in WordNet return None
 	#if not wn.synsets(ambiguous_word):
-	if not criar_inventario_desambiguador_wordnet(ambiguous_word, busca_ampla=busca_ampla):
+	if not criar_inventario_des_wn(ambiguous_word, busca_ampla=busca_ampla):
 		return None
 
 	if context_is_lemmatized:
@@ -393,11 +461,6 @@ def isaias_lesk(context_sentence, ambiguous_word, \
 
 		for ss, signature in synsets_signatures:
 			scores.append((cos_sim(context_sentence, " ".join(signature)), ss))
-
-#		if not nbest:
-#			return sorted(scores, reverse=True)[0][1]
-#		else:
-#			return [(j,i) for i,j in sorted(scores, reverse=True)]
 
 	if not nbest:
 		return sorted(scores, reverse=True)[0][1]
