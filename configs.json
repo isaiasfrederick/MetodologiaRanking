@@ -1,0 +1,143 @@
+{
+	"fontes_cands" : ["oxford", "wordnet"],
+    "params_exps": {
+		"max_entradas_pos": 1000,
+		"pos_avaliadas": [["n", "v", "r", "a"]],
+        "todos_criterios": ["desambiguador"],
+        "qtde_exemplos": [30],
+        "qtde_sugestoes_best": [1],
+        "qtde_sugestoes_oot": [10],
+        "todas_fontes_def": ["oxford"],
+        "tipos_base": ["test"],
+        "usar_exemplos": ["False"],
+		"usar_gabarito": ["False"],
+        "comentarios": "pos_avaliadas = lista de listas"
+	},
+	"saida_contig" : {
+		"habilitar" : "False",
+		"metodo" : "definicao_usual",
+		"comentarios" : "'definicao_usual' ou 'desambiguador'"
+	},
+	"alvaro" : {
+		"mxspdef" : 3,
+		"comentarios" : ""
+	},
+	"perfis": {
+		"a" : "perfil1",
+		"n" : "perfil2",
+		"r" : "perfil1",
+		"v" : "perfil2"
+	},
+	"medida_similaridade_padrao" : "cosine",
+	"saida_experimentos" : "./Experimentos",
+	"caminho_raiz_bases" : "../Bases",
+	"dir_saida_json" : "./",
+	"dir_modelos" : "Modelos",
+	"arquivo_log" : "../Bases/log.txt",
+	"dir_temporarios" : "tmp",
+	"separador" : "@@@@@@",
+	"dir_saidas_rankeador" : "SaidasRankeador",
+	"dir_base_casada_manualmente" : "casamento_manual.json",
+    "espaco_branco" : "",
+	"padrao_nome_submissao": "CRITERIO=%s_GAB=%s_TIPO=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
+	"pos_tags_treebank": ["JJ","JJR","JJS","NN","NNP","NNS","RB","RBR","RBS","VB","VBD","VBG","VBN","VBP","VBZ"],
+	"arquivo_candidatos": "Cache/candidatos.json",
+	"oxford" : {
+		"app_id" : "e405c4bd",
+		"app_key" : "5e3958b4a87bd9f46471e1963ab3b2c1",
+		"url_base" : "https://od-api.oxforddictionaries.com/api/v1",
+		"url_base_thesaurus" : "https://od-api.oxforddictionaries.com/api/v1",
+		"url_base_definicoes" : "https://en.oxforddictionaries.com/definition",
+		"pos" : ["Adjective", "Adverb", "Noun", "Verb"],
+		"cache" : {
+			"desambiguador" : "Cache/Oxford/Desambiguador",
+			"sinonimos" : "Cache/Oxford/Sinonimos",
+			"sinonimia" : "Cache/Oxford/Sinonimia",
+			"definicoes" : "Cache/Oxford/Definicoes",
+			"frequencias" : "Cache/Oxford/Frequencias",
+			"extrator_web" : "Cache/Oxford/ExtratorWeb",
+			"obj_urls_invalidas_sinonimos" : "Cache/Oxford/urls_invalidas_sinonimos.json",
+			"obj_urls_invalidas_definicoes" : "Cache/Oxford/urls_invalidas_definicoes.json",
+			"obj_urls_invalidas_extrator" : "Cache/Oxford/urls_invalidas_extrator.json"
+		},
+		"extrator_web" : {
+			"xpaths" : { }
+		}
+	},
+	"wordnet" : {
+		"cache" : {
+			"desambiguador" : "Cache/Wordnet/Desambiguador"
+		}
+	},
+	"babelnet" : {
+		"cache": {
+			"desambiguador" : "Cache/Oxford/Desambiguador"
+		},
+		"app_key" : "aff183be-c1c4-4d30-8b50-d555b7d39c48",
+		"url_base" : "https://babelnet.io/v5",
+        "c1" : "https://en.wikipedia.org/wiki/User:West.andrew.g/Popular_pages",
+		"url_desambiguador": "https://babelfy.io/v1/disambiguate?text=%s&lang=%s&key=%s&cands=ALL&dens=true&annType=NAMED_ENTITIES&posTag=STANDARD&match=PARTIAL_MATCHING",
+        "c2" : "https://en.wikipedia.org/wiki/Wikipedia:Top_25_Report"
+	},
+	"wikipedia" : {
+		"url_base_verbete" : "https://en.wikipedia.org/wiki",
+		"paginas_populares" : ""
+	},
+    "semeval2007" : {
+		"todas_pos" : ["a", "n", "r", "v"],
+		"dir_resultados_concorrentes" : "lexsubsystems",
+		"dir_raiz" : "SemEval2007",
+		"trial" : {
+			"gold_file": "trial/gold.trial",
+			"input": "trial/lexsub_trial.xml"
+		},
+		"test" : {
+			"gold_file": "task10data/scoring/gold",
+			"input": "test/lexsub_test.xml"
+		},
+		"comando_scorer" : "task10data/scoring/score.pl",
+		"criterio_ordenacao" : [ ],
+		"tarefas" : {
+			"limites" : {
+				"oot" : 10,
+				"best" : 1
+			},
+			"separadores" : {
+				"oot" : ":::",
+				"best" : "::"
+			}
+		},
+		"medidas" : ["Total", "Attempted", "Precision", "Recall", "TotalWithMode", "Attempted", "Precision", "Recall"],
+		"total_anotadores" : 5,
+		"max_sugestoes" : 3,
+		"nome_minha_abordagem" : "MR"
+	},
+	"possemeval2007" : {
+		"dir_resultados_concorrentes" : "",
+		"metricas" : ["gap"]
+	},
+	"corpus" : {
+		"dir_indexes" : "/mnt/ParticaoAlternat/Bases/LeipzigCorpus/Unificado/indexes",
+		"fontes" : ["LeipzigCorpus"]
+	},
+	"aplicacao" : {
+		"dir_saida_base_coocorrencia" : "Edmonds1997",
+		"dir_cache_casador_definicoes": "Cache/CasadorDefinicoes",
+		"dir_cache_relacao_sinonimia" : "Cache/Oxford/Sinonimia"
+	},
+	"modelos" : {
+		"default" : "Modelos/vectors.bin",
+		"word2vec-default" : "Modelos/vectors.bin",
+		"glove-6B.50d" : "Modelos/glove.6B.50d.txt",
+		"glove-6B.100d" : "Modelos/glove.6B.100d.txt",
+		"glove-6B.200d" : "Modelos/glove.6B.200d.txt",
+		"glove-6B.300d" : "Modelos/glove.6B.300d.txt",
+		"sent2vec" : "",
+		"context2vec" : "",
+		"sense2vec" : "",
+		"fasttext-wiki-news-300d-1M" : "Modelos/wiki-news-300d-1M.vec"
+	},
+	"pos_wander": ["v", "n"],
+	"base_wander" : "base_wander.json",
+	"total_sugestoes" : 40
+}

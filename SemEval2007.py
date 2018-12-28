@@ -1,9 +1,5 @@
 #! coding: utf-8
-from RepositorioCentralConceitos import BaseOx
-from Abordagens import IndexadorWhoosh, AbordagemEdmonds
-from ModuloBasesLexicas.ModuloClienteBabelNetAPI import ClienteBabelAPI
-from ModuloExtrator.InterfaceAbordagens import InterfaceAbordagens
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import *
+from OxAPI import *
 from pywsd.lesk import cosine_lesk as cosine_lesk
 from nltk.corpus import wordnet as wordnet
 import xml.etree.ElementTree as ET
@@ -47,12 +43,12 @@ class VlddrSemEval(object):
         todos_participantes = [p for p in Util.list_arqs(self.dir_resp_compet) if '.'+tarefa in p]
         todos_participantes = [p for p in todos_participantes if not '-' in p]
 
-        if pos_filtradas in [None, []]:
+        if pos_filtradas in [None, [ ]]:
             pos_filtradas = pos_semeval
 
         # Filtrando participante por POS
         todos_participantes_tmp = list(todos_participantes)
-        todos_participantes = []
+        todos_participantes = [ ]
 
         for participante in todos_participantes_tmp:
             cfgs_tarefa = self.cfgs['semeval2007']['tarefas']
@@ -73,7 +69,7 @@ class VlddrSemEval(object):
             novo_sufixo = "-%s%s"%("".join(pos_filtradas), velho_sufixo)
             dir_arq_filtrado = dir_arq_original.replace(velho_sufixo, novo_sufixo)
 
-            if lexelts_filtrados in [None, []]:
+            if lexelts_filtrados in [None, [ ]]:
                 lexelts_filtrados = predicao_filtr.keys()
             else:
                 lexelts_filtrados = list(set(lexelts_filtrados)&set(predicao_filtr.keys()))
@@ -188,7 +184,7 @@ class VlddrSemEval(object):
         raiz = arvore_xml.getroot()
 
         for lex in raiz.getchildren():
-            todos_lexelts[lex.values()[0]] = []
+            todos_lexelts[lex.values()[0]] = [ ]
             for inst in lex.getchildren():
                 codigo = str(inst.values()[0])
                 context = inst.getchildren()[0]
@@ -240,9 +236,9 @@ class VlddrSemEval(object):
 
     # Carregar arquivos Submissão SemEval 2007 (formatado com o padrao SemEval)
     def carregar_arquivo_submissao(self, cfgs, dir_arquivo,\
-                    tarefa="oot",pos_filtradas=[], lexelts_filtrados=[]):
+                    tarefa="oot",pos_filtradas=[ ], lexelts_filtrados=[ ]):
 
-        if pos_filtradas in [[], None]:
+        if pos_filtradas in [[ ], None]:
             # Assumindo valor default => ['a', 'v', 'n', 'r']
             pos_filtradas = cfgs['semeval2007']['todas_pos']
 
@@ -281,8 +277,8 @@ class VlddrSemEval(object):
 
                     saida_filtrada_pos[chave] = resposta_linha
 
-                # Filtro por Lexelt, None ou [] sao valores Default
-                if chave in lexelts_filtrados or lexelts_filtrados == []:
+                # Filtro por Lexelt, None ou [ ] sao valores Default
+                if chave in lexelts_filtrados or lexelts_filtrados == [ ]:
                     saida_filtrada_lexelt[chave] = resposta_linha
 
             except:  # Se linha está sem predição
@@ -299,4 +295,4 @@ class VlddrSemEval(object):
         try:
             return sorted(gabarito, key=lambda x: x[1], reverse=True)
         except:
-            return []
+            return [ ]

@@ -1,0 +1,92 @@
+[
+    {
+        "nome": "HIT-n.best", 
+        "ModeRecall": 4.88, 
+        "Attempted": 280.0, 
+        "ModePrecision": 21.43, 
+        "Precision": 13.07, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 2.97, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "UNT-n.best", 
+        "ModeRecall": 4.47, 
+        "Attempted": 280.0, 
+        "ModePrecision": 19.64, 
+        "Precision": 12.4, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 2.81, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "usyd-n.best", 
+        "ModeRecall": 4.31, 
+        "Attempted": 280.0, 
+        "ModePrecision": 18.93, 
+        "Precision": 11.56, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 2.62, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "KU-n.best", 
+        "ModeRecall": 3.66, 
+        "Attempted": 280.0, 
+        "ModePrecision": 16.07, 
+        "Precision": 11.35, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 2.58, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "MELB-n.best", 
+        "ModeRecall": 3.01, 
+        "Attempted": 280.0, 
+        "ModePrecision": 13.21, 
+        "Precision": 9.36, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 2.12, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "IRST2-n.best", 
+        "ModeRecall": 2.76, 
+        "Attempted": 287.0, 
+        "ModePrecision": 11.85, 
+        "Precision": 8.55, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 1.99, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "IRST1-n.best", 
+        "ModeRecall": 2.68, 
+        "Attempted": 280.0, 
+        "ModePrecision": 11.79, 
+        "Precision": 7.73, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 1.75, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "CRITERIO=desambiguador_GAB=False_TIPO=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.best", 
+        "ModeRecall": 3.01, 
+        "Attempted": 287.0, 
+        "ModePrecision": 12.89, 
+        "Precision": 4.91, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 1.14, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "TOR-n.best", 
+        "ModeRecall": 0.81, 
+        "Attempted": 280.0, 
+        "ModePrecision": 3.57, 
+        "Precision": 2.82, 
+        "TotalWithMode": 1230.0, 
+        "Recall": 0.64, 
+        "Total": 1696.0
+    }
+]

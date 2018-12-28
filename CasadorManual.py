@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from Utilitarios import Util
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
+from OxAPI import BaseOx
 from nltk.corpus import wordnet
 
 wn = wordnet
@@ -39,7 +39,7 @@ class CasadorManual(object):
             self.base_casada_manualmente[termo] = {}
 
         if not wn.synsets(unicode(termo), pos)[0].name() in self.base_casada_manualmente[termo]:
-            obj_oxford = self.base_ox.obter_obj_unificado(termo)       
+            obj_oxford = self.base_ox.construir_objeto_unificado(termo)       
             pos_oxford = Util.cvrsr_pos_wn_oxford(pos)
 
             try:
@@ -85,7 +85,7 @@ class CasadorManual(object):
         pos_oxford = Util.cvrsr_pos_wn_oxford(pos_oxford)
 
         try:
-            obj_unificado = self.base_ox.obter_obj_unificado(termo)[pos_oxford]            
+            obj_unificado = self.base_ox.construir_objeto_unificado(termo)[pos_oxford]            
         except:
             print('Excecao: ' + str((termo, pos_oxford)))
             obj_unificado = None

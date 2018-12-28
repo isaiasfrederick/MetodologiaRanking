@@ -1,0 +1,105 @@
+{
+    "window.zoomLevel": 1,   
+    "editor.tabCompletion": true,
+    "editor.colorDecorators": true,
+    "editor.fontWeight": 1,    
+    "editor.tabSize": 4,
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [{
+            "scope": "keyword.operator.arithmetic",
+            "settings": {
+                "foreground": "#6e778c"
+            }
+        },
+        {
+            "scope": "keyword.operator.assignment",
+            "settings": {
+                "foreground": "#2f7365",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "meta.type",
+            "settings": {
+                "foreground": "#aa2828",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "constant.numeric",
+            "settings": {
+                "foreground": "#1c8b93",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "scope": "variable.parameter",
+            "settings": {
+                "foreground": "#587c73",
+            }
+        },
+        {
+            "scope": "punctuation",
+            "settings": {
+                "foreground": "#4d9f8a",
+            }
+        },
+        {
+            "scope": "punctuation.separator",
+            "settings": {
+                "foreground": "#55605a",
+            }
+        },
+        {
+            "scope": "keyword",
+            "settings": {
+                "foreground": "#ba4848",
+            }
+        },
+        {
+            "scope": "keyword.operator.logical",
+            "settings": {
+                "foreground": "#4b8173",
+            }
+        },
+        {
+            "scope": "keyword.operator",
+            "settings": {
+                "foreground": "#55605a",
+            }
+        }
+    ]
+    },
+    "editor.autoClosingQuotes": "always",
+    "python.linting.enabledWithoutWorkspace": false,
+    "python.linting.enabled": false,
+    "terminal.integrated.fontSize": 11,
+    "editor.fontSize": 12,
+    "workbench.panel.location": "right",
+    "git.ignoreMissingGitWarning": true,
+    "editor.minimap.enabled": false,
+    "search.location": "panel",
+    "workbench.editor.tabCloseButton": "right",
+    "editor.suggestFontSize": 12,
+    "java.errors.incompleteClasspath.severity": "ignore",
+    "explorer.confirmDelete": false,
+    "git.autofetch": true,
+    "window.titleBarStyle": "custom",
+    "workbench.iconTheme": "seti",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.renderLineHighlight": "all",
+    "workbench.editor.tabSizing": "fit",
+    "workbench.statusBar.visible": false,
+    "editor.largeFileOptimizations": false,
+    "editor.fontFamily": "'Ubuntu Mono', 'Droid Sans Mono', Symbola, monospace, 'Droid Sans Fallback'",
+    "workbench.colorTheme": "Comrade Contrast (rainglow)",
+    "workbench.colorCustomizations": {
+        "sideBar.border": "#43424b",
+        "sideBar.background": "#111715",
+        "titleBar.activeBackground": "#211d1d",
+        "tab.border": "#5f5d6e",
+        "editorCursor.foreground": "#b8bab3",
+        "editor.lineHighlightBackground": "#181b1a",
+        "editorIndentGuide.background": "#181818"
+    }
+}

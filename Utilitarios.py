@@ -12,22 +12,26 @@ from sys import version_info
 import random, string
 import unicodedata
 import re, math
+import string
 from nltk.corpus import stopwords
 from collections import Counter
 import requests
-from nltk import pos_tag as pt, word_tokenize as wt
 from nltk.corpus import stopwords, wordnet
 import hashlib
 import bencode
+import nltk
 import textblob
 
 wn = wordnet
 
 class Util(object):
+    MAX_WMD = 1000
     configs = None
     # Contadores Corpus
     contadores = None
     verbose_ativado = True
+
+    URLS_INVALIDAS = set()
 
     @staticmethod
     def media(vetor):
@@ -35,19 +39,25 @@ class Util(object):
 
     @staticmethod
     def norm_palavra(palavra):
-        try: return palavra
-        except: pass
-
         return palavra
 
     @staticmethod
     def requisicao_http(url, headers=None):
+        if url in Util.URLS_INVALIDAS:
+            return None
+
         if headers:
             res = requests.get(url, headers = headers)
         else:
             res = requests.get(url)
 
-        return res if res.status_code == 200 else None
+        #print("\nRequerindo URL: %s\n"%url)
+
+        if res.status_code == 200:
+            return res
+        else:
+            Util.URLS_INVALIDAS.add(url)
+            return None
 
     @staticmethod
     def pontuacao_valida(operando_variavel, medida_similaridade):
@@ -115,21 +125,21 @@ class Util(object):
         txt = re.sub(r"\'t", " not", txt)
         txt = re.sub(r"\'ve", " have", txt)
         txt = re.sub(r"\'m", " am", txt)
+        
         return txt
 
     @staticmethod
-    def e_multipalavra(palavra):
+    def e_mpalavra(palavra):
         return '-' in palavra or ' ' in palavra or '_' in palavra
 
     @staticmethod
     def remover_multipalavras(lista):
-        return [e for e in lista if Util.e_multipalavra(e) == False]
+        return [e for e in lista if Util.e_mpalavra(e) == False]
 
     @staticmethod
     def print_log(msg):
         pass
         
-
     @staticmethod
     def carregar_cfgs(dir_configs):
         arq = open(dir_configs, 'r')
@@ -197,12 +207,13 @@ class Util(object):
         try:
             obj = json.loads(arq.read())
         except Exception:
-            raw_input("\nErro ao abrir o .json : "+str(arq))
+            print("\n\nErro ao abrir o .json : %s\n\n"%str(diretorio))
             arq = open(diretorio, 'w')
             arq.write("{ }")
             obj = { }
 
-        if arq.closed == False: arq.close()
+        if arq.closed == False:
+            arq.close()
         return obj
 
     @staticmethod
@@ -257,34 +268,26 @@ class Util(object):
             print(mensagem)
 
     @staticmethod
-    def extrair_sinonimos_candidatos_definicao(definicao, pos):
+    def extrair_sins_cands_def(definicao, pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
 
         if not type(pos) in [str, unicode]:
-            print('\n\n')
-            print('\nTipo POS: ' + str(type(pos)))
-
+            print('\n\nTipo POS: ' + str(type(pos)))
             traceback.print_stack()
             sys.exit(1)
 
         wn = wordnet
 
-        if pos.__len__() > 1:
+        if len(pos) > 1:
             pos = Util.conversor_pos_oxford_wn(pos)
-
-        associacoes = dict()
-
-        associacoes['n'] = ['N']
-        associacoes['v'] = ['v', 'J']
-        associacoes['a'] = ['R', 'J']
-        associacoes['s'] = ['R', 'J']
-        associacoes['r'] = ['R', 'J']
-        associacoes = None
         
         try:
-            resultado_tmp =  [p for p in pt(wt(definicao.lower())) if not p[0] in stopwords.words('english')]
-        except:
-            raw_input('\nDefinicoes que geraram excecao: ' + str(definicao) + '\n')
+            sw = stopwords.words('english')
+            resultado_tmp = [ ]
+            for (palavra, pos_tmp) in nltk.pos_tag(Util.tokenize(definicao.lower())):
+                if not palavra in sw and pos_tmp[0].lower() == pos:
+                    resultado_tmp.append((palavra, pos_tmp))
+        except: pass
 
         resultado = [ ]
 
@@ -292,7 +295,6 @@ class Util(object):
             for l, pos_iter in resultado_tmp:
                 if wn.synsets(l, pos):
                     resultado.append(l)
-
         except:
             # retirando pontuacao
             tmp = [p[0] for p in resultado_tmp if len(p[0]) > 1]
@@ -323,7 +325,7 @@ class Util(object):
 
     @staticmethod
     def retornar_valida(frase):
-        frase = Util.remove_acentos(frase)
+        frase = Util.remover_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -344,7 +346,7 @@ class Util(object):
         return os.path.isfile(pasta + nome_arquivo) 
 
     @staticmethod
-    def processar_ctx(lista_ctx, stop=True, lematizar=True, stem=True):
+    def normalizar_ctx(lista_ctx, stop=True, lematizar=True, stem=True):
         if stop:
             lista_ctx = [i for i in lista_ctx if i not in stopwords.words('english')]
         if lematizar:
@@ -355,8 +357,29 @@ class Util(object):
         return lista_ctx
 
     @staticmethod
+    def processar_ctx(ctx, stop=True, lematizar=True, stem=True, resolver_en=True):
+        pass
+
+    @staticmethod
+    def tokenize(sentenca):        
+        return [t for t in re.split('[!?.,;:\-_\s]', sentenca) if t != ""]
+        #return nltk.word_tokenize(sentenca)
+
+    @staticmethod
+    def resolver_en(sentenca):
+        return sentenca
+
+    @staticmethod
+    def exibir_json(obj, bloquear=False):
+        print("\n")
+        print(json.dumps(obj, indent=4))
+        
+        if bloquear: raw_input("\n\n<enter>")
+        else: print("\n")
+
+    @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
-        frase = Util.remove_acentos(frase)
+        frase = Util.remover_acentos(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -371,7 +394,7 @@ class Util(object):
         return frase
 
     @staticmethod
-    def remove_acentos(cadeia, codif='utf-8'):
+    def remover_acentos(cadeia, codif='utf-8'):
         if version_info[0] == 2:
             try:
                 return normalize('NFKD', cadeia.decode(codif)).encode('ASCII','ignore')
@@ -381,22 +404,12 @@ class Util(object):
                 return normalize('NFKD', cadeia).encode('ASCII', 'ignore').decode('ASCII')
             except: pass
 
-        return cadeia
+        return cadeia.encode('ASCII','ignore')
 
     @staticmethod
     def retornar_valida_pra_indexar(frase):
-        frase = Util.remove_acentos(frase)
-        frase = re.sub('[(\[?!,;.\])]', ' ', frase)
-        frase = frase.replace("\'", " ")
-        frase = frase.replace("-", " ")
-        frase = frase.replace(":", " ")
-        frase = frase.replace("@", " ")
-        frase = frase.replace("\'", " ")
-        frase = frase.replace("/", " ")
-        frase = frase.replace("\\`", " ")
-        frase = frase.replace("\"", " ")
-        frase = frase.replace("\n", " ")
-
+        frase = Util.remover_acentos(frase)
+        frase = re.sub('['+string.punctuation+']', ' ', frase)        
         frase = ''.join(e for e in frase if (e.isalnum() and not e.isdigit()) or e == ' ')
 
         return frase.strip().lower()

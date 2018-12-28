@@ -1,5 +1,5 @@
 from nltk.corpus import wordnet as wn
-from ModuloBasesLexicas.ModuloClienteOxfordAPI import BaseOx
+from ModuloClienteOxAPI import BaseOx
 
 
 class ValidadorInventarioWordnet(object):
@@ -65,7 +65,7 @@ class ValidadorInventarioOxford(object):
         intersecao_palavras_oxford = [ ]
         diferenca_palavras_oxford = [ ]
 
-        obj_unificado_oxford = base_ox.obter_obj_unificado(palavra)
+        obj_unificado_oxford = base_ox.construir_objeto_unificado(palavra)
         todas_definicoes = base_ox.obter_definicoes(palavra)
 
         for definicao in todas_definicoes:

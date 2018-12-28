@@ -1,0 +1,44 @@
+{
+    "perfis" : {
+        "perfil1" : {
+            "saida_contig" : {
+                "habilitar" : "True",
+                "metodo" : "definicao_usual",
+                "comentarios" : "'definicao_usual' ou 'desambiguador'"
+            },
+            "fontes_cands" : ["oxford", "wordnet"],
+            "params_exps": {
+                "max_entradas_pos": 10000,
+                "todos_criterios": ["alvaro"],
+                "qtde_exemplos": [1],
+                "qtde_sugestoes_best": [1],
+                "qtde_sugestoes_oot": [10],
+                "todas_fontes_def": ["oxford"],
+                "tipos_base": ["test"],
+                "usar_exemplos": ["False"],
+                "usar_gabarito": ["False"],
+                "comentarios": "pos_avaliadas = lista de listas"
+            }
+        },
+        "perfil2" : {
+            "saida_contig" : {
+                "habilitar" : "False",
+                "metodo" : "definicao_usual",
+                "comentarios" : "'definicao_usual' ou 'desambiguador'"
+            },
+            "fontes_cands" : ["oxford", "wordnet"],
+            "params_exps": {
+                "max_entradas_pos": 10000,
+                "todos_criterios": ["alvaro"],
+                "qtde_exemplos": [1],
+                "qtde_sugestoes_best": [1],
+                "qtde_sugestoes_oot": [10],
+                "todas_fontes_def": ["oxford"],
+                "tipos_base": ["test"],
+                "usar_exemplos": ["False"],
+                "usar_gabarito": ["False"],
+                "comentarios": "pos_avaliadas = lista de listas"
+            }
+        }
+    }
+}
