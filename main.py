@@ -451,10 +451,18 @@ def predizer_sins(cfgs,
 
             interseccao_casos = list(set(casos_testes_dict_tmp)&set(gabarito_dict.keys()))
 
+            if pos == ['r', 'v']:
+                res_tmp = RepVetorial.obter_palavras_relacionadas(rep_vet, positivos=[palavra], topn=20, pos=pos)
+                cands = [sin for sin, pontuacao in res_tmp if sin in cands]
+
+            gab_ordenado = sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)
+
             print("\n\n@@@ Processando a entrada " + str(lexelt))
             print("%d / %d"%(cont+1, len(interseccao_casos)))
             print("*** %s\n"%str((frase, palavra, pos)))
-            print("Gabarito: %s"%str(sorted(gabarito_dict[lexelt], key=lambda x: x[1], reverse=True)))
+            print("Gabarito: %s"%str(gab_ordenado))
+            print("Candidatos: " + str(cands))
+            print("Seletor candidatos acertou: " + str(gab_ordenado[0][0] in cands))
 
             med_sim = cfgs['medida_similaridade_padrao']
 
@@ -597,19 +605,22 @@ def predizer_sins(cfgs,
                 predicao_final[lexelt] = conj_predicao[:10]
 
             elif criterio == 'desambiguador':
+                mxspdef = cfgs['alvaro']['mxspdef']
                 med_sim = cfgs['medida_similaridade_padrao']
 
-                res_des = des_ox.desambiguar_exemplos(frase, palavra, pos, profundidade=1)
+                res_des = des_ox.desambiguar_exemplos(frase, palavra, pos, profundidade=1, candidatos=cands)
                 conj_predicao = [ ]
 
                 for reg_def, pont in res_des:
                     label, defini, ex = reg_def
                     sins = base_ox.obter_sins(palavra, defini, pos=pos)
-                    if sins == None: sins = [ ]
+                    sins = [s for s in sins if not Util.e_mpalavra(s)][:mxspdef]
 
-                    for s in sins:
-                        if not s in conj_predicao and Util.e_mpalavra(s) == False:
-                            conj_predicao.append(s)
+                    if sins == None:
+                        sins = [ ]
+                    sins = [p for p in list(set(sins)&set(cands)) if Util.e_mpalavra(p) == False]
+                    for s in set(sins)-set(conj_predicao):
+                        conj_predicao.append(s)
 
                 predicao_final[lexelt] = conj_predicao
 

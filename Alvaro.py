@@ -15,6 +15,7 @@ from pywsd.lesk import cosine_lesk
 
 wn = wordnet
 
+
 class AbordagemAlvaro(object):
     ABORDAGEM = None
 
@@ -27,7 +28,45 @@ class AbordagemAlvaro(object):
         self.casador_manual = casador_manual
         self.rep_vetorial = rep_vetorial
 
-    def construir_relacao_definicoes(self, palavra, pos, fontes='oxford', indice=1000):
+    def construir_arvore_definicoes(self, lema, pos, max_prof, cands):
+        flag_cand = cands in [None, [ ]]
+        seps = ":::"
+        arvores = [ ]
+
+        prof = 1
+
+        for def_polissemia in BaseOx.obter_definicoes(self.base_ox, lema, pos):
+            mxsdef = self.cfgs['alvaro']['mxspdef']
+
+            sins = BaseOx.obter_sins(self.base_ox, lema, def_polissemia, pos=pos)
+            sins = [s for s in sins if not Util.e_mpalavra(s)][:mxsdef]
+
+            if set(sins).intersection(set(cands)) or flag_cand:
+                label = "%s%s%s"%(lema, seps, def_polissemia)
+                nodo_nivel1 = self.adicionar_nivel_arvore(label, No(None, label), pos, prof + 1, max_prof, cands)
+                arvores.append(Arvore(nodo_nivel1))
+        return arvores
+
+    def adicionar_nivel_arvore(self, label, nodo_pai, pos, prof, max_prof, cands):
+        flag_cand = cands in [None, [ ]]
+        seps = ":::"
+
+        # Se for menor que a profundidade maxima permitida
+        if prof <= max_prof:
+            lema, definicao = tuple(label.split(seps))
+            for sin in BaseOx.obter_sins(self.base_ox, lema, definicao, pos=pos):
+                if sin in cands or flag_cand:
+                    for def_polissemia in BaseOx.obter_definicoes(self.base_ox, sin, pos=pos):
+                        label = "%s%s%s"%(sin, seps, def_polissemia)
+                        nodo_pai.add_filho(self.adicionar_nivel_arvore(label,
+                                        No(nodo_pai, label), pos,
+                                        prof + 1, max_prof, cands))
+
+        # Pai nao tera filhos, caso base
+        return nodo_pai
+
+
+    def construir_relacao_definicoes666(self, palavra, pos, fontes='oxford', indice=1000):
         cfgs = self.cfgs
 
         resultado = { }
@@ -48,7 +87,7 @@ class AbordagemAlvaro(object):
         else:
             raise Exception('Este tipo de fonte nao foi implementada!')
 
-    def construir_arvore_definicoes(self, lema, pos, max_prof):
+    def construir_arvore_definicoes666(self, lema, pos, max_prof):
         seps = ":::"
         arvores = [ ]
 
@@ -60,7 +99,7 @@ class AbordagemAlvaro(object):
             arvores.append(Arvore(nodo_nivel1))
         return arvores
 
-    def adicionar_nivel_arvore(self, label, nodo_pai, pos, prof, max_prof):
+    def adicionar_nivel_arvore666(self, label, nodo_pai, pos, prof, max_prof):
         seps = ":::"
         # Se for menor que a profundidade maxima permitida
         if prof <= max_prof:

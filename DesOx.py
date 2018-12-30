@@ -7,6 +7,7 @@ from Arvore import Arvore, No
 from textblob import TextBlob
 from Utilitarios import Util
 from nltk import pos_tag
+import Alvaro
 import itertools
 import inspect
 import Alvaro
@@ -212,8 +213,127 @@ class DesOx(object):
         return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
 
 
-    # DESAMBIGUA BASEADO EM FRASES DE EXEMPLO
     def desambiguar_exemplos(self,\
+                    ctx,\
+                    ambigua, pos,\
+                    lematizar=True,\
+                    stem=True,\
+                    stop=True,\
+                    normalizar_pont=True,\
+                    profundidade=1,
+                    candidatos=[]):
+
+        alvaro = Alvaro.AbordagemAlvaro.ABORDAGEM
+        todas_arvores = Alvaro.AbordagemAlvaro.construir_arvore_definicoes(
+                                    alvaro, ambigua, pos,
+                                    profundidade, candidatos)
+
+        caminhos_arvore = [ ]
+
+        for arvore_sinonimia in todas_arvores:
+            for caminho in arvore_sinonimia.percorrer():
+                try:
+
+                    cam_tmp = [tuple(reg.split(':::')) for reg in caminho.split("/")]
+                    cam_tmp = [p for (p, def_p) in cam_tmp if p in candidatos or candidatos == []]
+
+                    conts_corretos = [1 for i in range(len(Counter(cam_tmp).values()))]
+
+                    # Se todas palavras só ocorrem uma vez, entao nao existe ciclos
+                    if Counter(cam_tmp).values() == conts_corretos:
+                        if not caminho in caminhos_arvore:
+                            caminhos_arvore.append(caminho)
+
+                except ValueError, ve:
+                    pass
+
+        print("\n\n")
+        Util.exibir_json(caminhos_arvore, bloquear=False)
+        print("\n\n")
+
+        cfgs = self.cfgs
+        dir_bases = self.cfgs['caminho_raiz_bases']
+        base_ox = self.base_ox
+        
+        rep_vet = self.rep_vetorial
+
+        res_des_tmp = [ ]
+        pontuacao_somada = 0.00
+
+        # Filtrar caminhos aqui
+        for reg_caminhos in caminhos_arvore:
+            uniao_palavras_sem_duplicatas = set()
+            uniao_palavras_com_duplicatas = list()
+            exemplos_blob = [ ]
+
+            palavras_tf = { }
+
+            try:
+                maximo_exemplos = self.cfgs['params_exps']['qtde_exemplos'][0]
+
+                lista_exemplos = [ ]
+                definicoes_caminho = [tuple(r.split(":::")) for r in reg_caminhos.split("/")]
+                
+                # Percorrendo todos caminhos nas arvores de sinonimos
+                for lema_caminho, def_caminho in definicoes_caminho:
+                    try: # Adicionando caminho 
+                        novos_ex = base_ox.obter_atributo(lema_caminho, pos, def_caminho, 'exemplos')
+                        novos_ex = list(novos_ex)
+                        lista_exemplos += novos_ex
+                    except: lista_exemplos = [ ]
+
+                    # Adicionando lemas
+                    sins_defcaminho = base_ox.obter_sins(lema_caminho, def_caminho, pos)
+                    if sins_defcaminho:
+                        lista_exemplos.append(" ".join(sins_defcaminho))
+
+                    # Adicionando definicao
+                    lista_exemplos.append(def_caminho)
+
+                for ex_iter in lista_exemplos[:maximo_exemplos]:
+                    ex = ex_iter
+
+                    ex_blob = TextBlob(ex)
+                    exemplos_blob.append(ex_blob)
+                    for token in ex_blob.words:
+                        if Util.is_stop_word(token.lower()) == False:
+                            token_lematizado = lemmatize(token)
+                            uniao_palavras_sem_duplicatas.add(token_lematizado)
+                            uniao_palavras_com_duplicatas.append(token_lematizado)
+            except Exception, caminho:
+                exemplos = [ ]
+
+            tb_vocab_duplicatas = TextBlob(" ".join(uniao_palavras_com_duplicatas))
+
+            for p in uniao_palavras_sem_duplicatas:
+                tf = Alvaro.AbordagemAlvaro.tf(alvaro, p, tb_vocab_duplicatas)
+                palavras_tf[p] = tf
+
+            pontuacao = 0.00
+
+            for t in Util.tokenize(Util.resolver_en(ctx).lower()):
+                try:
+                    pontuacao += palavras_tf[t]
+                except: pontuacao += 0.00
+
+            pontuacao_somada += pontuacao
+
+            try:
+                if normalizar_pont:
+                    reg_pont = pontuacao / sum(palavras_tf.values())
+                else: reg_pont = pontuacao
+            except ZeroDivisionError, zde:
+                reg_pont = 0.00
+
+            ambigua, def_ambigua = definicoes_caminho[0]
+            novo_reg = ((ambigua, def_ambigua, []), reg_pont)
+            res_des_tmp.append(novo_reg)
+
+        return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
+
+
+    # DESAMBIGUA BASEADO EM FRASES DE EXEMPLO
+    def desambiguar_exemplos666(self,\
                     ctx,\
                     ambigua, pos,\
                     lematizar=True,\

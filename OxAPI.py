@@ -238,6 +238,9 @@ class BaseOx(object):
         except Exception, e:
             wn = wordnet
             sins_def = self.extrair_sins_cands_def(definicao, pos)
+            
+            if pos == 'Adverb':
+                return sins_def
 
             pos = pos.lower()[0]
             conj_lemas = set()

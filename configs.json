@@ -2,7 +2,7 @@
 	"fontes_cands" : ["oxford", "wordnet"],
     "params_exps": {
 		"max_entradas_pos": 1000,
-		"pos_avaliadas": [["n", "v", "r", "a"]],
+		"pos_avaliadas": [["v"]],
         "todos_criterios": ["desambiguador"],
         "qtde_exemplos": [30],
         "qtde_sugestoes_best": [1],
@@ -21,12 +21,6 @@
 	"alvaro" : {
 		"mxspdef" : 3,
 		"comentarios" : ""
-	},
-	"perfis": {
-		"a" : "perfil1",
-		"n" : "perfil2",
-		"r" : "perfil1",
-		"v" : "perfil2"
 	},
 	"medida_similaridade_padrao" : "cosine",
 	"saida_experimentos" : "./Experimentos",
