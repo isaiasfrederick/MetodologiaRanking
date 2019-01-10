@@ -7,8 +7,10 @@ from Arvore import Arvore, No
 from textblob import TextBlob
 from Utilitarios import Util
 from nltk import pos_tag
-import Alvaro
+import Indexador
+from OxAPI import BaseOx
 import itertools
+import nltk
 import inspect
 import Alvaro
 import sys
@@ -17,7 +19,7 @@ import os
 
 
 class DesOx(object):
-    DES = None    
+    INSTANCE = None    
     cache_objs_json = { }
 
     def __init__(self, cfgs, base_ox, rep_vetorial=None):
@@ -34,7 +36,7 @@ class DesOx(object):
     def assinatura_significado_aux(self, lema, pos, definicao, lista_exemplos):
         retornar_valida = Util.retornar_valida_pra_indexar
         assinatura = retornar_valida(definicao.replace('.', '')).lower()
-        assinatura = [p for p in Util.word_tokenize(assinatura) if not p in [',', ';', '.']]
+        assinatura = [p for p in Util.tokenize(assinatura) if not p in [',', ';', '.']]
         if lista_exemplos:
             assinatura += list(itertools.chain(*[retornar_valida(ex).split() for ex in lista_exemplos]))
         assinatura += lema
@@ -52,13 +54,15 @@ class DesOx(object):
     def desambiguar(self, ctx, ambigua, pos, nbest=True,\
                     lematizar=True, stem=True, stop=True,\
                     usar_ontologia=False, usr_ex=False,\
-                    busca_ampla=False, med_sim='cosine'):
+                    busca_ampla=False, med_sim='cosine', cands=[]):
 
         # Para gerar chave do CACHE
         vars_locais = dict(locals())
 
         dir_cache_tmp = None
-        dir_bases = self.cfgs['caminho_raiz_bases']
+        dir_bases = self.cfgs['caminho_bases']
+
+        self.usar_cache = False
 
         if self.usar_cache:
             obj_dir_cache_des = dir_bases + '/' + self.cfgs['oxford']['cache']['desambiguador']
@@ -86,9 +90,13 @@ class DesOx(object):
 
         try:
             todas_assinaturas = self.assinatura_significado(ambigua, usar_exemplos=usr_ex, lematizar=lem, stem=st)
+
+            for candidato_iter in cands:
+                todas_assinaturas += self.assinatura_significado(candidato_iter, usar_exemplos=usr_ex, lematizar=lem, stem=st)
+
             todas_assinaturas = [assi for assi in todas_assinaturas if pos == assi[0].split('.')[1]]
             # Tirando palavras de tamanho 1
-            ctx = [p for p in Util.word_tokenize(ctx.lower()) if len(p) > 1]
+            ctx = [p for p in Util.tokenize(ctx.lower()) if len(p) > 1]
             ctx = Util.normalizar_ctx(ctx, stop=stop, lematizar=lem, stem=st)
         except KeyboardInterrupt, ke:
             pass
@@ -134,13 +142,13 @@ class DesOx(object):
                     normalizar_pont=True):
 
         cfgs = self.cfgs
-        dir_bases = self.cfgs['caminho_raiz_bases']
+        dir_bases = self.cfgs['caminho_bases']
         base_ox = self.base_ox
         
         rep_vet = self.rep_vetorial
-        alvaro = Alvaro.AbordagemAlvaro.ABORDAGEM
+        alvaro = Alvaro.Alvaro.INSTANCE
 
-        dir_cache_rel_sinonimia = cfgs['caminho_raiz_bases']+'/'+cfgs['oxford']['cache']['sinonimia']
+        dir_cache_rel_sinonimia = cfgs['caminho_bases']+'/'+cfgs['oxford']['cache']['sinonimia']
         chave_cache_relacao_sin = "%s-%s.json"%(ambigua, pos)
         dir_obj = dir_cache_rel_sinonimia+'/'+chave_cache_relacao_sin
 
@@ -162,9 +170,9 @@ class DesOx(object):
 
             try:
                 maximo_exemplos = self.cfgs['params_exps']['qtde_exemplos'][0]
-                lista_exemplos = base_ox.obter_atributo(ambigua, pos, def_ambigua, 'exemplos')
+                lista_exemplos = BaseOx.obter_atributo(ambigua, pos, def_ambigua, 'exemplos')
                 # Adicionando lemas
-                lista_exemplos.append(" ".join(base_ox.obter_sins(ambigua, def_ambigua, pos)))
+                lista_exemplos.append(" ".join(BaseOx.obter_sins(ambigua, def_ambigua, pos)))
                 # Adicionando definicao
                 lista_exemplos.append(def_ambigua)
 
@@ -220,13 +228,16 @@ class DesOx(object):
                     stem=True,\
                     stop=True,\
                     normalizar_pont=True,\
-                    profundidade=1,
-                    candidatos=[]):
+                    profundidade=1,\
+                    candidatos=[ ]):
 
-        alvaro = Alvaro.AbordagemAlvaro.ABORDAGEM
-        todas_arvores = Alvaro.AbordagemAlvaro.construir_arvore_definicoes(
-                                    alvaro, ambigua, pos,
-                                    profundidade, candidatos)
+        #if pos == 'a':
+        #    return self.desambiguar_adjetivos(ctx,\
+        #        ambigua, pos,lematizar=lematizar, stem=stem, stop=stop,\
+        #        normalizar_pont=normalizar_pont, profundidade=profundidade, candidatos=candidatos)
+
+        alvaro = Alvaro.Alvaro.INSTANCE
+        todas_arvores = Alvaro.Alvaro.construir_arvore_definicoes(alvaro, ambigua, pos, profundidade, candidatos)
 
         caminhos_arvore = [ ]
 
@@ -247,18 +258,17 @@ class DesOx(object):
                 except ValueError, ve:
                     pass
 
-        print("\n\n")
-        Util.exibir_json(caminhos_arvore, bloquear=False)
-        print("\n\n")
-
         cfgs = self.cfgs
-        dir_bases = self.cfgs['caminho_raiz_bases']
+        dir_bases = self.cfgs['caminho_bases']
         base_ox = self.base_ox
         
         rep_vet = self.rep_vetorial
 
         res_des_tmp = [ ]
         pontuacao_somada = 0.00
+
+        #print("\nArvore para %s:"%str((ambigua, pos)))
+        #Util.exibir_json(caminhos_arvore, bloquear=True)
 
         # Filtrar caminhos aqui
         for reg_caminhos in caminhos_arvore:
@@ -277,36 +287,46 @@ class DesOx(object):
                 # Percorrendo todos caminhos nas arvores de sinonimos
                 for lema_caminho, def_caminho in definicoes_caminho:
                     try: # Adicionando caminho 
-                        novos_ex = base_ox.obter_atributo(lema_caminho, pos, def_caminho, 'exemplos')
-                        novos_ex = list(novos_ex)
+                        novos_ex = BaseOx.obter_atributo(BaseOx.INSTANCE,\
+                                        lema_caminho, pos, def_caminho, 'exemplos')
+                        novos_ex = list(novos_ex)                        
                         lista_exemplos += novos_ex
                     except: lista_exemplos = [ ]
 
                     # Adicionando lemas
-                    sins_defcaminho = base_ox.obter_sins(lema_caminho, def_caminho, pos)
+                    sins_defcaminho = BaseOx.obter_sins(BaseOx.INSTANCE, lema_caminho, def_caminho, pos)
+
                     if sins_defcaminho:
                         lista_exemplos.append(" ".join(sins_defcaminho))
 
                     # Adicionando definicao
                     lista_exemplos.append(def_caminho)
-
+                    
                 for ex_iter in lista_exemplos[:maximo_exemplos]:
                     ex = ex_iter
 
                     ex_blob = TextBlob(ex)
                     exemplos_blob.append(ex_blob)
+
                     for token in ex_blob.words:
                         if Util.is_stop_word(token.lower()) == False:
                             token_lematizado = lemmatize(token)
                             uniao_palavras_sem_duplicatas.add(token_lematizado)
                             uniao_palavras_com_duplicatas.append(token_lematizado)
+
             except Exception, caminho:
+                import traceback
+
+                traceback.print_stack()
+                traceback.print_exc()
+
+                raw_input("Excecao...")
                 exemplos = [ ]
 
             tb_vocab_duplicatas = TextBlob(" ".join(uniao_palavras_com_duplicatas))
 
             for p in uniao_palavras_sem_duplicatas:
-                tf = Alvaro.AbordagemAlvaro.tf(alvaro, p, tb_vocab_duplicatas)
+                tf = Alvaro.Alvaro.tf(alvaro, p, tb_vocab_duplicatas)
                 palavras_tf[p] = tf
 
             pontuacao = 0.00
@@ -332,124 +352,63 @@ class DesOx(object):
         return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
 
 
-    # DESAMBIGUA BASEADO EM FRASES DE EXEMPLO
-    def desambiguar_exemplos666(self,\
+    def desambiguar_adjetivos(self,\
                     ctx,\
                     ambigua, pos,\
                     lematizar=True,\
                     stem=True,\
                     stop=True,\
                     normalizar_pont=True,\
-                    profundidade=1):
+                    profundidade=1,\
+                    candidatos=[ ]):
+        if pos!='a': raise Exception("Esta pos nao é aceita!")
 
-        alvaro = Alvaro.AbordagemAlvaro.ABORDAGEM
-        todas_arvores = alvaro.construir_arvore_definicoes(ambigua, pos, profundidade)
+        ctx_blob = TextBlob(ctx)
+        ngrams = { }
+        ngrams_derivados = { }
+        ngram_uniao = { }
 
-        caminhos_arvore = [ ]
+        for n in range(3, 6):
+            ngrams[n] = [ng for ng in ctx_blob.ngrams(n=n) if ambigua in ng]
+            ngrams_derivados[n] = [ ]
 
-        for arvore in todas_arvores:
-            for caminho in arvore.percorrer():
-                try:
+            for c in candidatos:
+                ngrams_derivados[n] += [" ".join(l).replace(ambigua, c).split(" ") for l in ngrams[n]]
 
-                    cam_tmp = [tuple(reg.split(':::')) for reg in caminho.split("/")]
-                    cam_tmp = [p for (p, def_p) in cam_tmp]
+        ngram_uniao = dict(ngrams)
+        for n in ngrams_derivados:
+            ngram_uniao[n] += ngrams_derivados[n]
 
-                    conts_corretos = [1 for i in range(len(Counter(cam_tmp).values()))]
+        total_docs = set()
 
-                    # Se todas palavras só ocorrem uma vez, entao nao existe ciclos
-                    if Counter(cam_tmp).values() == conts_corretos:
-                        if not caminho in caminhos_arvore:
-                            caminhos_arvore.append(caminho)
+        cont_cands = dict([(c, 0) for c in candidatos])
 
-                except ValueError, ve:
-                    pass
+        for n in ngram_uniao:
+            for ngram_ in ngram_uniao[n]:
+                ngram = list(ngram_)
+                for doc in Indexador.Whoosh.consultar_documentos(ngram, "AND"):
+                    if " ".join(ngram) in doc['content']:
+                        try:
+                            c = list(set(candidatos+[ambigua]).intersection(set(ngram)))[0]
+                            cont_cands[c] += 1
+                        except: pass
 
-        print("\n\n")
-        print("Arvore:")
-        Util.exibir_json(caminhos_arvore, bloquear=False)
-        print("\n\n")
+                        total_docs.add(doc['path'])
+                        print(candidatos)
+                        print(ngram)
+                        print(ctx)
+                        print(doc['content'])
+                        print("\n")
 
-        cfgs = self.cfgs
-        dir_bases = self.cfgs['caminho_raiz_bases']
-        base_ox = self.base_ox
+        print(cont_cands)
+        if 'cow disease' in ctx:
+            raw_input("TOTAL DOCS: " + str(len(total_docs)))
+
+        #Util.exibir_json(ngram_uniao, bloquear=True)
+        #raw_input("\n\n<enter>")
         
-        rep_vet = self.rep_vetorial
+        return [ ]
 
-        res_des_tmp = [ ]
-        pontuacao_somada = 0.00
-
-        # Filtrar caminhos aqui
-
-        for reg_caminhos in caminhos_arvore:
-            uniao_palavras_sem_duplicatas = set()
-            uniao_palavras_com_duplicatas = list()
-            exemplos_blob = [ ]
-
-            palavras_tf = { }
-
-            try:
-                maximo_exemplos = self.cfgs['params_exps']['qtde_exemplos'][0]
-
-                lista_exemplos = [ ]
-                definicoes_caminho = [tuple(r.split(":::")) for r in reg_caminhos.split("/")]
-                
-                # Percorrendo todos caminhos nas arvores de sinonimos
-                for lema_caminho, def_caminho in definicoes_caminho:
-                    try: # Adicionando caminho 
-                        novos_ex = base_ox.obter_atributo(lema_caminho, pos, def_caminho, 'exemplos')
-                        lista_exemplos += novos_ex
-                    except: pass
-                    try: # Adicionando lemas
-                        lista_exemplos.append(" ".join(base_ox.obter_sins(lema_caminho, def_caminho, pos)))
-                    except: pass
-                    try: # Adicionando definicao
-                        lista_exemplos.append(def_caminho)
-                    except: pass
-
-                for ex in lista_exemplos[:maximo_exemplos]:
-                    ex_blob = TextBlob(ex)
-                    exemplos_blob.append(ex_blob)
-                    for token in ex_blob.words:
-                        if Util.is_stop_word(token.lower()) == False:
-                            token_lematizado = lemmatize(token)
-                            uniao_palavras_sem_duplicatas.add(token_lematizado)
-                            uniao_palavras_com_duplicatas.append(token_lematizado)
-            except Exception, caminho:
-                exemplos = [ ]
-
-            textblob_vocab = TextBlob(" ".join(uniao_palavras_com_duplicatas))
-
-            palavras_latentes = [ ]
-            for p in textblob_vocab.word_counts:
-                if textblob_vocab.word_counts[p] > 1:
-                    palavras_latentes.append(p)
-
-            palavras_derivadas = [ ]
-
-            for p in uniao_palavras_sem_duplicatas:
-                tf = alvaro.tf(p, textblob_vocab)
-                palavras_tf[p] = tf
-
-            pontuacao = 0.00
-
-            for t in Util.tokenize(Util.resolver_en(ctx).lower()):
-                try:
-                    pontuacao += palavras_tf[t]
-                except: pontuacao += 0.00
-
-            pontuacao_somada += pontuacao
-
-            try:
-                if normalizar_pont:
-                    reg_pont = pontuacao/sum(palavras_tf.values())
-                else: reg_pont = pontuacao
-            except ZeroDivisionError, zde: reg_pont = 0.00
-
-            ambigua, def_ambigua = definicoes_caminho[0]
-            novo_reg = ((ambigua, def_ambigua, []), reg_pont)
-            res_des_tmp.append(novo_reg)
-
-        return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
 
 
     def adapted_lesk(self, ctx, ambigua, pos, nbest=True,
@@ -466,7 +425,7 @@ class DesOx(object):
 
         # Todas definicoes da palavra ambigua
         definicoes = [
-            def_ox for def_ox in self.base_ox.obter_definicoes(ambigua, pos)]
+            def_ox for def_ox in BaseOx.obter_definicoes(ambigua, pos)]
 
         ctx_blob = TextBlob(ctx)
 
@@ -480,7 +439,7 @@ class DesOx(object):
         for token, tag in tokens_validos:
             pos_ox = Util.cvrsr_pos_wn_oxford(tag[0].lower())
 
-            defs_token = self.base_ox.obter_definicoes(token, pos_ox)
+            defs_token = BaseOx.obter_definicoes(token, pos_ox)
             if not defs_token in [[ ], None]:
                 tokens_validos_tmp.append((token, tag))
                 solucoes_candidatas.append(defs_token)
@@ -556,7 +515,7 @@ class DesOx(object):
                             extrair_relacao_semantica=False,\
                             usar_exemplos=False):
 
-        resultado = self.base_ox.construir_objeto_unificado(lema)
+        resultado = BaseOx.construir_objeto_unificado(self.base_ox, lema)
 
         if not resultado:
             resultado = {}
@@ -619,8 +578,8 @@ class DesOx(object):
 
         max_sinonimos = 10
 
-        obter_objeto_unificado_oxford = self.base_ox.construir_objeto_unificado
-        obter_sinonimos_oxford = self.base_ox.obter_sinonimos_fonte_obj_unificado
+        obter_objeto_unificado_oxford = BaseOx.construir_objeto_unificado
+        obter_sinonimos_oxford = BaseOx.obter_sinonimos_fonte_obj_unificado
 
         try:
             resultado = self.desambiguar(ctx, palavra, pos, usr_ex=usar_exemplos, busca_ampla=busca_ampla)

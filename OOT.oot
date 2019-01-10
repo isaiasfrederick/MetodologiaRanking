@@ -1,82 +1,82 @@
 [
     {
-        "nome": "UNT-v.oot", 
-        "Attempted": 302.0, 
-        "Precision": 58.61, 
+        "nome": "UNT-anrv.oot", 
+        "Attempted": 1027.0, 
+        "Precision": 65.34, 
         "TotalWithMode": 1230.0, 
-        "Recall": 14.39, 
+        "Recall": 54.55, 
         "Total": 1696.0
     }, 
     {
-        "nome": "KU-v.oot", 
-        "Attempted": 313.0, 
-        "Precision": 52.72, 
+        "nome": "KU-anrv.oot", 
+        "Attempted": 1061.0, 
+        "Precision": 61.64, 
         "TotalWithMode": 1230.0, 
-        "Recall": 13.41, 
+        "Recall": 53.17, 
         "Total": 1696.0
     }, 
     {
-        "nome": "IRST2-v.oot", 
-        "Attempted": 302.0, 
-        "Precision": 46.36, 
+        "nome": "CRITERIO=gabarito_GAB=False_TIPO=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.oot", 
+        "Attempted": 1230.0, 
+        "Precision": 48.54, 
         "TotalWithMode": 1230.0, 
-        "Recall": 11.38, 
+        "Recall": 48.54, 
         "Total": 1696.0
     }, 
     {
-        "nome": "IRST1-v.oot", 
-        "Attempted": 313.0, 
-        "Precision": 43.77, 
+        "nome": "IRST2-anrv.oot", 
+        "Attempted": 1027.0, 
+        "Precision": 57.84, 
         "TotalWithMode": 1230.0, 
-        "Recall": 11.14, 
+        "Recall": 48.29, 
         "Total": 1696.0
     }, 
     {
-        "nome": "SWAG2-v.oot", 
-        "Attempted": 314.0, 
-        "Precision": 41.72, 
+        "nome": "IRST1-anrv.oot", 
+        "Attempted": 1061.0, 
+        "Precision": 54.67, 
         "TotalWithMode": 1230.0, 
-        "Recall": 10.65, 
+        "Recall": 47.15, 
         "Total": 1696.0
     }, 
     {
-        "nome": "SWAG-v.oot", 
-        "Attempted": 314.0, 
-        "Precision": 38.54, 
+        "nome": "SWAG-anrv.oot", 
+        "Attempted": 1129.0, 
+        "Precision": 47.48, 
         "TotalWithMode": 1230.0, 
-        "Recall": 9.84, 
+        "Recall": 43.58, 
         "Total": 1696.0
     }, 
     {
-        "nome": "HIT-v.oot", 
-        "Attempted": 302.0, 
-        "Precision": 39.07, 
+        "nome": "SWAG2-anrv.oot", 
+        "Attempted": 1062.0, 
+        "Precision": 50.19, 
         "TotalWithMode": 1230.0, 
-        "Recall": 9.59, 
+        "Recall": 43.33, 
         "Total": 1696.0
     }, 
     {
-        "nome": "usyd-v.oot", 
-        "Attempted": 302.0, 
-        "Precision": 38.74, 
+        "nome": "HIT-anrv.oot", 
+        "Attempted": 1027.0, 
+        "Precision": 46.15, 
         "TotalWithMode": 1230.0, 
-        "Recall": 9.51, 
+        "Recall": 38.54, 
         "Total": 1696.0
     }, 
     {
-        "nome": "CRITERIO=desambiguador_GAB=False_TIPO=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.oot", 
-        "Attempted": 275.0, 
-        "Precision": 16.0, 
+        "nome": "usyd-anrv.oot", 
+        "Attempted": 1027.0, 
+        "Precision": 43.52, 
         "TotalWithMode": 1230.0, 
-        "Recall": 3.58, 
+        "Recall": 36.34, 
         "Total": 1696.0
     }, 
     {
-        "nome": "TOR-v.oot", 
-        "Attempted": 302.0, 
-        "Precision": 4.64, 
+        "nome": "TOR-anrv.oot", 
+        "Attempted": 1027.0, 
+        "Precision": 14.8, 
         "TotalWithMode": 1230.0, 
-        "Recall": 1.14, 
+        "Recall": 12.36, 
         "Total": 1696.0
     }
 ]

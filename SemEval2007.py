@@ -20,16 +20,18 @@ import re
 
 
 class VlddrSemEval(object):
+    INSTANCE = None
+
     def __init__(self, cfgs):
         self.cfgs = cfgs
 
         cfgs_se = cfgs['semeval2007']
-        dir_se = cfgs['caminho_raiz_bases']+'/'+cfgs['semeval2007']['dir_raiz']
+        dir_se = cfgs['caminho_bases']+'/'+cfgs['semeval2007']['dir_raiz']
 
         self.dir_resp_compet = dir_se+'/'+cfgs_se['dir_resultados_concorrentes']
         self.gold_file_test = dir_se+'/'+cfgs_se['test']['gold_file']
         self.comando_scorer = dir_se+'/'+cfgs_se['comando_scorer']
-        self.dir_tmp = cfgs['caminho_raiz_bases']+'/'+cfgs['dir_temporarios']
+        self.dir_tmp = cfgs['caminho_bases']+'/'+cfgs['dir_temporarios']
 
         self.todas_abordagens = dict()
 
@@ -289,6 +291,58 @@ class VlddrSemEval(object):
             saida[lexelt] = saida_filtrada_pos[lexelt]
 
         return saida
+
+    # Carrega bases e gabarito ja no formato Python
+    def carregar_bases(self, cfgs, tipo_base, pos_avaliadas=None):
+        if pos_avaliadas in [None, [ ]]:
+            pos_avaliadas = cfgs['semeval2007']['todas_pos']
+
+        casos_testes = gabarito = None
+        validador = VlddrSemEval(cfgs)
+
+        # Carrega a base Trial para fazer os testes
+        dir_bases_se = cfgs['caminho_bases']+'/'+cfgs['semeval2007']['dir_raiz']
+        dir_gabarito = dir_bases_se+'/'+cfgs['semeval2007'][tipo_base]['gold_file']
+        dir_entrada = dir_bases_se+'/'+cfgs['semeval2007'][tipo_base]['input']
+
+        gabarito = validador.carregar_gabarito(dir_gabarito)
+        casos_testes = validador.carregar_caso_entrada(dir_entrada)
+        # gabarito_dict[lexelt cod] = [[palavra votos], [palavra votos], [palavra votos], ...]
+        # casos_testes_dict[lexema cod] = [frase, palavra, pos]
+        casos_testes_dict, gabarito_dict = {}, {}
+
+        # Filtrando lexelts por chave
+        chaves_casos_testes = [ ]
+        for lexelt_parcial in casos_testes:
+            for reg in casos_testes[lexelt_parcial]:
+                chaves_casos_testes.append("%s %s" % (lexelt_parcial, reg['codigo']))
+        todos_lexelts = set(chaves_casos_testes) & set(gabarito)
+        todos_lexelts = [l for l in todos_lexelts if re.split('[\.\s]', l)[1] in pos_avaliadas]
+
+        for lexelt in todos_lexelts:
+            lista = [ ]
+            for sugestao in gabarito[lexelt]:
+                voto = gabarito[lexelt][sugestao]
+                lista.append([sugestao, voto])
+            gabarito_dict[lexelt] = lista
+
+        for lexelt_iter in todos_lexelts:
+            lexelt = lexelt_iter.split(" ")[0]  # 'scrap.n 104' => 'scrap.n'
+            for registro in casos_testes[lexelt]:
+                palavra, frase = registro['palavra'], registro['frase']
+                pos = lexelt.split(".")[1]
+                nova_chave = "%s %s" % (lexelt, registro['codigo'])
+                casos_testes_dict[nova_chave] = [frase, palavra, pos]
+
+        # Recomeçando as variaveis
+        casos_testes, gabarito = [ ], [ ]
+
+        for lexelt in casos_testes_dict:
+            if lexelt in gabarito_dict:
+                casos_testes.append(casos_testes_dict[lexelt])
+                gabarito.append(gabarito_dict[lexelt])
+
+        return casos_testes_dict, gabarito_dict
 
     # Ordena o gabarito padrao anotado SemEval2007 por frequencia de votos
     def fltr_gabarito(self, gabarito):

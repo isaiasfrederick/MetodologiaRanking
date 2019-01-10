@@ -65,12 +65,12 @@ class ValidadorInventarioOxford(object):
         intersecao_palavras_oxford = [ ]
         diferenca_palavras_oxford = [ ]
 
-        obj_unificado_oxford = base_ox.construir_objeto_unificado(palavra)
-        todas_definicoes = base_ox.obter_definicoes(palavra)
+        obj_unificado_oxford = BaseOx.construir_objeto_unificado(palavra)
+        todas_definicoes = BaseOx.obter_definicoes(palavra)
 
         for definicao in todas_definicoes:
             pass
-            #sinonimos = base_ox.
+            #sinonimos = BaseOx.
 
         intersecao = list(set(s.lemma_names()) & set(gabarito.keys()))
         intersecao_palavras_wornet += intersecao

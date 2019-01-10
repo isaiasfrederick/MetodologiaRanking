@@ -20,7 +20,7 @@ wn = wordnet
 
 
 class RepVetorial(object):
-    REP = None
+    INSTANCE = None
 
     def __init__(self, configs, diretorio_modelo=None, binario=True):
         self.modelo = None
@@ -82,19 +82,22 @@ class RepVetorial(object):
             return Util.MAX_WMD
 
     def obter_palavras_relacionadas(self, positivos=None, negativos=None, pos=None, topn=1):
+        if topn == 0: topn = 1
         try:
-            if positivos == "": positivos = None
-            if negativos == "": negativos = None
+            if positivos in ["", [ ]]: positivos = None
+            if negativos in ["", [ ]]: negativos = None
 
             if positivos != None:
                 positivos = [p for p in positivos if p in self.modelo]
             if negativos != None:
                 negativos = [p for p in negativos if p in self.modelo]
 
-            res = self.modelo.most_similar(positive=positivos, negative=negativos, topn=topn)
+            res = self.modelo.most_similar(positive=positivos, topn=topn)            
 
             if pos != None:
-                return [(palavra, score) for palavra, score in res if wn.synsets(palavra, pos) != [ ]]
+                return [(palavra, score) for (palavra, score) in res if wn.synsets(palavra, pos) != [ ]]
+            else:
+                return [(palavra, score) for palavra, score in res]
         except KeyError, ke:
             return [ ]
 

@@ -1,23 +1,25 @@
-from whoosh.qparser import QueryParser
-from whoosh.index import create_in
-from unidecode import unidecode
-from whoosh.fields import *
-import whoosh.index
-import traceback
 import os.path
 import string
+import traceback
 
-class Indexador(object):
-    DIR_INDEXES = 'indexes'
+import whoosh.index
+from unidecode import unidecode
+from whoosh.fields import *
+from whoosh.index import create_in
+from whoosh.qparser import QueryParser
+
+
+class Whoosh(object):
+    DIR_INDEXES = "/mnt/ParticaoAlternat/Bases/Corpora/indexes"
     SCHEMA = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
 
     @staticmethod
     def iniciar_indexacao(dir_lista_arquivos):
-        if not os.path.exists(Indexador.DIR_INDEXES):
-            os.mkdir(Indexador.DIR_INDEXES)
-            indexer = create_in(Indexador.DIR_INDEXES, Indexador.SCHEMA)
+        if not os.path.exists(Whoosh.DIR_INDEXES):
+            os.mkdir(Whoosh.DIR_INDEXES)
+            indexer = create_in(Whoosh.DIR_INDEXES, Whoosh.SCHEMA)
         else:
-            indexer = whoosh.index.open_dir(Indexador.DIR_INDEXES)
+            indexer = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
 
         writer = indexer.writer()
 
@@ -56,8 +58,11 @@ class Indexador(object):
         print('Commit realizado...')
 
     @staticmethod
-    def consultar_documentos(self, lista_palavras, operador, limite=None):
-        indexes = open_dir(Indexador.DIR_INDEXES)
+    def consultar_documentos(lista_palavras, operador, limite=None):
+        if type(lista_palavras) != list:
+            raise Exception("Indexador deve receber uma lista!")
+
+        indexes = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
         searcher = indexes.searcher()
         parser = QueryParser("content", indexes.schema)
 
@@ -69,10 +74,6 @@ class Indexador(object):
 
         consultar = parser.parse(consultar[:-len(operador)])
         resultado = [doc for doc in searcher.search(consultar, limit=limite)]
-
-        try:
-            searcher.close()
-        except: pass
 
         return resultado
 

@@ -32,6 +32,7 @@ class Util(object):
     verbose_ativado = True
 
     URLS_INVALIDAS = set()
+    CONFIGS = None
 
     @staticmethod
     def media(vetor):
@@ -287,6 +288,8 @@ class Util(object):
             for (palavra, pos_tmp) in nltk.pos_tag(Util.tokenize(definicao.lower())):
                 if not palavra in sw and pos_tmp[0].lower() == pos:
                     resultado_tmp.append((palavra, pos_tmp))
+                elif not palavra in sw and pos_tmp[0].lower() == 'j' and pos in ['a', 's']:
+                    resultado_tmp.append((palavra, pos_tmp))
         except: pass
 
         resultado = [ ]
@@ -325,7 +328,7 @@ class Util(object):
 
     @staticmethod
     def retornar_valida(frase):
-        frase = Util.remover_acentos(frase)
+        frase = Util.completa_normalizacao(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -371,15 +374,12 @@ class Util(object):
 
     @staticmethod
     def exibir_json(obj, bloquear=False):
-        print("\n")
-        print(json.dumps(obj, indent=4))
-        
+        print(json.dumps(obj, indent=4))        
         if bloquear: raw_input("\n\n<enter>")
-        else: print("\n")
 
     @staticmethod
     def retornar_valida(frase, lower=True, strip=True):
-        frase = Util.remover_acentos(frase)
+        frase = Util.completa_normalizacao(frase)
         frase = re.sub('[?!,;]', '', frase)
         frase = frase.replace("\'", " ")
         frase = frase.replace("-", " ")
@@ -394,7 +394,7 @@ class Util(object):
         return frase
 
     @staticmethod
-    def remover_acentos(cadeia, codif='utf-8'):
+    def completa_normalizacao(cadeia, codif='utf-8'):
         if version_info[0] == 2:
             try:
                 return normalize('NFKD', cadeia.decode(codif)).encode('ASCII','ignore')
@@ -408,7 +408,7 @@ class Util(object):
 
     @staticmethod
     def retornar_valida_pra_indexar(frase):
-        frase = Util.remover_acentos(frase)
+        frase = Util.completa_normalizacao(frase)
         frase = re.sub('['+string.punctuation+']', ' ', frase)        
         frase = ''.join(e for e in frase if (e.isalnum() and not e.isdigit()) or e == ' ')
 
@@ -457,3 +457,30 @@ class Util(object):
             palavras_ordenadas += list(set(palavras_indexadas[chave]))
 
         return palavras_ordenadas
+
+    @staticmethod
+    def buscar_ngrams(lista_palavras):
+        import subprocess
+
+        diretorio_leipzig = "~/Bases/Corpora/Leipzig/*"
+        filtro = "".join(' | grep "%s"' % p for p in lista_palavras)
+
+        try:
+            saida_grep = subprocess.check_output('cat %s %s'%(diretorio_leipzig, filtro), shell=True)
+        except subprocess.CalledProcessError:
+            return [ ]
+
+        saida_grep = Util.completa_normalizacao(saida_grep)
+        saida_grep = saida_grep.split("\n")
+
+        resultado = [ ]
+
+        for linha in saida_grep:
+            saida_blob = textblob.TextBlob(linha)
+            for ng in saida_blob.ngrams(n=Util.CONFIGS['ngram']['max']):
+                if len(set(lista_palavras)&set(ng)) == len(lista_palavras):
+                    resultado.append(ng)
+            saida_blob = None
+        
+        return resultado
+    

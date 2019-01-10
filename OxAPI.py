@@ -1,14 +1,19 @@
+from RepresentacaoVetorial import RepVetorial as RV
 from nltk.corpus import stopwords, wordnet
-from pyperclip import copy as copy
 from nltk.stem import WordNetLemmatizer
+from pyperclip import copy as copy
 from lxml import html, etree
-import traceback
 from itertools import chain
+import traceback
 from sys import argv
 import requests
 import json
 import sys
 import re
+
+from RepresentacaoVetorial import RepVetorial
+
+from nltk.corpus import wordnet
 
 from Utilitarios import Util
 from textblob import Word
@@ -17,9 +22,11 @@ import json
 import time
 import os
 
+wn = wordnet
+
 # Esta classe faz o merge de objetos do coletor
 class BaseOx(object):
-    BASE_OX = None
+    INSTANCE = None
     # Salva os pares <<palavra, definicao> : sinonimos>
     # Para os dados de Oxford
     sins_extraidos_definicao = dict()
@@ -34,6 +41,13 @@ class BaseOx(object):
         self.cfgs = cfgs
         self.cli_api_ox = cli_ox
         self.extrator_web_ox = ext_web
+
+    def obter_frequencia_oxford(self, palavra):
+        return self.cli_api_ox.obter_frequencia(palavra)
+
+    def freq_modelo(self, palavra):
+        try: return RepVetorial.INSTANCE.modelo.vocab[palavra].count
+        except: return 0
 
     def obter_obj_cli_api(self, palavra):
         return self.cli_api_ox.iniciar_coleta(palavra)
@@ -69,7 +83,7 @@ class BaseOx(object):
         if palavra in BaseOx.objs_unificados:
             return BaseOx.objs_unificados[palavra]
 
-        dir_bases = self.cfgs['caminho_raiz_bases']
+        dir_bases = self.cfgs['caminho_bases']
         dir_cache_oxford = self.cfgs['oxford']['cache']
         nome_arq = palavra + '.json'
 
@@ -192,8 +206,7 @@ class BaseOx(object):
                 if def_prim[:-1].lower() in obj_join_sinonimos_tmp:
                     sins = obj_join_sinonimos_tmp[def_prim[:-1].lower()]
                     obj_unificado[pos][def_prim]['sinonimos'] = sins
-
-                for def_sec in obj_extrator[pos][def_prim]['def_secs']:
+                for def_sec in obj_extrator[pos][def_prim]['def_secs']:                    
                     if def_sec[:-1].lower() in obj_join_sinonimos_tmp:
                         sins = obj_join_sinonimos_tmp[def_sec[:-1].lower()]
                         obj_unificado[pos][def_prim]['def_secs'][def_sec]['sinonimos'] = sins
@@ -226,40 +239,110 @@ class BaseOx(object):
         elif len(pos) == 1:
             lista_pos = [Util.cvrsr_pos_wn_oxford(pos)]
 
+        sinonimos_retorno = [ ]
+
         try:
             for pos in lista_pos:
                 for def_primaria in obj_unificado[pos]:
                     obj_filtrado = obj_unificado[pos][def_primaria]
                     if definicao in def_primaria or def_primaria in definicao:
-                        return obj_filtrado['sinonimos']
+                        sinonimos_retorno = obj_filtrado['sinonimos']
                     for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
                         if definicao in def_sec or def_sec in definicao:
-                            return obj_filtrado['def_secs'][def_sec]['sinonimos']
-        except Exception, e:
-            wn = wordnet
-            sins_def = self.extrair_sins_cands_def(definicao, pos)
+                            sinonimos_retorno = obj_filtrado['def_secs'][def_sec]['sinonimos']
+
+            if sinonimos_retorno != [ ]:
+                return sinonimos_retorno
+
+            sinonimos_extraidos_definicao = [ ]
+
+            if sinonimos_retorno != [ ]:
+                if pos in ['Noun', 'n', 'Verb', 'v']:
+                    sinonimos_extraidos_definicao = self.obter_sins_nv(palavra, definicao, pos=pos[0].lower())
+                else:
+                    sinonimos_extraidos_definicao = self.extrair_sins_cands_def(palavra, definicao, pos=pos[0].lower())
             
-            if pos == 'Adverb':
+            sinonimos_extraidos_definicao = set(sinonimos_extraidos_definicao)-set(sinonimos_retorno)
+
+            if sinonimos_retorno + list(sinonimos_extraidos_definicao) != [ ]:
+                return sinonimos_retorno + list(sinonimos_extraidos_definicao)
+            else:
+                raise Exception("Erro na obtencao de sinonimos!")
+        except Exception, e:
+            sins_def = self.extrair_sins_cands_def(definicao, pos)
+
+            sins_nouns = [ ]
+
+            if pos in ['Adverb', 'Adjective', 'a', 'r']:
+                return sins_def
+            if pos in ['Noun', 'n', 'Verb', 'v']:
+                retorno = self.obter_sins_nv(palavra, definicao, sins_def, pos=pos[0].lower())
+
+                if retorno == [ ] and sins_def != [ ]:
+                    for noun in sins_def:
+                        for s in wn.synsets(palavra, 'n'):
+                            for sh in s.hypernyms()+s.hyponyms()+s.similar_tos():                                
+                                if noun in sh.lemma_names():
+                                    if not noun in retorno:
+                                        retorno.append(noun)                            
+                if retorno:
+                    return retorno
+                else:
+                    return sins_def
+            else :
                 return sins_def
 
-            pos = pos.lower()[0]
-            conj_lemas = set()
+        return [ ]
 
-            for s in wn.synsets(palavra, pos):
-                for shiper in s.hypernyms():
-                    conj_lemas.update(shiper.lemma_names())
-                for shipo in s.hyponyms():
-                    conj_lemas.update(shipo.lemma_names())
+    # Para substantivos e verbos
+    def obter_sins_nv(self, palavra, definicao, sins_def, pos=None):
+        caminhos_candidatos = [ ]
+        caminhos_dict = { }
+        sins_nouns = [ ]
 
-            for s in wn.synsets(palavra, pos):
-                for caminho_hiper in s.hypernym_paths():
-                    for sh in caminho_hiper:
-                        conj_lemas.update(set(set(set(sins_def) & set(sh.lemma_names()))))
+        # Melhor sinonimo
+        for h in sins_def:
+            for sh in wn.synsets(h, pos):
+                for s in wn.synsets(palavra, pos):
+                    if sh in s.lowest_common_hypernyms(sh):
+                        if not s.name() in caminhos_dict:
+                            caminhos_dict[s.name()] = [ ]
+                        caminhos_dict[s.name()].append(sh)
+        sins_h = [(s, RV.word_move_distance(RV.INSTANCE, wn.synset(s).definition(), definicao)) for s in caminhos_dict]
+        sins_h = sorted(sins_h, key=lambda x: x[1], reverse=False)
 
-            return [p for p in sins_def if p in conj_lemas and Util.e_mpalavra(p) == False]
+        if sins_h:
+            melhor_synset = sins_h[0][0]
+            sins_h = caminhos_dict[melhor_synset]
+            
+            melhor_synset = wn.synset(melhor_synset) 
 
+            sins_h = [(hs, melhor_synset, melhor_synset.shortest_path_distance(hs)) for hs in sins_h]
+            hiper, hipo = tuple(sorted(sins_h, key=lambda x: x[2], reverse=False)[0][:2])
 
-        return None
+            menor_caminho = self.menor_caminho_synsets(hipo, hiper)
+            for synset in menor_caminho:
+                sins_nouns += [l for l in synset.lemma_names() if not Util.e_mpalavra(l)]
+
+            if palavra in sins_nouns: sins_nouns.remove(palavra)
+        # fim do melhor caminho ao hiperonimo
+
+        conj_lemas = set()
+
+        for s in wn.synsets(palavra, pos):
+            for shiper in s.hypernyms():
+                conj_lemas.update(shiper.lemma_names())
+            for shipo in s.hyponyms():
+                conj_lemas.update(shipo.lemma_names())
+        for s in wn.synsets(palavra, pos):
+            for caminho_hiper in s.hypernym_paths():
+                for sh in caminho_hiper:
+                    conj_lemas.update(set(set(set(sins_def)&set(sh.lemma_names()))))
+
+        lista_sins = [p for p in sins_def if p in conj_lemas and Util.e_mpalavra(p) == False]
+
+        return list(set(lista_sins + sins_nouns))
+
 
     # Obter todas as definicoes
     def obter_definicoes(self, palavra, pos=None):
@@ -304,7 +387,30 @@ class BaseOx(object):
     def extrair_sins_cands_def(self, definicao, pos):
         return Util.extrair_sins_cands_def(definicao, pos)
 
+    def menor_caminho_synsets(self, hipo, hiper):
+        indice_caminho = 0
 
+        indice_menor_caminho = indice_caminho
+        menor_distancia = sys.maxint
+
+        for caminho_reverso in hipo.hypernym_paths():
+            caminho = caminho_reverso
+            caminho.reverse()
+            if hiper in caminho:
+                if menor_distancia > caminho.index(hiper):
+                    indice_menor_caminho = indice_caminho
+                    menor_distancia = caminho.index(hiper)
+            indice_caminho += 1
+
+        if menor_distancia != sys.maxint:
+            caminho = hipo.hypernym_paths()[indice_menor_caminho]
+            index_hipo = caminho.index(hipo)
+            index_hiper = caminho.index(hiper)
+            caminho_reverso = caminho[index_hipo: index_hiper+1]
+            caminho_reverso.reverse()
+            return caminho_reverso
+        else:
+            return [ ]
 
 class CliOxAPI(object):
     CLI = None
@@ -323,7 +429,7 @@ class CliOxAPI(object):
             'app_key': self.chave
         }
 
-        dir_bases = self.configs['caminho_raiz_bases']
+        dir_bases = self.configs['caminho_bases']
         cfg_cache = configs['oxford']['cache']
 
         self.dir_urls_invalidas_sinonimos = dir_bases+'/'+cfg_cache['obj_urls_invalidas_sinonimos']
@@ -346,9 +452,9 @@ class CliOxAPI(object):
         return resultado
 
     def obter_frequencia(self, palavra):
-        dir_cache = self.configs['oxford']['cache']['frequencias']
+        dir_cache = self.configs['caminho_bases']+'/'+self.configs['oxford']['cache']['frequencias']
 
-        todos_arquivos_cache = Util.list_arqs(self.configs['oxford']['cache']['frequencias'])
+        todos_arquivos_cache = Util.list_arqs(dir_cache)
         todos_arquivos_cache = [c.split("/")[-1] for c in todos_arquivos_cache]
 
         if palavra + ".json" in todos_arquivos_cache:
@@ -372,7 +478,7 @@ class CliOxAPI(object):
         if palavra in self.obj_urls_invalidas_definicoes:
             return None
 
-        dir_bases = self.configs['caminho_raiz_bases']
+        dir_bases = self.configs['caminho_bases']
         dir_cache_oxford = dir_bases+'/'+self.configs['oxford']['cache']['definicoes']
         dir_obj_json = dir_cache_oxford+'/'+palavra+'.json'
 
@@ -409,7 +515,7 @@ class CliOxAPI(object):
             Util.print_formatado('ClienteOxford: URL evitada: ' + palavra)
             return None
 
-        dir_bases = self.configs['caminho_raiz_bases']
+        dir_bases = self.configs['caminho_bases']
         dir_cache_oxford = dir_bases+'/'+self.configs['oxford']['cache']['sinonimos']        
         dir_obj_json = dir_cache_oxford+'/'+palavra+'.json'
 
@@ -462,7 +568,7 @@ class ExtWeb(object):
 
         dir_cache_ext = self.cfgs['oxford']['cache']['extrator_web']
 
-        self.dir_raiz_bases = self.cfgs['caminho_raiz_bases']
+        self.dir_raiz_bases = self.cfgs['caminho_bases']
         self.dir_cache = self.dir_raiz_bases+'/'+dir_cache_ext
         self.url_base_defs = self.cfgs['oxford']['url_base_definicoes']
 

@@ -1,9 +1,10 @@
 {
-	"fontes_cands" : ["oxford", "wordnet"],
+	"fontes_cands" : ["wordnet"],
     "params_exps": {
 		"max_entradas_pos": 1000,
-		"pos_avaliadas": [["v"]],
-        "todos_criterios": ["desambiguador"],
+		"pos_avaliadas": [["a", "n", "r", "v"]],
+		"pos_avaliadas_": [["n"]],
+        "todos_criterios": ["gabarito"],
         "qtde_exemplos": [30],
         "qtde_sugestoes_best": [1],
         "qtde_sugestoes_oot": [10],
@@ -13,18 +14,22 @@
 		"usar_gabarito": ["False"],
         "comentarios": "pos_avaliadas = lista de listas"
 	},
+	"ngram" : {
+		"min" : 2,
+		"max" : 5
+	},
 	"saida_contig" : {
-		"habilitar" : "False",
+		"habilitar" : "True",
 		"metodo" : "definicao_usual",
 		"comentarios" : "'definicao_usual' ou 'desambiguador'"
 	},
 	"alvaro" : {
-		"mxspdef" : 3,
+		"mxspdef" : 5,
 		"comentarios" : ""
 	},
-	"medida_similaridade_padrao" : "cosine",
+	"medida_similaridade" : "word_move_distance",
 	"saida_experimentos" : "./Experimentos",
-	"caminho_raiz_bases" : "../Bases",
+	"caminho_bases" : "../Bases",
 	"dir_saida_json" : "./",
 	"dir_modelos" : "Modelos",
 	"arquivo_log" : "../Bases/log.txt",
@@ -36,6 +41,7 @@
 	"padrao_nome_submissao": "CRITERIO=%s_GAB=%s_TIPO=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
 	"pos_tags_treebank": ["JJ","JJR","JJS","NN","NNP","NNS","RB","RBR","RBS","VB","VBD","VBG","VBN","VBP","VBZ"],
 	"arquivo_candidatos": "Cache/candidatos.json",
+	"dir_coca_ngrams" : "../Bases/ngrams.json",
 	"oxford" : {
 		"app_id" : "e405c4bd",
 		"app_key" : "5e3958b4a87bd9f46471e1963ab3b2c1",
@@ -110,9 +116,13 @@
 		"dir_resultados_concorrentes" : "",
 		"metricas" : ["gap"]
 	},
-	"corpus" : {
-		"dir_indexes" : "/mnt/ParticaoAlternat/Bases/LeipzigCorpus/Unificado/indexes",
-		"fontes" : ["LeipzigCorpus"]
+	"corpora" : {
+		"dir_indexes": "/mnt/ParticaoAlternat/Bases/Corpora/indexes",
+		"raiz": "",
+		"fontes" : {
+			"LeipzigCorpus": "",
+			"SignalMedia": ""
+		}
 	},
 	"aplicacao" : {
 		"dir_saida_base_coocorrencia" : "Edmonds1997",
