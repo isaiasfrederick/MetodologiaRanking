@@ -1,4 +1,5 @@
 from RepresentacaoVetorial import RepVetorial as RV
+from RepresentacaoVetorial import RepVetorial
 from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
 from pyperclip import copy as copy
@@ -10,8 +11,6 @@ import requests
 import json
 import sys
 import re
-
-from RepresentacaoVetorial import RepVetorial
 
 from nltk.corpus import wordnet
 
@@ -138,7 +137,6 @@ class BaseOx(object):
 
                     return obj_extrator
 
-            #print("\n%s nao possui paginas extraidas...\n"%dir_obj_extrator)
             return { }
 
         # Processando definicoes
@@ -150,7 +148,6 @@ class BaseOx(object):
             for def_prim in obj_extrator[pos]:
                 k_reg = pos + self.cfgs['separador'] + def_prim[:-1].lower()
                 obj_join_extrator[k_reg] = obj_extrator[pos][def_prim]['exemplos']
-
                 for def_sec in obj_extrator[pos][def_prim]['def_secs']:
                     k_reg = pos + self.cfgs['separador'] + def_sec[:-1].lower()
                     obj_join_extrator[k_reg] = obj_extrator[pos][def_prim]['def_secs'][def_sec]['exemplos']
@@ -162,8 +159,8 @@ class BaseOx(object):
             for reg in obj_definicoes[pos]:
                 if 'thesaurusLinks' in reg:
                     k_reg = pos + self.cfgs['separador'] + reg['thesaurusLinks'][0]['sense_id']
-
                     if 'definitions' in reg:
+                        obj_join_definicoes[k_reg] = reg['definitions']
                         if 'subsenses' in reg:
                             for reg_sub in reg['subsenses']:
                                 try:
@@ -172,6 +169,13 @@ class BaseOx(object):
                                     k_reg = pos + self.cfgs['separador'] + reg_sub['id']
                                 try:
                                     obj_join_definicoes[k_reg] = reg_sub['definitions']
+                                except: pass
+                                try:
+                                    k_reg = pos + self.cfgs['separador'] + reg['thesaurusLinks'][0]['sense_id']
+                                    if k_reg in obj_join_definicoes:
+                                        obj_join_definicoes[k_reg] += reg_sub['definitions']
+                                    else:
+                                        obj_join_definicoes[k_reg] = reg_sub['definitions']
                                 except: pass
                     else: pass
                 else: pass
@@ -199,16 +203,32 @@ class BaseOx(object):
 
         for k_reg in obj_join_sinonimos:
             if k_reg in obj_join_definicoes:
-                obj_join_sinonimos_tmp[obj_join_definicoes[k_reg][0]] = obj_join_sinonimos[k_reg]
+                for k_reg_defs in obj_join_definicoes[k_reg]:
+                    if len(obj_join_definicoes[k_reg]) == 1:
+                        obj_join_sinonimos_tmp[k_reg_defs] = obj_join_sinonimos[k_reg]
+        for k_reg in obj_join_sinonimos:
+            if k_reg in obj_join_definicoes:
+                for k_reg_defs in obj_join_definicoes[k_reg]:
+                    if not k_reg_defs in obj_join_sinonimos_tmp:
+                        obj_join_sinonimos_tmp[k_reg_defs] = obj_join_sinonimos[k_reg]
 
         for pos in obj_extrator:
             for def_prim in obj_extrator[pos]:
-                if def_prim[:-1].lower() in obj_join_sinonimos_tmp:
-                    sins = obj_join_sinonimos_tmp[def_prim[:-1].lower()]
+                if def_prim[:-1].lower() in obj_join_sinonimos_tmp: chave = def_prim[:-1].lower()
+                elif def_prim.lower() in obj_join_sinonimos_tmp: chave = def_prim.lower()
+                else: chave = None
+
+                if chave:
+                    sins = obj_join_sinonimos_tmp[chave]
                     obj_unificado[pos][def_prim]['sinonimos'] = sins
+
                 for def_sec in obj_extrator[pos][def_prim]['def_secs']:                    
-                    if def_sec[:-1].lower() in obj_join_sinonimos_tmp:
-                        sins = obj_join_sinonimos_tmp[def_sec[:-1].lower()]
+                    if def_sec[:-1].lower() in obj_join_sinonimos_tmp: chave = def_sec[:-1].lower()
+                    elif def_sec.lower() in obj_join_sinonimos_tmp: chave = def_sec.lower()
+                    else: chave = None
+
+                    if chave:
+                        sins = obj_join_sinonimos_tmp[chave]
                         obj_unificado[pos][def_prim]['def_secs'][def_sec]['sinonimos'] = sins
 
         obj_join_sinonimos_tmp = None
@@ -270,7 +290,6 @@ class BaseOx(object):
                 raise Exception("Erro na obtencao de sinonimos!")
         except Exception, e:
             sins_def = self.extrair_sins_cands_def(definicao, pos)
-
             sins_nouns = [ ]
 
             if pos in ['Adverb', 'Adjective', 'a', 'r']:

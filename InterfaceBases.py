@@ -3,6 +3,7 @@ from RepresentacaoVetorial import *
 from OxAPI import *
 from DesOx import DesOx
 from SemEval2007 import VlddrSemEval
+import os
 
 class InterfaceBases():
     OBJETOS = { }
@@ -10,6 +11,8 @@ class InterfaceBases():
 
     @staticmethod
     def setup(cfgs):
+        Util.deletar_arquivo("../Bases/ngrams.tmp")
+
         CliOxAPI.CLI = CliOxAPI(cfgs)
         ExtWeb.EXT = ExtWeb(cfgs)
 
@@ -21,7 +24,10 @@ class InterfaceBases():
 
         dir_modelo_default = cfgs["caminho_bases"]+"/"+cfgs["modelos"]["default"]
 
+        print("\nCarregando modelo '%s'"%dir_modelo_default)
         RepVetorial.INSTANCE.carregar_modelo(dir_modelo_default, binario=True)
+        print("Modelo carregado!\n")
+
         DesOx.INSTANCE = DesOx(cfgs, BaseOx.INSTANCE, RepVetorial.INSTANCE)
 
         InterfaceBases.CFGS = cfgs

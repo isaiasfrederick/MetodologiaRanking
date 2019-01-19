@@ -1,10 +1,10 @@
 {
-	"fontes_cands" : ["wordnet"],
+"fontes_cands" : ["wordnet", "oxford"],
     "params_exps": {
-		"max_entradas_pos": 1000,
-		"pos_avaliadas": [["a", "n", "r", "v"]],
-		"pos_avaliadas_": [["n"]],
         "todos_criterios": ["gabarito"],
+		"max_entradas_pos": 1000000,
+		"pos_avaliadas": [["a", "n", "r", "v"]],
+		"pos_avaliadas_": [["r"]],
         "qtde_exemplos": [30],
         "qtde_sugestoes_best": [1],
         "qtde_sugestoes_oot": [10],
@@ -15,11 +15,14 @@
         "comentarios": "pos_avaliadas = lista de listas"
 	},
 	"ngram" : {
+		"blacklist" : ["new", "use"],
+		"max_cands_filtro" : 4,
+		"dir_derivado" : "../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
 		"min" : 2,
 		"max" : 5
 	},
 	"saida_contig" : {
-		"habilitar" : "True",
+		"habilitar" : "False",
 		"metodo" : "definicao_usual",
 		"comentarios" : "'definicao_usual' ou 'desambiguador'"
 	},
@@ -38,13 +41,14 @@
 	"dir_saidas_rankeador" : "SaidasRankeador",
 	"dir_base_casada_manualmente" : "casamento_manual.json",
     "espaco_branco" : "",
-	"padrao_nome_submissao": "CRITERIO=%s_GAB=%s_TIPO=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
+	"padrao_nome_submissao": "C=%s_G=%s_T=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
 	"pos_tags_treebank": ["JJ","JJR","JJS","NN","NNP","NNS","RB","RBR","RBS","VB","VBD","VBG","VBN","VBP","VBZ"],
 	"arquivo_candidatos": "Cache/candidatos.json",
-	"dir_coca_ngrams" : "../Bases/ngrams.json",
+	"dir_coca_ngrams" : "../Bases/Corpora/COCA Corpus/coca-ngrams-postags.json",
+	"dir_signalmedia_ngrams" : "../Bases/signalmedia-ngrams-postags.json",
 	"oxford" : {
-		"app_id" : "e405c4bd",
-		"app_key" : "5e3958b4a87bd9f46471e1963ab3b2c1",
+		"app_id" : "",
+		"app_key" : "",
 		"url_base" : "https://od-api.oxforddictionaries.com/api/v1",
 		"url_base_thesaurus" : "https://od-api.oxforddictionaries.com/api/v1",
 		"url_base_definicoes" : "https://en.oxforddictionaries.com/definition",

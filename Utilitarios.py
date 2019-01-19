@@ -35,6 +35,10 @@ class Util(object):
     CONFIGS = None
 
     @staticmethod
+    def sort(colecao, col, reverse=False):
+        return sorted(colecao, key=lambda x: x[col], reverse=reverse)
+
+    @staticmethod
     def media(vetor):
         return sum(vetor)/len(vetor)
 
@@ -219,7 +223,8 @@ class Util(object):
 
     @staticmethod
     def deletar_arquivo(dir_arquivo):
-        system("rm " + dir_arquivo)
+        if os.path.exists(dir_arquivo):
+            system("rm " + dir_arquivo)
 
     @staticmethod
     def limpar_diretorio_temporarios(configs):
@@ -286,7 +291,9 @@ class Util(object):
             sw = stopwords.words('english')
             resultado_tmp = [ ]
             for (palavra, pos_tmp) in nltk.pos_tag(Util.tokenize(definicao.lower())):
-                if not palavra in sw and pos_tmp[0].lower() == pos:
+                if wn.synsets(palavra, pos):
+                    resultado_tmp.append((palavra, pos))
+                elif not palavra in sw and pos_tmp[0].lower() == pos:
                     resultado_tmp.append((palavra, pos_tmp))
                 elif not palavra in sw and pos_tmp[0].lower() == 'j' and pos in ['a', 's']:
                     resultado_tmp.append((palavra, pos_tmp))
@@ -296,7 +303,7 @@ class Util(object):
 
         try:
             for l, pos_iter in resultado_tmp:
-                if wn.synsets(l, pos):
+                if wn.synsets(l, pos_iter):
                     resultado.append(l)
         except:
             # retirando pontuacao
@@ -304,7 +311,8 @@ class Util(object):
 
             for l in tmp:
                 try:
-                    if wn.synsets(l, pos): resultado.append(l)
+                    if wn.synsets(l, pos):
+                        resultado.append(l)
                 except: resultado.append(l)
 
         if not resultado:
@@ -457,30 +465,3 @@ class Util(object):
             palavras_ordenadas += list(set(palavras_indexadas[chave]))
 
         return palavras_ordenadas
-
-    @staticmethod
-    def buscar_ngrams(lista_palavras):
-        import subprocess
-
-        diretorio_leipzig = "~/Bases/Corpora/Leipzig/*"
-        filtro = "".join(' | grep "%s"' % p for p in lista_palavras)
-
-        try:
-            saida_grep = subprocess.check_output('cat %s %s'%(diretorio_leipzig, filtro), shell=True)
-        except subprocess.CalledProcessError:
-            return [ ]
-
-        saida_grep = Util.completa_normalizacao(saida_grep)
-        saida_grep = saida_grep.split("\n")
-
-        resultado = [ ]
-
-        for linha in saida_grep:
-            saida_blob = textblob.TextBlob(linha)
-            for ng in saida_blob.ngrams(n=Util.CONFIGS['ngram']['max']):
-                if len(set(lista_palavras)&set(ng)) == len(lista_palavras):
-                    resultado.append(ng)
-            saida_blob = None
-        
-        return resultado
-    

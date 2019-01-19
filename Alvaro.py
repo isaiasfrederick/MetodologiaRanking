@@ -8,13 +8,15 @@ from nltk.corpus import wordnet
 from RepresentacaoVetorial import RepVetorial
 from string import punctuation
 import CasadorManual
+import gc
 import traceback
 import math
 import sys
-
+import os
 import nltk
-
+import itertools
 import textblob
+import json
 
 from OxAPI import BaseOx
 from pywsd.lesk import cosine_lesk
@@ -26,8 +28,11 @@ class Alvaro(object):
     INSTANCE = None
     OBJETO_NGRAMS = { }
 
+    PONDERACAO_DEFINICOES = { }
+    NGRAMS_COCA = { }
+
     # "nome#pos" : relacao
-    relacao_sinonimia = { }
+    RELACAO_SINONIMIA = { }
 
     def __init__(self, configs, base_ox, casador_manual, rep_vetorial):
         self.cfgs = configs
@@ -57,6 +62,7 @@ class Alvaro(object):
                 label = "%s%s%s"%(lema, seps, def_polissemia)
                 nodo_nivel1 = self.adicionar_nivel_arvore(label, No(None, label), pos, prof + 1, max_prof, cands)
                 arvores.append(Arvore(nodo_nivel1))
+
         return arvores
 
     def adicionar_nivel_arvore(self, label, nodo_pai, pos, prof, max_prof, cands):
@@ -97,22 +103,108 @@ class Alvaro(object):
         else:
             raise Exception('Este tipo de fonte nao foi implementada!')
 
-    def pontuar_relacao_sinonimia(self, palavra, pos, fontes='oxford', indice=1000):
-        relacao_sinonimia = self.construir_relacao_definicoes(palavra, pos, fontes=fontes)
-        relacao_sinonimia_ponderada = { }
+    def pontuar_relsin_wmd(self, palavra, pos, todos_caminhos):
+        if Alvaro.PONDERACAO_DEFINICOES in [{ }, None]:
+            Alvaro.PONDERACAO_DEFINICOES = Alvaro.carregar_base_ponderacao_definicoes()
 
-        for def_ambigua in relacao_sinonimia:
-            if not def_ambigua in relacao_sinonimia_ponderada:
-                relacao_sinonimia_ponderada[def_ambigua] = [ ]
+        caminhos_ponderados = {  }
 
-            sins = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, def_ambigua, pos=pos)
+        for caminho_iter in todos_caminhos:
+            caminho_tokenizado = caminho_iter.split("/")
+            
+            if not caminho_iter in caminhos_ponderados:
+                caminhos_ponderados[caminho_iter] = [ ]
 
-            for sin_iter in relacao_sinonimia[def_ambigua]:
-                for def_iter in relacao_sinonimia[def_ambigua][sin_iter]:
-                    pont = RepVetorial.word_move_distance(RepVetorial.INSTANCE, def_ambigua, def_iter)
-                    relacao_sinonimia_ponderada[def_ambigua].append((sin_iter, def_iter, pont))
+            for aresta_iter in itertools.product(caminho_tokenizado, caminho_tokenizado):
+                aresta = list(aresta_iter)
+                aresta.sort()
+                aresta = tuple(aresta)
 
-        return relacao_sinonimia_ponderada
+                ini, fim = aresta
+
+                def1 = ini.split(":::")[1]
+                def2 = fim.split(":::")[1]
+                pont_wmd = None
+
+                if ini != fim and not str(aresta) in Alvaro.PONDERACAO_DEFINICOES:
+                    pont_wmd = RepVetorial.word_move_distance(RepVetorial.INSTANCE, def1, def2)
+                    Alvaro.PONDERACAO_DEFINICOES[str(aresta)] = pont_wmd
+                    caminhos_ponderados[caminho_iter].append((aresta, pont_wmd))
+
+        return caminhos_ponderados
+
+    def pontuar_relsin_exemplos(self, palavra, pos, todos_caminhos):
+        wmd = RepVetorial.word_move_distance
+
+        for caminho_iter in todos_caminhos:
+            caminho_tokenizado = caminho_iter.split("/")
+            for aresta_iter in itertools.product(caminho_tokenizado, caminho_tokenizado):
+                aresta = list(aresta_iter)
+                aresta.sort()
+                aresta = tuple(aresta)
+
+                ini, fim = aresta
+
+                lema1, def1 = ini.split(":::")
+                lema2, def2 = fim.split(":::")
+
+                chave = tuple(sorted((ini, fim), reverse=False))
+
+                if not str(chave) in Alvaro.PONDERACAO_DEFINICOES:
+                    if def1 != def2:
+                        sins_lema1 = BaseOx.obter_sins(BaseOx.INSTANCE, lema1, def1, pos=pos)
+                        sins_lema2 = BaseOx.obter_sins(BaseOx.INSTANCE, lema2, def2, pos=pos)
+
+                        if lema1 in sins_lema1:
+                            sins_lema1.remove(lema1)
+                        if lema2 in sins_lema2:
+                            sins_lema2.remove(lema2)
+
+                        for sin_iter1 in sins_lema1:
+                            for ex_iter in BaseOx.obter_atributo(BaseOx.INSTANCE, lema2, pos, def2, 'exemplos'):
+                                if lema2 in ex_iter:
+                                    ex_def2 = ex_iter.replace(lema2, sin_iter1)
+                                    sc_wmd = wmd(RepVetorial.INSTANCE, ex_iter, ex_def2)
+                                    # lema, def, pos, sin, lema, def, pos, ex
+                                    padrao_cmd = "%s@@@@%s@@@@%s@@@@@%s@@@@%s@@@@%s@@@@%s@@@@%f"
+                                    padrao_cmd = padrao_cmd%(lema1, def1, pos, sin_iter1, lema2, def2, ex_def2, sc_wmd)
+                                    os.system('echo \"%s\" >> ../Bases/linhas.txt'%padrao_cmd)
+
+                        for sin_iter2 in sins_lema2:
+                            for ex_iter in BaseOx.obter_atributo(BaseOx.INSTANCE, lema1, pos, def1, 'exemplos'):
+                                if lema1 in ex_iter:
+                                    ex_def1 = ex_iter.replace(lema1, sin_iter2)
+                                    sc_wmd = wmd(RepVetorial.INSTANCE, ex_iter, ex_def1)
+                                    # lema, def, pos, sin, lema, def, pos, ex
+                                    padrao_cmd = "%s@@@@%s@@@@%s@@@@@%s@@@@%s@@@@%s@@@@%s@@@@%f"
+                                    padrao_cmd = padrao_cmd%(lema2, def2, pos, sin_iter2, lema1, def1, ex_def1, sc_wmd)
+                                    os.system('echo \"%s\" >> ../Bases/linhas.txt'%padrao_cmd)
+
+                        sc = None
+
+                    Alvaro.PONDERACAO_DEFINICOES[str(chave)] = 1
+
+        return None
+
+    def pontuar_relsin_subst(self, palavra, pos, todos_caminhos):
+        wmd = RepVetorial.word_move_distance
+        max_ex = 4
+
+        caminho_scores = { }
+
+        for caminho in todos_caminhos:
+            if not caminho in caminho_scores: caminho_scores[caminho] = [ ]
+            for aresta in caminho.split("/"):
+                lema, definicao = aresta.split(":::")
+                if lema != palavra:
+                    exemplos = BaseOx.obter_atributo(BaseOx.INSTANCE, lema, pos, definicao, 'exemplos')[:max_ex]
+                    for ex_iter in exemplos:
+                        ex = ex_iter.replace(lema, palavra)
+                        if ex != ex_iter:
+                            sc = wmd(RepVetorial.INSTANCE, ex, ex_iter)
+                            caminho_scores[caminho].append(sc)
+
+        return caminho_scores
 
     # Obtem a palavra mais usual para o significado mais usual para uma palavra
     def sugestao_contigencial(self, palavra,\
@@ -164,6 +256,75 @@ class Alvaro(object):
         todos_votos = sorted([v[1] for v in gabarito], reverse=True)
         return todos_votos.count(todos_votos[0])!=1
 
+    def selec_ngrams(self, palavra, frase, cands):
+        cfgs = self.cfgs
+        min_ngram = cfgs['ngram']['min']
+        max_ngram = cfgs['ngram']['max']
+
+        pont_ngram = dict([(p, 0.00) for p in cands])
+
+        ngrams_coca = Alvaro.NGRAMS_COCA
+
+        for cand_iter in cands:
+            nova_frase = frase.replace(palavra, cand_iter)
+
+            ngrams_leipzig = Alvaro.carregar_ngrams_leipzig(palavra, cand_iter)
+            ngrams_derivados_frase = Alvaro.gerar_ngrams_tagueados(nova_frase, min_ngram, max_ngram, cand_iter)
+
+            # derivando demais n-grams
+            dir_ngrams_derivados = cfgs['ngram']['dir_derivado'] % cand_iter
+            if os.path.exists(dir_ngrams_derivados) == False:
+                novos_ngrams = Alvaro.derivar_ngrams(ngrams_leipzig, cfgs['ngram']['min'], cfgs['ngram']['max'])
+                Util.salvar_json(dir_ngrams_derivados, novos_ngrams)
+            else:
+                novos_ngrams = Util.abrir_json(dir_ngrams_derivados)
+
+            for ng_str in novos_ngrams: ngrams_leipzig[ng_str] = novos_ngrams[ng_str]
+            novos_ngrams = None
+
+            for __ng_iter__ in ngrams_derivados_frase:
+                ng_iter = [(unicode(p), pt) for (p, pt) in __ng_iter__]
+
+                freq_ngram_iter = 0
+                nova_pont = 0
+
+                # COCA Corpus
+                if unicode(ng_iter) in ngrams_coca:
+                    freq_ngram_iter = int(ngrams_coca[unicode(ng_iter)])
+                    nova_pont = Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
+                    pont_ngram[cand_iter] += nova_pont
+                # Leipzig Corpus
+                if unicode(__ng_iter__) in ngrams_leipzig:
+                    freq_ngram_iter += int(ngrams_leipzig[unicode(__ng_iter__)])
+                    nova_pont += Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
+                    pont_ngram[cand_iter] += nova_pont
+
+            ngrams_leipzig = None
+            ngrams_derivados_frase = None
+
+        top_ngrams = [(p, pont_ngram[p]) for p in cands]
+        return top_ngrams
+
+    @staticmethod
+    def derivar_ngrams(ngrams, _min_, _max_):
+        novos_ngrams = { }
+        for ng_str in ngrams:
+            try:
+                ng = eval(ng_str)
+                for n in range(_min_, _max_):
+                    for i in range(_max_-n):
+                        try:
+                            novo_ng = str(ng[i:i+n])
+                            if not novo_ng in novos_ngrams:
+                                novos_ngrams[novo_ng] = ngrams[ng_str]
+                            else:
+                                novos_ngrams[novo_ng] += ngrams[ng_str]
+                        except: pass
+            except Exception, e:                
+                print("\nErro para ngram: %s\n"%str(ng))
+                print(e)
+        return novos_ngrams
+
     # Seletor candidatos desconsiderando a questao da polissemia sob este aspecto
     # este metodo seleciona todos os candidatos 
     def selec_candidatos(self, palavra, pos, fontes=['wordnet'], max_por_def=4, indice_definicao=-1):        
@@ -180,20 +341,20 @@ class Alvaro(object):
         if 'wordnet' in fontes:
             for s in wn.synsets(palavra, pos):
                 candidatos.update(s.lemma_names()[:max_por_def])
-                if pos == 'n':
+                if pos in ['n']:
                     for h in s.hypernyms():
                         candidatos.update(h.lemma_names()[:max_por_def])
                     for h in s.hyponyms():
                         candidatos.update(h.lemma_names()[:max_por_def])
-                elif pos in ['a','r','v']:
+                elif pos in ['a', 'r', 'v']:
                     for similar in s.similar_tos():
                         candidatos.update(similar.lemma_names()[:max_por_def])
 
         if 'oxford' in fontes:
-            todas_definicoes = BaseOx.obter_definicoes(self.base_ox, palavra, pos)
+            todas_definicoes = BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, pos)            
             for definicao in todas_definicoes:
                 try:                
-                    candidatos_tmp = BaseOx.obter_sins(self.base_ox, palavra, definicao, pos)[:max_por_def]
+                    candidatos_tmp = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, definicao, pos)[:1]
                 except:
                     candidatos_tmp = [ ]
                 candidatos.update([ ] if candidatos_tmp == None else candidatos_tmp)
@@ -226,7 +387,7 @@ class Alvaro(object):
         return self.tf(word, blob) * self.idf(word, bloblist)
 
     @staticmethod
-    def gerar_ngram(sentenca, _min_, _max_, palavra_central=None):
+    def gerar_ngrams_tagueados(sentenca, _min_, _max_, palavra_central=None):
         ngrams_dict = { }
         tokens_tagueados = nltk.pos_tag(nltk.word_tokenize(sentenca))
 
@@ -255,8 +416,8 @@ class Alvaro(object):
 
     @staticmethod
     def carregar_coca_ngrams(diretorio):
-        min_ngram = 2
-        max_ngram = 5
+        min_ngram = Util.CONFIGS['ngram']['min']
+        max_ngram = Util.CONFIGS['ngram']['max']
 
         arquivo_ngrams = open(diretorio, 'r')
         todas_linhas = arquivo_ngrams.readlines()
@@ -268,7 +429,7 @@ class Alvaro(object):
             colunas = str(linha_iter).lower().split("\t")
             freq, tokens = int(colunas[0]), "\t".join(colunas[1:])
 
-            ngrams = Alvaro.gerar_ngram(tokens, min_ngram, max_ngram)
+            ngrams = Alvaro.gerar_ngrams_tagueados(tokens, min_ngram, max_ngram)
 
             for ng in ngrams:
                 if not str(ng) in todos_ngrams_tuplas:
@@ -279,11 +440,8 @@ class Alvaro(object):
         return todos_ngrams_tuplas
 
     @staticmethod
-    def pontuar_sintagma(freq, len_sintagma, max_sintagma):
-        len_sintagma = float(len_sintagma)
-        max_sintagma = float(max_sintagma + 1)
-
-        return freq / (1.00 / (len_sintagma ** 3))
+    def pont_colocacao(freq, len_sintagma, max_sintagma):
+        return freq * (len_sintagma ** 3)
 
 
     # https://stackoverflow.com/questions/24192979/
@@ -299,3 +457,114 @@ class Alvaro(object):
                     if not a.name() in anto:
                         anto.append(a.name())
         return anto
+
+    @staticmethod
+    def carregar_ngrams_leipzig(palavra, substituto):
+        if substituto in Util.CONFIGS["ngram"]["blacklist"]:
+            return { }
+
+        dir_ngrams_lpzg = '../Bases/Corpora/Leipzig-ngrams'
+        dir_conts_ngrams = dir_ngrams_lpzg+'/%s.conts.json'%(substituto)
+
+        if os.path.exists(dir_conts_ngrams) == True:
+            return Util.abrir_json(dir_conts_ngrams)
+
+        dict_freq_ngrams = { }
+
+        print("\nExtraindo do corpus sentencas para '%s'"% substituto)
+        try:
+            obj = Alvaro.gerar_ngrams_leipzig([substituto])
+        except:
+            print("\n@@@ Erro na geração de n-grams do Leipzig Corpus para a palavra '%s'!\n"%substituto)
+            obj = [ ]
+        print("Sentencas extraidas!")
+
+        max_ngram = Util.CONFIGS['ngram']['max']
+
+        print("Contabilizando n-grams!")
+
+        for reg in obj:
+            ng_str = str(nltk.pos_tag(nltk.word_tokenize(" ".join(reg))))
+            if not ng_str in dict_freq_ngrams:
+                dict_freq_ngrams[ng_str] = 1
+            else:
+                dict_freq_ngrams[ng_str] += 1
+
+        print("n-grams contabilizados!")
+        print("\n")
+
+        obj = None
+        arq = None       
+
+        Util.salvar_json(dir_conts_ngrams, dict_freq_ngrams)
+
+        return dict_freq_ngrams
+
+
+    @staticmethod
+    def gerar_ngrams_leipzig(lista_palavras, postags=False):
+        if type(lista_palavras) != list:
+            raise Exception("Tipo errado!")
+
+        system = os.system
+
+        file_ngrams_tmp = '../Bases/ngrams.tmp'
+        diretorio_leipzig_txt = "~/Bases/Corpora/Leipzig/*"
+
+        if os.path.exists(file_ngrams_tmp) == True:
+            system('rm '+file_ngrams_tmp)
+
+        filtro = "".join(' | grep "%s"' % p for p in lista_palavras)
+        comando_filtro = 'cat %s %s >> %s'%(diretorio_leipzig_txt, filtro, file_ngrams_tmp)
+
+        os.system(comando_filtro)
+        print(comando_filtro)
+
+        cont_linhas = 0
+        with open(file_ngrams_tmp, 'r') as saida_grep:
+            for linha_iter in saida_grep:
+                cont_linhas += 1
+
+        if cont_linhas > 30000:
+            raise Exception("Arquivo de n-grams grande!")
+
+        resultado = [ ]
+
+        with open(file_ngrams_tmp, 'r') as saida_grep:
+            for linha_iter in saida_grep:
+                saida_blob = textblob.TextBlob(Util.completa_normalizacao(linha_iter))
+                ngrams_linha = saida_blob.ngrams(n=Util.CONFIGS['ngram']['max'])
+
+                for ng in ngrams_linha:
+                    if len(set(lista_palavras)&set(ng)) == len(lista_palavras):
+                        if postags == False:
+                            resultado.append(ng)
+                        else:
+                            resultado.append(nltk.pos_tag(ng))
+
+                saida_blob = None
+                ngrams_linha = None
+
+        if os.path.exists(file_ngrams_tmp) == True:
+            os.system('rm ' + file_ngrams_tmp)
+
+        return resultado
+
+
+    @staticmethod
+    def carregar_base_ponderacao_definicoes():
+        import json
+
+        dir_arq = "../Bases/ponderacao_definicoes.json"       
+        if os.path.exists(dir_arq) == True:
+            Alvaro.PONDERACAO_DEFINICOES = Util.abrir_json(dir_arq)
+        else:
+            Alvaro.PONDERACAO_DEFINICOES = {  }
+
+        return Alvaro.PONDERACAO_DEFINICOES
+
+    @staticmethod
+    def salvar_base_ponderacao_definicoes():
+        dir_arq = "../Bases/ponderacao_definicoes.json"
+        if Alvaro.PONDERACAO_DEFINICOES != None:
+            Util.salvar_json(dir_arq, Alvaro.PONDERACAO_DEFINICOES)

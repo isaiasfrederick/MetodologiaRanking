@@ -231,14 +231,9 @@ class DesOx(object):
                     profundidade=1,\
                     candidatos=[ ]):
 
-        #if pos == 'a':
-        #    return self.desambiguar_adjetivos(ctx,\
-        #        ambigua, pos,lematizar=lematizar, stem=stem, stop=stop,\
-        #        normalizar_pont=normalizar_pont, profundidade=profundidade, candidatos=candidatos)
-
         alvaro = Alvaro.Alvaro.INSTANCE
         todas_arvores = Alvaro.Alvaro.construir_arvore_definicoes(alvaro, ambigua, pos, profundidade, candidatos)
-
+       
         caminhos_arvore = [ ]
 
         for arvore_sinonimia in todas_arvores:
@@ -472,7 +467,6 @@ class DesOx(object):
                         cont += 1
                     if cont == janela:
                         break
-                    print("Direita: Entrei aqui")
 
             i += 1
 

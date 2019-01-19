@@ -40,13 +40,50 @@ class VlddrSemEval(object):
         # Alias para funcao
         carregar_submissao = self.carregar_arquivo_submissao
 
+        todos_participantes_originais = [p for p in Util.list_arqs(self.dir_resp_compet) if '.'+tarefa in p]
+        todos_participantes_originais = [p for p in todos_participantes_originais if p.count('.') == 1]
+        todos_participantes_originais = [p for p in todos_participantes_originais if not '-' in p]
+
+        if pos_filtradas in [None, [ ]]: pos_filtradas.sort()
+
+        # Filtrando participante por POS
+        todos_participantes_tmp = list(todos_participantes_originais)
+        resultados_json = { }
+
+        for participante in todos_participantes_tmp:
+            dir_arq_original = self.dir_resp_compet+"/"+participante
+
+            if pos_filtradas:
+                pos_filtradas.sort()
+                dir_arq_filtrado = dir_arq_original.replace(tarefa, "")+"".join(pos_filtradas)+"."+tarefa
+                regex = "\|".join(["\.%s "%pt for pt in pos_filtradas])
+                comando = 'cat %s | grep "%s" > %s' % (dir_arq_original, regex, dir_arq_filtrado)
+                system(comando)
+            else:
+                dir_arq_filtrado = dir_arq_original
+
+            participante_filtrado = dir_arq_filtrado.split("/")[-1]   
+            print(dir_arq_filtrado)        
+            resultados_json[participante_filtrado] = self.obter_score(self.dir_resp_compet, participante_filtrado)
+            system("rm " + dir_arq_filtrado)
+
+        return resultados_json
+
+    # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
+    def aval_parts_orig_(self, tarefa, pos_filtradas=None, lexelts_filtrados=None):
+        # Alias para funcao
+        carregar_submissao = self.carregar_arquivo_submissao
+
         pos_semeval = self.cfgs['semeval2007']['todas_pos']
+        pos_semeval.sort()
 
         todos_participantes = [p for p in Util.list_arqs(self.dir_resp_compet) if '.'+tarefa in p]
         todos_participantes = [p for p in todos_participantes if not '-' in p]
 
         if pos_filtradas in [None, [ ]]:
             pos_filtradas = pos_semeval
+
+        pos_filtradas.sort()
 
         # Filtrando participante por POS
         todos_participantes_tmp = list(todos_participantes)
@@ -59,7 +96,7 @@ class VlddrSemEval(object):
             separador = cfgs_tarefa['separadores'][tarefa]
 
             dir_arq_original = self.dir_resp_compet+"/"+participante
-            predicao_filtr = carregar_submissao(self.cfgs,\
+            predicao_filtr, linhas_arq_subm = carregar_submissao(self.cfgs,\
                             dir_arq_original, tarefa,\
                             pos_filtradas=pos_filtradas,\
                             lexelts_filtrados=lexelts_filtrados)
@@ -71,20 +108,21 @@ class VlddrSemEval(object):
             novo_sufixo = "-%s%s"%("".join(pos_filtradas), velho_sufixo)
             dir_arq_filtrado = dir_arq_original.replace(velho_sufixo, novo_sufixo)
 
-            if lexelts_filtrados in [None, [ ]]:
-                lexelts_filtrados = predicao_filtr.keys()
-            else:
-                lexelts_filtrados = list(set(lexelts_filtrados)&set(predicao_filtr.keys()))
+            #if lexelts_filtrados in [None, [ ]]:
+            #    lexelts_filtrados = predicao_filtr.keys()
+            #else:
+            #    lexelts_filtrados = list(set(lexelts_filtrados)&set(predicao_filtr.keys()))
 
             # Convertendo a resposta do formato dicionario para list
             for lexelt in lexelts_filtrados:
-                resp_list = sorted(predicao_filtr[lexelt].items(), key=lambda x: x[1], reverse=True)
-                resp_list = [e[0] for e in resp_list]
-                #if lexelt in casos_filtrados or True: pass
-                predicao_filtr[lexelt] = resp_list
+                if lexelt in predicao_filtr:
+                    resp_list = sorted(predicao_filtr[lexelt].items(), key=lambda x: x[1], reverse=True)
+                    resp_list = [e[0] for e in resp_list]
+                    #if lexelt in casos_filtrados or True: pass
+                    predicao_filtr[lexelt] = resp_list
 
             # Formatando arquivo filtrado
-            self.formtr_submissao(dir_arq_filtrado, predicao_filtr, max_sugestoes, separador)
+            self.formtr_submissao(dir_arq_filtrado, predicao_filtr, linhas_arq_subm, max_sugestoes, separador)
             # Retirando nome do participante, porém sem o diretorio que o contém
             todos_participantes.append(dir_arq_filtrado.split("/")[-1])
 
@@ -97,13 +135,12 @@ class VlddrSemEval(object):
         if pos_filtradas != pos_semeval:
             for participante in todos_participantes:
                 pass
-                #Util.limpar_arquivo('%s/%s'%(self.dir_resp_compet, participante))
 
         return resultados_json
 
     # Checa se dada submissao nao sugeriu uma misera instancia contendo resposta!
     def submissao_invalida(self, dir_entrada, tarefa):
-        submissao = self.carregar_arquivo_submissao(self.cfgs, dir_entrada, tarefa)
+        submissao, linhas_arq_subm = self.carregar_arquivo_submissao(self.cfgs, dir_entrada, tarefa)
         resp = False
         for lexelt in submissao:
             if len(submissao[lexelt]) > 0:
@@ -112,7 +149,9 @@ class VlddrSemEval(object):
 
     # Executa o script Perl para gerar o score das abordagens
     def obter_score(self, dir_pasta_submissao, participante):
-        tarefa = participante.split('.')[1]
+        tarefa = set(['oot', 'best'])&set(participante.split('.'))
+        tarefa = list(tarefa)[0]
+        
         arquivo_tmp = "%s/%s.tmp" % (self.dir_tmp, participante)
 
         if dir_pasta_submissao[-1] == "/":
@@ -131,6 +170,7 @@ class VlddrSemEval(object):
         comando = "perl %s %s %s -t %s > %s" % args
 
         try:
+
             system(comando)
 
             # Le a saida do formatoo <chave>:<valor> por linha
@@ -156,6 +196,8 @@ class VlddrSemEval(object):
             try:
                 l = str(linha_tmp).replace('\n', '')
                 chave, valor = l.split(':')
+                if chave in obj:
+                    chave = "Mode" + chave
                 obj[chave] = float(valor)
             except:
                 pass
@@ -164,18 +206,25 @@ class VlddrSemEval(object):
         return obj
 
     # Formata a submissao para o padrao da competicao, que é lido pelo script Perl
-    def formtr_submissao(self, dir_arquivo_saida, predicao, max_sugestoes, separador):
-        if predicao in [set(), None]:
+    def formtr_submissao(self, dir_arquivo_saida, predicao, linhas_arq_subm, max_sugestoes, separador):        
+        if len(predicao) == 0:
             return
 
         arquivo_saida = open(dir_arquivo_saida, 'w')
 
-        for lexelt in predicao:            
-            try:
-                respostas = predicao[lexelt][:max_sugestoes]
-                args = (lexelt, separador, ';'.join(respostas))
-                arquivo_saida.write("%s %s %s\n" % args)
-            except: pass
+        if not linhas_arq_subm in [[ ], None]:
+            linhas_arq_subm = [" ".join(reg.split(" ")[:2]) for reg in linhas_arq_subm if "." in reg]
+        else:
+            linhas_arq_subm = predicao.keys()
+
+        for lexelt in linhas_arq_subm:
+            if lexelt in predicao:
+                try:
+                    respostas = predicao[lexelt][:max_sugestoes]
+                    args = (lexelt, separador, ';'.join(respostas))
+                    arquivo_saida.write("%s %s %s\n" % args)
+                except Exception, e:
+                    print(e)
 
     # Carregar o caso de entrada para gerar o ranking de sinonimos
     def carregar_caso_entrada(self, dir_arq_caso_entrada, padrao_se=False):
@@ -238,11 +287,7 @@ class VlddrSemEval(object):
 
     # Carregar arquivos Submissão SemEval 2007 (formatado com o padrao SemEval)
     def carregar_arquivo_submissao(self, cfgs, dir_arquivo,\
-                    tarefa="oot",pos_filtradas=[ ], lexelts_filtrados=[ ]):
-
-        if pos_filtradas in [[ ], None]:
-            # Assumindo valor default => ['a', 'v', 'n', 'r']
-            pos_filtradas = cfgs['semeval2007']['todas_pos']
+                    tarefa="oot", pos_filtradas=[ ], lexelts_filtrados=[ ]):
 
         arquivo_submetido = open(dir_arquivo, 'r')
         todas_linhas = arquivo_submetido.readlines()
@@ -265,7 +310,7 @@ class VlddrSemEval(object):
                 # "cry.v 893" => ["cry", "v", "893"]
                 lema_tmp, pos_tmp, lema_id_tmp = re.split('[\.\s]', chave)
 
-                if pos_tmp in pos_filtradas:
+                if pos_tmp in pos_filtradas or pos_filtradas in [None, [ ]]:
                     todos_candidatos = sugestoes.split(';')
                     indice = 0
 
@@ -279,6 +324,8 @@ class VlddrSemEval(object):
 
                     saida_filtrada_pos[chave] = resposta_linha
 
+                #raw_input("Total Lexelts filtrados: " + str(len(lexelts_filtrados)))
+
                 # Filtro por Lexelt, None ou [ ] sao valores Default
                 if chave in lexelts_filtrados or lexelts_filtrados == [ ]:
                     saida_filtrada_lexelt[chave] = resposta_linha
@@ -287,10 +334,11 @@ class VlddrSemEval(object):
                 pass
 
         saida = dict()
+
         for lexelt in set(saida_filtrada_pos)&set(saida_filtrada_lexelt):
             saida[lexelt] = saida_filtrada_pos[lexelt]
 
-        return saida
+        return saida, todas_linhas
 
     # Carrega bases e gabarito ja no formato Python
     def carregar_bases(self, cfgs, tipo_base, pos_avaliadas=None):
