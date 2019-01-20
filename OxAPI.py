@@ -93,6 +93,10 @@ class BaseOx(object):
         obj_definicoes = Util.abrir_json(dir_obj_definicoes, criar=False)
         obj_extrator   = Util.abrir_json(dir_obj_extrator, criar=False)
 
+        if obj_definicoes == None or obj_definicoes == { }:
+            obj_definicoes = CliOxAPI.obter_definicoes(CliOxAPI.CLI, palavra)
+            Util.salvar_json(dir_obj_definicoes, obj_definicoes)
+
         if not dir_obj_sinonimos in BaseOx.objs_sinonimos_inatingiveis:
             obj_sinonimos  = Util.abrir_json(dir_obj_sinonimos, criar=False)
 
@@ -327,6 +331,7 @@ class BaseOx(object):
                         if not s.name() in caminhos_dict:
                             caminhos_dict[s.name()] = [ ]
                         caminhos_dict[s.name()].append(sh)
+                        
         sins_h = [(s, RV.word_move_distance(RV.INSTANCE, wn.synset(s).definition(), definicao)) for s in caminhos_dict]
         sins_h = sorted(sins_h, key=lambda x: x[1], reverse=False)
 

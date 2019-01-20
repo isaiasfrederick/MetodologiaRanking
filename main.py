@@ -313,7 +313,7 @@ def predizer_sins(cfgs,
     #dir_obj_candidatos = cfgs['caminho_bases']+'/'+cfgs['arquivo_candidatos']
     separador = cfgs['separador']
     med_sim = cfgs['medida_similaridade']
-    saida_contigencial = eval(cfgs['saida_contig']['habilitar'])
+    saida_contigencial = cfgs['saida_contig']['habilitar']
 
     #obj_candidatos = Util.abrir_json(dir_obj_candidatos, criar=True)
 
@@ -402,9 +402,12 @@ def predizer_sins(cfgs,
                     top_unigrams = [(p, BaseOx.freq_modelo(BaseOx.INSTANCE, p)) for p in cands]
                     top_unigrams = [r[0] for r in sorted(top_unigrams, key=lambda x: x[1], reverse=True) if r[1] > 0]
 
-                    top_ngrams = Alvaro.selec_ngrams(Alvaro.INSTANCE, palavra, frase, top_unigrams)
-                    top_ngrams = [r[0] for r in Util.sort(top_ngrams, 1, reverse=True) if r[1] > 0.00]
-                    top_ngrams = [p for p in top_ngrams if wordnet.synsets(p, pos)]
+                    if cfgs['ngram']['usar_seletor']:
+                        top_ngrams = Alvaro.selec_ngrams(Alvaro.INSTANCE, palavra, frase, top_unigrams)
+                        top_ngrams = [r[0] for r in Util.sort(top_ngrams, 1, reverse=True) if r[1] > 0.00]
+                        top_ngrams = [p for p in top_ngrams if wordnet.synsets(p, pos)]
+                    else:
+                        top_ngrams = [ ]
 
                     print("Candidatos selecionados.\n")
 
@@ -801,6 +804,13 @@ def testar_casos(cfgs, tipo, pos_avaliadas=['a','n','r','v']):
 
         #Util.exibir_json(exemplos, bloquear=True)
 
+def funcao():
+    p = 'pass'; pos = 'v'
+    for defiter in BaseOx.obter_definicoes(BaseOx.INSTANCE, p, pos=pos):
+        print(defiter)
+        print(BaseOx.obter_sins(BaseOx.INSTANCE, p, defiter, pos=pos))
+        print("\n")
+
 
 if __name__ == '__main__':
     if len(argv) < 2:
@@ -815,7 +825,7 @@ if __name__ == '__main__':
 
     Util.CONFIGS = cfgs
 
-    app_configs = Util.abrir_json("keys.json")
+    app_cfg = Util.abrir_json("./keys.json")
     Util.CONFIGS['oxford']['app_id'] = app_cfg['app_id']
     Util.CONFIGS['oxford']['app_key'] = app_cfg['app_key']
 
@@ -839,8 +849,8 @@ if __name__ == '__main__':
     todas_fontes_def = params_exps['todas_fontes_def']
     tipos_base = params_exps['tipos_base']
 
-    flags_usar_gabarito = [eval(v) for v in params_exps['usar_gabarito']]
-    flags_usar_exemplos = [eval(v) for v in params_exps['usar_exemplos']]
+    flags_usar_gabarito = [v for v in params_exps['usar_gabarito']]
+    flags_usar_exemplos = [v for v in params_exps['usar_exemplos']]
 
     pos_avaliadas = params_exps['pos_avaliadas'] if params_exps['pos_avaliadas'] else [None]
     max_indice_pos = cfgs['params_exps']['max_entradas_pos']

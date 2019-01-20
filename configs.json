@@ -3,18 +3,19 @@
     "params_exps": {
         "todos_criterios": ["gabarito"],
 		"max_entradas_pos": 1000000,
-		"pos_avaliadas": [["a", "n", "r", "v"]],
-		"pos_avaliadas_": [["r"]],
+		"pos_avaliadas_": [["a", "n", "r", "v"]],
+		"pos_avaliadas": [["r"]],
         "qtde_exemplos": [30],
         "qtde_sugestoes_best": [1],
         "qtde_sugestoes_oot": [10],
         "todas_fontes_def": ["oxford"],
         "tipos_base": ["test"],
-        "usar_exemplos": ["False"],
-		"usar_gabarito": ["False"],
+        "usar_exemplos": [false],
+		"usar_gabarito": [false],
         "comentarios": "pos_avaliadas = lista de listas"
 	},
 	"ngram" : {
+		"usar_seletor" : true,
 		"blacklist" : ["new", "use"],
 		"max_cands_filtro" : 4,
 		"dir_derivado" : "../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
@@ -22,12 +23,13 @@
 		"max" : 5
 	},
 	"saida_contig" : {
-		"habilitar" : "False",
+		"habilitar" : false,
 		"metodo" : "definicao_usual",
 		"comentarios" : "'definicao_usual' ou 'desambiguador'"
 	},
 	"alvaro" : {
 		"mxspdef" : 5,
+		"mxspdef_ox" : 1,
 		"comentarios" : ""
 	},
 	"medida_similaridade" : "word_move_distance",

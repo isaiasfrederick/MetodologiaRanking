@@ -33,6 +33,17 @@
         "Total": 1696.0
     }, 
     {
+        "nome": "IRST2.r.best", 
+        "ModeRecall": 5.45, 
+        "Attempted": 298.0, 
+        "ModePrecision": 28.76, 
+        "Precision": 12.33, 
+        "TotalWithMode": 1230.0, 
+        "ModeAttempted": 233.0, 
+        "Recall": 2.17, 
+        "Total": 1696.0
+    }, 
+    {
         "nome": "usyd.r.best", 
         "ModeRecall": 4.88, 
         "Attempted": 292.0, 
@@ -55,17 +66,6 @@
         "Total": 1696.0
     }, 
     {
-        "nome": "IRST2.r.best", 
-        "ModeRecall": 5.45, 
-        "Attempted": 298.0, 
-        "ModePrecision": 28.76, 
-        "Precision": 12.33, 
-        "TotalWithMode": 1230.0, 
-        "ModeAttempted": 233.0, 
-        "Recall": 2.17, 
-        "Total": 1696.0
-    }, 
-    {
         "nome": "IRST1.r.best", 
         "ModeRecall": 3.58, 
         "Attempted": 298.0, 
@@ -78,9 +78,9 @@
     }, 
     {
         "nome": "C=gabarito_G=False_T=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.best", 
-        "ModeRecall": 2.2, 
+        "ModeRecall": 2.52, 
         "Attempted": 298.0, 
-        "ModePrecision": 11.59, 
+        "ModePrecision": 13.3, 
         "Precision": 10.43, 
         "TotalWithMode": 1230.0, 
         "ModeAttempted": 233.0, 

@@ -276,6 +276,7 @@ class Util(object):
     @staticmethod
     def extrair_sins_cands_def(definicao, pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
+        import itertools
 
         if not type(pos) in [str, unicode]:
             print('\n\nTipo POS: ' + str(type(pos)))
@@ -291,7 +292,8 @@ class Util(object):
             sw = stopwords.words('english')
             resultado_tmp = [ ]
             for (palavra, pos_tmp) in nltk.pos_tag(Util.tokenize(definicao.lower())):
-                if wn.synsets(palavra, pos):
+                todos_lemas = list(itertools.chain(*[s.lemma_names() for s in wn.synsets(palavra, pos)]))
+                if palavra in todos_lemas:
                     resultado_tmp.append((palavra, pos))
                 elif not palavra in sw and pos_tmp[0].lower() == pos:
                     resultado_tmp.append((palavra, pos_tmp))

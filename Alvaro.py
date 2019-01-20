@@ -327,7 +327,9 @@ class Alvaro(object):
 
     # Seletor candidatos desconsiderando a questao da polissemia sob este aspecto
     # este metodo seleciona todos os candidatos 
-    def selec_candidatos(self, palavra, pos, fontes=['wordnet'], max_por_def=4, indice_definicao=-1):        
+    def selec_candidatos(self, palavra, pos, fontes=['wordnet'], maxpordef=4, indice_definicao=-1):
+        maxpordef_ox = 1
+
         candidatos = set()
         comprimento = None
 
@@ -336,25 +338,25 @@ class Alvaro(object):
         if indice_definicao != -1 and fontes!=['oxford']:
             msg = "\nVoce nao pode selecionar um unico indice para mais de duas fontes! "
             msg += "O casamento de definicoes nao existe implementado!\n" 
-            raise(msg)
+            raise Exception(msg)
 
         if 'wordnet' in fontes:
             for s in wn.synsets(palavra, pos):
-                candidatos.update(s.lemma_names()[:max_por_def])
+                candidatos.update(s.lemma_names()[:maxpordef])
                 if pos in ['n']:
                     for h in s.hypernyms():
-                        candidatos.update(h.lemma_names()[:max_por_def])
+                        candidatos.update(h.lemma_names()[:maxpordef])
                     for h in s.hyponyms():
-                        candidatos.update(h.lemma_names()[:max_por_def])
+                        candidatos.update(h.lemma_names()[:maxpordef])
                 elif pos in ['a', 'r', 'v']:
                     for similar in s.similar_tos():
-                        candidatos.update(similar.lemma_names()[:max_por_def])
+                        candidatos.update(similar.lemma_names()[:maxpordef])
 
         if 'oxford' in fontes:
             todas_definicoes = BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, pos)            
             for definicao in todas_definicoes:
                 try:                
-                    candidatos_tmp = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, definicao, pos)[:1]
+                    candidatos_tmp = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, definicao, pos)[:maxpordef_ox]
                 except:
                     candidatos_tmp = [ ]
                 candidatos.update([ ] if candidatos_tmp == None else candidatos_tmp)
