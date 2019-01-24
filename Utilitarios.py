@@ -203,23 +203,23 @@ class Util(object):
         return Counter(words)
 
     @staticmethod
-    def abrir_json(diretorio, criar=False):
-        try:
+    def abrir_json(diretorio, criarsenaoexiste=False):
+        if os.path.exists(diretorio) == False:
+            if criarsenaoexiste == True:
+                os.system('echo "{ }" > ' + diretorio)
+                return { }
+            elif criarsenaoexiste == False:
+                return None
+        else:
             arq = open(diretorio, 'r')
-        except Exception, e:
-            if criar == False: return None
-
-        try:
-            obj = json.loads(arq.read())
-        except Exception:
-            print("\n\nErro ao abrir o .json : %s\n\n"%str(diretorio))
-            arq = open(diretorio, 'w')
-            arq.write("{ }")
-            obj = { }
-
-        if arq.closed == False:
+            try:
+                obj = json.loads(arq.read())
+            except:
+                return None
             arq.close()
-        return obj
+            return obj
+
+        return None
 
     @staticmethod
     def deletar_arquivo(dir_arquivo):

@@ -90,15 +90,15 @@ class BaseOx(object):
         dir_obj_extrator = dir_bases+'/'+dir_cache_oxford['extrator_web']+'/'+nome_arq
         dir_obj_sinonimos = dir_bases+'/'+dir_cache_oxford['sinonimos']+'/'+nome_arq
 
-        obj_definicoes = Util.abrir_json(dir_obj_definicoes, criar=False)
-        obj_extrator   = Util.abrir_json(dir_obj_extrator, criar=False)
+        obj_definicoes = Util.abrir_json(dir_obj_definicoes, criarsenaoexiste=False)
+        obj_extrator   = Util.abrir_json(dir_obj_extrator, criarsenaoexiste=False)
 
         if obj_definicoes == None or obj_definicoes == { }:
             obj_definicoes = CliOxAPI.obter_definicoes(CliOxAPI.CLI, palavra)
             Util.salvar_json(dir_obj_definicoes, obj_definicoes)
 
         if not dir_obj_sinonimos in BaseOx.objs_sinonimos_inatingiveis:
-            obj_sinonimos  = Util.abrir_json(dir_obj_sinonimos, criar=False)
+            obj_sinonimos  = Util.abrir_json(dir_obj_sinonimos, criarsenaoexiste=False)
 
             if obj_sinonimos in [None, { }]:
                 obj_sinonimos = self.cli_api_ox.obter_sinonimos(palavra)

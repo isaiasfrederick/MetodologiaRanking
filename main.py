@@ -29,12 +29,11 @@ from Utilitarios import Util
 wn = wordnet
 
 
-def exibir_bases(cfgs, fonte='wordnet', td_pos=['a', 'n', 'r', 'v']):
+def exibir_bases(cfgs, fonte='wordnet', tipo='test', td_pos=['a', 'n', 'r', 'v']):
     validador = VlddrSemEval(cfgs)
     des_wn = DesWordnet(cfgs)
 
-    casos_testes_dict, gabarito_dict = carregar_bases(
-        cfgs, raw_input("\n\nDigite a base> "))
+    casos_testes_dict, gabarito_dict = carregar_bases(cfgs, tipo)
     palavras = set()
 
     alvaro = Alvaro.INSTANCE
@@ -58,7 +57,8 @@ def exibir_bases(cfgs, fonte='wordnet', td_pos=['a', 'n', 'r', 'v']):
                 Util.print_formatado("POS: "+pos)
                 Util.print_formatado("Resposta: " +
                       str(validador.fltr_gabarito(gabarito_dict[lexelt])))
-                raw_input("<enter>\n\n\n")
+                print("Candidatos: " + str(alvaro.selec_candidatos(palavra, pos, fontes=['wordnet', 'oxford'])))
+                print("\n\n")
 
 
 def utilizar_word_embbedings(configs, usar_exemplos=True, usar_hiperonimo=True, fonte='wordnet'):
@@ -267,8 +267,7 @@ def avaliar_seletor(cfgs):
 
 def carregar_bases(cfgs, tipo_base, pos_avaliadas=None):
     from SemEval2007 import VlddrSemEval
-    val_se = VlddrSemEval.INSTANCE
-    return VlddrSemEval.carregar_bases(val_se, cfgs, tipo_base, pos_avaliadas=pos_avaliadas)
+    return VlddrSemEval.carregar_bases(VlddrSemEval.INSTANCE, cfgs, tipo_base, pos_avaliadas=pos_avaliadas)
 
 
 def avaliar_desambiguador(cfgs, fonte='oxford'):
@@ -363,9 +362,33 @@ def predizer_sins(cfgs,
     cache_seletor_candidatos = dict()
     cache_resultado_desambiguador = dict()
 
-    Alvaro.NGRAMS_COCA = Util.abrir_json(cfgs['dir_coca_ngrams'])
+    Alvaro.NGRAMS_COCA = { }
+    Alvaro.NGRAMS_SIGNALMEDIA = { }
 
-    uniao_cands = set()
+    if 'coca' in Util.CONFIGS['ngram']['fontes']:
+        Alvaro.NGRAMS_COCA = Util.abrir_json(cfgs['dir_coca_ngrams'])
+
+    print("Iniciar derivacao de ngrams...")
+    if 'signalmedia' in Util.CONFIGS['ngram']['fontes']:
+        # Abrindo ngrams SignalMedia
+        arq_ngrams_tmp = { }
+
+        with open(Util.CONFIGS['ngram']['signalmedia_5grams'], 'r') as todas_linhas:
+            for linha_ngram in todas_linhas:
+                try:
+                    tokens = linha_ngram.split(":")
+                    freq_ngram = int(tokens[-1])
+                    ngram = str(":".join(tokens[:-1])).strip('\t').replace("\t", " ")
+                    Alvaro.NGRAMS_SIGNALMEDIA[ngram] = freq_ngram
+                except: pass
+
+        ngrams_signalmedia_derivados = \
+                    Alvaro.derivar_ngrams_string(Alvaro.NGRAMS_SIGNALMEDIA,\
+                                                        cfgs['ngram']['min'],\
+                                                        cfgs['ngram']['max'])
+        for ng in ngrams_signalmedia_derivados:
+            Alvaro.NGRAMS_SIGNALMEDIA[ng] = ngrams_signalmedia_derivados[ng]
+        ngrams_signalmedia_derivados = None
 
     for cont in indices_lexelts:
         lexelt = todos_lexelts[cont]
@@ -401,6 +424,17 @@ def predizer_sins(cfgs,
 
                     top_unigrams = [(p, BaseOx.freq_modelo(BaseOx.INSTANCE, p)) for p in cands]
                     top_unigrams = [r[0] for r in sorted(top_unigrams, key=lambda x: x[1], reverse=True) if r[1] > 0]
+
+                    for cand in top_unigrams:
+                        Alvaro.gerar_ngrams_exemplos(cand, pos=pos)
+
+                        # Salvando a cada 10% de curso
+#                        try:
+#                            if indices_lexelts.index(cont) % int(len(indices_lexelts)/10.0) == 0:
+#                                Util.salvar_json(ch_ngram_plain, Alvaro.NGRAMS_EXOX_PLAIN)
+#                                Util.salvar_json(dir_indexes_idreg, Alvaro.INDEXES_IDREG)
+#                                Util.salvar_json(dir_indexes_regid, Alvaro.INDEXES_REGID)
+#                        except: pass
 
                     if cfgs['ngram']['usar_seletor']:
                         top_ngrams = Alvaro.selec_ngrams(Alvaro.INSTANCE, palavra, frase, top_unigrams)
@@ -470,12 +504,8 @@ def predizer_sins(cfgs,
                                                     metodo, frase, med_sim=med_sim)
 
             elif criterio == 'gabarito':
-                primeiro_elemento = [e[0] for e in gab_ordenado][0]
-                if primeiro_elemento in cands or True:
-                    #cands.remove(primeiro_elemento)
-                    #cands = [primeiro_elemento] + cands
-                    arvores = [ ]
-                    #arvores = Alvaro.construir_arvore_definicoes(Alvaro.INSTANCE, palavra, pos, 4, cands)
+                if True:
+                    arvores = Alvaro.construir_arvore_definicoes(Alvaro.INSTANCE, palavra, pos, 4, cands)
                     caminhos_arvore = [ ]
 
                     for arvore_sinonimia in arvores:
@@ -489,7 +519,8 @@ def predizer_sins(cfgs,
                                     if not caminho in caminhos_arvore:
                                         caminhos_arvore.append(caminho)
                             except ValueError, ve: pass
-                        #caminhos_wmd = Alvaro.pontuar_relsin_wmd(Alvaro.INSTANCE, palavra, pos, caminhos_arvore)
+                        caminhos_wmd = Alvaro.pontuar_relacaosinonimia_wmd(Alvaro.INSTANCE,\
+                                                                palavra, pos, caminhos_arvore)
                 else:
                     cands = top_unigrams
 
@@ -498,7 +529,8 @@ def predizer_sins(cfgs,
                 except:
                     predicao_final[lexelt] = [ ]
                
-                #if Alvaro.PONDERACAO_DEFINICOES != None: Alvaro.salvar_base_ponderacao_definicoes()
+                if Alvaro.PONDERACAO_DEFINICOES != None:
+                    Alvaro.salvar_base_ponderacao_definicoes()
 
             elif criterio == 'substituicao_arvore':
 
@@ -518,7 +550,7 @@ def predizer_sins(cfgs,
                     rel_defs = Alvaro.construir_relacao_definicoes(alvaro, palavra, pos, fontes='oxford')
                     Util.salvar_json(dir_obj, rel_defs)
                 else:
-                    rel_defs = Util.abrir_json(dir_obj, criar=False)
+                    rel_defs = Util.abrir_json(dir_obj, criarsenaoexiste=False)
 
                 correlacao_definicoes = { }
 
@@ -634,10 +666,9 @@ def predizer_sins(cfgs,
 
             elif criterio in ['desambiguador_exemplos', 'desambiguador']:
                 mxspdef = cfgs['alvaro']['mxspdef']
-
                 if criterio == 'desambiguador_exemplos':
                     res_des = DesOx.desambiguar_exemplos(des_ox, frase,\
-                                    palavra, pos, profundidade=3, candidatos=cands)
+                                    palavra, pos, profundidade=1, candidatos=cands)
                 elif  criterio == 'desambiguador':
                     res_des = DesOx.desambiguar(des_ox, frase, palavra,\
                                     pos, med_sim=med_sim, cands=cands)
@@ -764,7 +795,7 @@ def testar_casos(cfgs, tipo, pos_avaliadas=['a','n','r','v']):
         print("\n- Objeto de relacao de sinonimia para '%s' fora criado!\n"%palavra)
         Util.salvar_json(dir_obj, rel_definicoes)
     else:
-        rel_definicoes = Util.abrir_json(dir_obj, criar=False)
+        rel_definicoes = Util.abrir_json(dir_obj, criarsenaoexiste=False)
         print("\n- Objeto de relacao de sinonimia para '%s' ja existia e foi aberto!\n"%palavra)
 
     for def_polissemica in rel_definicoes:
@@ -886,7 +917,24 @@ if __name__ == '__main__':
 
     res_best = vldr_se.aval_parts_orig('best', pos_filtradas=pos_avaliadas[0], lexelts_filtrados=lexelts_filtrados).values()
     res_oot = vldr_se.aval_parts_orig('oot', pos_filtradas=pos_avaliadas[0], lexelts_filtrados=lexelts_filtrados).values()
-  
+
+
+    cfg_ngram_ox = cfgs['ngram']['dir_exemplos']
+
+    ch_ngram_plain = cfg_ngram_ox['oxford_plain']
+    ch_ngram_tagueados = cfg_ngram_ox['oxford_tagueados']
+
+    Alvaro.NGRAMS_EXOX_PLAIN = Util.abrir_json(ch_ngram_plain, criarsenaoexiste=True)
+
+    dir_indexes_idreg = '../Bases/Corpora/indexes.idreg.json'
+    dir_indexes_regid = '../Bases/Corpora/indexes.regid.json'
+
+    for ngram in Alvaro.NGRAMS_EXOX_PLAIN:
+        Alvaro.NGRAMS_EXOX_PLAIN[ngram] = set(Alvaro.NGRAMS_EXOX_PLAIN[ngram])
+
+    Alvaro.INDEXES_IDREG = Util.abrir_json(dir_indexes_idreg, criarsenaoexiste=True)
+    Alvaro.INDEXES_REGID = Util.abrir_json(dir_indexes_regid, criarsenaoexiste=True)
+
     for parametros in parametrizacao:
         crit, max_ex, fontes_def, tipo, usr_gab, usr_ex, pos_avaliadas = parametros
 
@@ -909,8 +957,9 @@ if __name__ == '__main__':
                                     fontes_def=fontes_def,\
                                     pos_avaliadas=pos_avaliadas,\
                                     rep_vetorial=rep_vet)
-            except KeyboardInterrupt, ke:
+            except Exception, e:
                 if Alvaro.PONDERACAO_DEFINICOES != None:
+                    print("\nSalvando relacao entre sinonimos pontuadas via-WMD!\n")
                     Alvaro.salvar_base_ponderacao_definicoes()
 
 
@@ -944,6 +993,15 @@ if __name__ == '__main__':
                 res_best.append(vldr_se.obter_score(dir_saida_abrdgm, nome_abrdgm))
             except:
                 print("\n@@@ Erro na geracao do score da abordagem '%s'"%nome_abrdgm)
+
+    for ngram in Alvaro.NGRAMS_EXOX_PLAIN:
+        Alvaro.NGRAMS_EXOX_PLAIN[ngram] = list(Alvaro.NGRAMS_EXOX_PLAIN[ngram])
+
+    Util.salvar_json(ch_ngram_plain, Alvaro.NGRAMS_EXOX_PLAIN)
+    Util.salvar_json(dir_indexes_idreg, Alvaro.INDEXES_IDREG)
+    Util.salvar_json(dir_indexes_regid, Alvaro.INDEXES_REGID)
+
+    Alvaro.NGRAMS_EXOX_PLAIN = None
 
     Alvaro.salvar_base_ponderacao_definicoes()
 

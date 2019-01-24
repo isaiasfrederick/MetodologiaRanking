@@ -28,8 +28,15 @@ class Alvaro(object):
     INSTANCE = None
     OBJETO_NGRAMS = { }
 
-    PONDERACAO_DEFINICOES = { }
+    PONDERACAO_DEFINICOES = None
+
     NGRAMS_COCA = { }
+    NGRAMS_SIGNALMEDIA = { }
+
+    NGRAMS_EXOX_PLAIN = None
+    
+    INDEXES_REGID = None # lema::def => id_int
+    INDEXES_IDREG = None # id_int => lema::def
 
     # "nome#pos" : relacao
     RELACAO_SINONIMIA = { }
@@ -103,8 +110,8 @@ class Alvaro(object):
         else:
             raise Exception('Este tipo de fonte nao foi implementada!')
 
-    def pontuar_relsin_wmd(self, palavra, pos, todos_caminhos):
-        if Alvaro.PONDERACAO_DEFINICOES in [{ }, None]:
+    def pontuar_relacaosinonimia_wmd(self, palavra, pos, todos_caminhos):
+        if Alvaro.PONDERACAO_DEFINICOES == None:
             Alvaro.PONDERACAO_DEFINICOES = Alvaro.carregar_base_ponderacao_definicoes()
 
         caminhos_ponderados = {  }
@@ -256,6 +263,29 @@ class Alvaro(object):
         todos_votos = sorted([v[1] for v in gabarito], reverse=True)
         return todos_votos.count(todos_votos[0])!=1
 
+    @staticmethod
+    def gerar_ngrams_exemplos(candidato, pos):
+        for def_iter in BaseOx.obter_definicoes(BaseOx.INSTANCE, candidato, pos=pos):
+            for ex in BaseOx.obter_atributo(BaseOx.INSTANCE, candidato, pos, def_iter, 'exemplos'):
+                ex_blob = textblob.TextBlob(ex)
+
+                for ng in ex_blob.ngrams(n=Util.CONFIGS['ngram']['max']):
+                    ng_str = " ".join(ng)
+                    #ng_tags = str(nltk.pos_tag(nltk.word_tokenize(ng_str)))
+
+                    chave_reg = "%s:::%s" % (candidato, def_iter)
+
+                    if not chave_reg in Alvaro.INDEXES_REGID:
+                        Alvaro.INDEXES_REGID[chave_reg] = len(Alvaro.INDEXES_REGID)
+                        Alvaro.INDEXES_IDREG[len(Alvaro.INDEXES_REGID)-1] = chave_reg
+
+                    if not ng_str in Alvaro.NGRAMS_EXOX_PLAIN:
+                        Alvaro.NGRAMS_EXOX_PLAIN[ng_str] = set([Alvaro.INDEXES_REGID[chave_reg]])
+                    else:
+                        Alvaro.NGRAMS_EXOX_PLAIN[ng_str].add(Alvaro.INDEXES_REGID[chave_reg])
+
+                ex_blob = None
+
     def selec_ngrams(self, palavra, frase, cands):
         cfgs = self.cfgs
         min_ngram = cfgs['ngram']['min']
@@ -264,11 +294,13 @@ class Alvaro(object):
         pont_ngram = dict([(p, 0.00) for p in cands])
 
         ngrams_coca = Alvaro.NGRAMS_COCA
+        ngrams_signalmedia = Alvaro.NGRAMS_SIGNALMEDIA
 
         for cand_iter in cands:
             nova_frase = frase.replace(palavra, cand_iter)
 
             ngrams_leipzig = Alvaro.carregar_ngrams_leipzig(palavra, cand_iter)
+
             ngrams_derivados_frase = Alvaro.gerar_ngrams_tagueados(nova_frase, min_ngram, max_ngram, cand_iter)
 
             # derivando demais n-grams
@@ -279,11 +311,14 @@ class Alvaro(object):
             else:
                 novos_ngrams = Util.abrir_json(dir_ngrams_derivados)
 
-            for ng_str in novos_ngrams: ngrams_leipzig[ng_str] = novos_ngrams[ng_str]
+            for ng_str in novos_ngrams:
+                ngrams_leipzig[ng_str] = novos_ngrams[ng_str]
+
             novos_ngrams = None
 
             for __ng_iter__ in ngrams_derivados_frase:
                 ng_iter = [(unicode(p), pt) for (p, pt) in __ng_iter__]
+                ng_iter_sm = " ".join([p for (p, pt) in __ng_iter__])
 
                 freq_ngram_iter = 0
                 nova_pont = 0
@@ -293,10 +328,17 @@ class Alvaro(object):
                     freq_ngram_iter = int(ngrams_coca[unicode(ng_iter)])
                     nova_pont = Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
                     pont_ngram[cand_iter] += nova_pont
+
                 # Leipzig Corpus
                 if unicode(__ng_iter__) in ngrams_leipzig:
                     freq_ngram_iter += int(ngrams_leipzig[unicode(__ng_iter__)])
                     nova_pont += Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
+                    pont_ngram[cand_iter] += nova_pont
+
+                # SignalMedia
+                if ng_iter_sm in ngrams_signalmedia:
+                    freq_ngram_iter += int(ngrams_signalmedia[ng_iter_sm])
+                    nova_pont += Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter_sm), max_ngram)
                     pont_ngram[cand_iter] += nova_pont
 
             ngrams_leipzig = None
@@ -315,6 +357,26 @@ class Alvaro(object):
                     for i in range(_max_-n):
                         try:
                             novo_ng = str(ng[i:i+n])
+                            if not novo_ng in novos_ngrams:
+                                novos_ngrams[novo_ng] = ngrams[ng_str]
+                            else:
+                                novos_ngrams[novo_ng] += ngrams[ng_str]
+                        except: pass
+            except Exception, e:                
+                print("\nErro para ngram: %s\n"%str(ng))
+                print(e)
+        return novos_ngrams
+
+    @staticmethod
+    def derivar_ngrams_string(ngrams, _min_, _max_):
+        novos_ngrams = { }
+        for ng_str in ngrams:
+            try:
+                ng = ng_str.split(" ")
+                for n in range(_min_, _max_):
+                    for i in range(_max_-n):
+                        try:
+                            novo_ng = " ".join(ng[i:i+n])
                             if not novo_ng in novos_ngrams:
                                 novos_ngrams[novo_ng] = ngrams[ng_str]
                             else:

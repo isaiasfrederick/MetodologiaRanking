@@ -72,11 +72,7 @@ class DesOx(object):
             k_vars = self.construir_chave_cache(vars_locais)
 
             dir_completo_obj = "%s/%s.json" % (obj_dir_cache_des, ambigua)
-
-            if ambigua+'.json' in os.listdir(obj_dir_cache_des):
-                obj_cache = Util.abrir_json(dir_completo_obj)
-            else:
-                obj_cache = Util.abrir_json(dir_completo_obj, criar=True)
+            Util.abrir_json(dir_completo_obj, criarsenaoexiste=True)
 
             if k_vars in obj_cache:
                 return obj_cache[k_vars]
@@ -156,7 +152,7 @@ class DesOx(object):
             rel_definicoes = alvaro.construir_relacao_definicoes(ambigua, pos, fontes='oxford')
             Util.salvar_json(dir_obj, rel_definicoes)
         else:            
-            rel_definicoes = Util.abrir_json(dir_obj, criar=False)
+            rel_definicoes = Util.abrir_json(dir_obj, criarsenaoexiste=False)
 
         res_des_tmp = [ ]
         pontuacao_somada = 0.00
@@ -315,7 +311,6 @@ class DesOx(object):
                 traceback.print_stack()
                 traceback.print_exc()
 
-                raw_input("Excecao...")
                 exemplos = [ ]
 
             tb_vocab_duplicatas = TextBlob(" ".join(uniao_palavras_com_duplicatas))

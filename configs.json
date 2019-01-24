@@ -3,8 +3,8 @@
     "params_exps": {
         "todos_criterios": ["gabarito"],
 		"max_entradas_pos": 1000000,
-		"pos_avaliadas_": [["a", "n", "r", "v"]],
-		"pos_avaliadas": [["r"]],
+		"pos_avaliadas": [["a", "n", "r", "v"]],
+		"pos_avaliadas_": [["n"]],
         "qtde_exemplos": [30],
         "qtde_sugestoes_best": [1],
         "qtde_sugestoes_oot": [10],
@@ -15,10 +15,16 @@
         "comentarios": "pos_avaliadas = lista de listas"
 	},
 	"ngram" : {
+		"fontes" : ["coca", "leipzig", "signalmedia"],
 		"usar_seletor" : true,
 		"blacklist" : ["new", "use"],
 		"max_cands_filtro" : 4,
+		"signalmedia_5grams" : "../Bases/Corpora/SignalMedia/5grams.ngram.txt",
 		"dir_derivado" : "../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
+		"dir_exemplos" : {
+			"oxford_plain" : "../Bases/Corpora/ngrams_exemplos_oxford_plain.json",
+			"oxford_tagueados" : "../Bases/Corpora/ngrams_exemplos_oxford_tagueados.json"
+		},
 		"min" : 2,
 		"max" : 5
 	},
