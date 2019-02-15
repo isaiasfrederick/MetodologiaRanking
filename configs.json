@@ -1,159 +1,227 @@
 {
-"fontes_cands" : ["wordnet", "oxford"],
-    "params_exps": {
-        "todos_criterios": ["gabarito"],
-		"max_entradas_pos": 1000000,
-		"pos_avaliadas": [["a", "n", "r", "v"]],
-		"pos_avaliadas_": [["n"]],
-        "qtde_exemplos": [30],
-        "qtde_sugestoes_best": [1],
-        "qtde_sugestoes_oot": [10],
-        "todas_fontes_def": ["oxford"],
-        "tipos_base": ["test"],
-        "usar_exemplos": [false],
-		"usar_gabarito": [false],
-        "comentarios": "pos_avaliadas = lista de listas"
+	"max_text_length":500,
+	"fontes_cands":["oxford", "wordnet"],
+	"params_exps":{
+	   "todos_criterios":["gabarito"],
+	   "max_entradas_pos":1000000,
+	   "pos_avaliadas":[["a", "n", "r", "v"]],
+	   "pos_avaliadas_":[["n"]],
+	   "qtde_exemplos":[
+		  30
+	   ],
+	   "qtde_sugestoes_best":[
+		  1
+	   ],
+	   "qtde_sugestoes_oot":[
+		  10
+	   ],
+	   "todas_fontes_def":[
+		  "oxford"
+	   ],
+	   "tipos_base":[
+		  "test"
+	   ],
+	   "usar_exemplos":[
+		  false
+	   ],
+	   "usar_gabarito":[
+		  false
+	   ],
+	   "comentarios":"pos_avaliadas = lista de listas"
 	},
-	"ngram" : {
-		"fontes" : ["coca", "leipzig", "signalmedia"],
-		"usar_seletor" : true,
-		"blacklist" : ["new", "use"],
-		"max_cands_filtro" : 4,
-		"signalmedia_5grams" : "../Bases/Corpora/SignalMedia/5grams.ngram.txt",
-		"dir_derivado" : "../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
-		"dir_exemplos" : {
-			"oxford_plain" : "../Bases/Corpora/ngrams_exemplos_oxford_plain.json",
-			"oxford_tagueados" : "../Bases/Corpora/ngrams_exemplos_oxford_tagueados.json"
-		},
-		"min" : 2,
-		"max" : 5
+	"ordenador_pmi":{
+		"usar_ordenador":true
 	},
-	"saida_contig" : {
-		"habilitar" : false,
-		"metodo" : "definicao_usual",
-		"comentarios" : "'definicao_usual' ou 'desambiguador'"
+	"ngram":{
+	   "usar_seletor":false,
+	   "fontes":["coca", "leipzig"],
+	   "blacklist":["new", "use"],
+	   "max_cands_filtro":4,
+	   "signalmedia_5grams":"../Bases/Corpora/SignalMedia/5grams.ngram.txt",
+	   "leipzig_conts":"../Bases/Corpora/Leipzig-ngrams/%s.conts.json",
+	   "dir_derivado":"../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
+	   "dir_exemplos":{
+		  "oxford_plain":"../Bases/Corpora/ngrams_exemplos_oxford_plain.json",
+		  "oxford_tagueados":"../Bases/Corpora/ngrams_exemplos_oxford_tagueados.json"
+	   },
+	   "min":2,
+	   "max":5
 	},
-	"alvaro" : {
-		"mxspdef" : 5,
-		"mxspdef_ox" : 1,
-		"comentarios" : ""
+	"saida_contig":{
+	   "habilitar":false,
+	   "metodo":"definicao_usual",
+	   "comentarios":"'definicao_usual' ou 'desambiguador'"
 	},
-	"medida_similaridade" : "word_move_distance",
-	"saida_experimentos" : "./Experimentos",
-	"caminho_bases" : "../Bases",
-	"dir_saida_json" : "./",
-	"dir_modelos" : "Modelos",
-	"arquivo_log" : "../Bases/log.txt",
-	"dir_temporarios" : "tmp",
-	"separador" : "@@@@@@",
-	"dir_saidas_rankeador" : "SaidasRankeador",
-	"dir_base_casada_manualmente" : "casamento_manual.json",
-    "espaco_branco" : "",
-	"padrao_nome_submissao": "C=%s_G=%s_T=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
-	"pos_tags_treebank": ["JJ","JJR","JJS","NN","NNP","NNS","RB","RBR","RBS","VB","VBD","VBG","VBN","VBP","VBZ"],
-	"arquivo_candidatos": "Cache/candidatos.json",
-	"dir_coca_ngrams" : "../Bases/Corpora/COCA Corpus/coca-ngrams-postags.json",
-	"dir_signalmedia_ngrams" : "../Bases/signalmedia-ngrams-postags.json",
-	"oxford" : {
-		"app_id" : "",
-		"app_key" : "",
-		"url_base" : "https://od-api.oxforddictionaries.com/api/v1",
-		"url_base_thesaurus" : "https://od-api.oxforddictionaries.com/api/v1",
-		"url_base_definicoes" : "https://en.oxforddictionaries.com/definition",
-		"pos" : ["Adjective", "Adverb", "Noun", "Verb"],
-		"cache" : {
-			"desambiguador" : "Cache/Oxford/Desambiguador",
-			"sinonimos" : "Cache/Oxford/Sinonimos",
-			"sinonimia" : "Cache/Oxford/Sinonimia",
-			"definicoes" : "Cache/Oxford/Definicoes",
-			"frequencias" : "Cache/Oxford/Frequencias",
-			"extrator_web" : "Cache/Oxford/ExtratorWeb",
-			"obj_urls_invalidas_sinonimos" : "Cache/Oxford/urls_invalidas_sinonimos.json",
-			"obj_urls_invalidas_definicoes" : "Cache/Oxford/urls_invalidas_definicoes.json",
-			"obj_urls_invalidas_extrator" : "Cache/Oxford/urls_invalidas_extrator.json"
-		},
-		"extrator_web" : {
-			"xpaths" : { }
-		}
+	"alvaro":{
+	   "mxspdef":5,
+	   "mxspdef_ox":1,
+	   "comentarios":""
 	},
-	"wordnet" : {
-		"cache" : {
-			"desambiguador" : "Cache/Wordnet/Desambiguador"
-		}
+	"medida_similaridade":"word_move_distance",
+	"saida_experimentos":"./Experimentos",
+	"caminho_bases":"../Bases",
+	"dir_saida_json":"./",
+	"dir_modelos":"Modelos",
+	"arquivo_log":"../Bases/log.txt",
+	"dir_temporarios":"tmp",
+	"separador":"@@@@@@",
+	"dir_saidas_rankeador":"SaidasRankeador",
+	"dir_base_casada_manualmente":"casamento_manual.json",
+	"espaco_branco":"",
+	"padrao_nome_submissao":"C=%s_G=%s_T=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
+	"pos_tags_treebank":[
+	   "JJ",
+	   "JJR",
+	   "JJS",
+	   "NN",
+	   "NNP",
+	   "NNS",
+	   "RB",
+	   "RBR",
+	   "RBS",
+	   "VB",
+	   "VBD",
+	   "VBG",
+	   "VBN",
+	   "VBP",
+	   "VBZ"
+	],
+	"arquivo_candidatos":"Cache/candidatos.json",
+	"dir_coca_ngrams":"../Bases/Corpora/COCA Corpus/coca-ngrams-postags.json",
+	"dir_signalmedia_ngrams":"../Bases/signalmedia-ngrams-postags.json",
+	"oxford":{
+	   "app_id":"",
+	   "app_key":"",
+	   "url_base":"https://od-api.oxforddictionaries.com/api/v1",
+	   "url_base_thesaurus":"https://od-api.oxforddictionaries.com/api/v1",
+	   "url_base_definicoes":"https://en.oxforddictionaries.com/definition",
+	   "pos":[
+		  "Adjective",
+		  "Adverb",
+		  "Noun",
+		  "Verb"
+	   ],
+	   "cache":{
+		  "desambiguador":"Cache/Oxford/Desambiguador",
+		  "sinonimos":"Cache/Oxford/Sinonimos",
+		  "sinonimia":"Cache/Oxford/Sinonimia",
+		  "definicoes":"Cache/Oxford/Definicoes",
+		  "frequencias":"Cache/Oxford/Frequencias",
+		  "extrator_web":"Cache/Oxford/ExtratorWeb",
+		  "obj_urls_invalidas_sinonimos":"Cache/Oxford/urls_invalidas_sinonimos.json",
+		  "obj_urls_invalidas_definicoes":"Cache/Oxford/urls_invalidas_definicoes.json",
+		  "obj_urls_invalidas_extrator":"Cache/Oxford/urls_invalidas_extrator.json"
+	   },
+	   "extrator_web":{
+		  "xpaths":{
+ 
+		  }
+	   }
 	},
-	"babelnet" : {
-		"cache": {
-			"desambiguador" : "Cache/Oxford/Desambiguador"
-		},
-		"app_key" : "aff183be-c1c4-4d30-8b50-d555b7d39c48",
-		"url_base" : "https://babelnet.io/v5",
-        "c1" : "https://en.wikipedia.org/wiki/User:West.andrew.g/Popular_pages",
-		"url_desambiguador": "https://babelfy.io/v1/disambiguate?text=%s&lang=%s&key=%s&cands=ALL&dens=true&annType=NAMED_ENTITIES&posTag=STANDARD&match=PARTIAL_MATCHING",
-        "c2" : "https://en.wikipedia.org/wiki/Wikipedia:Top_25_Report"
+	"wordnet":{
+	   "cache":{
+		  "desambiguador":"Cache/Wordnet/Desambiguador"
+	   }
 	},
-	"wikipedia" : {
-		"url_base_verbete" : "https://en.wikipedia.org/wiki",
-		"paginas_populares" : ""
+	"babelnet":{
+	   "cache":{
+		  "desambiguador":"Cache/Oxford/Desambiguador"
+	   },
+	   "app_key":"aff183be-c1c4-4d30-8b50-d555b7d39c48",
+	   "url_base":"https://babelnet.io/v5",
+	   "c1":"https://en.wikipedia.org/wiki/User:West.andrew.g/Popular_pages",
+	   "url_desambiguador":"https://babelfy.io/v1/disambiguate?text=%s&lang=%s&key=%s&cands=ALL&dens=true&annType=NAMED_ENTITIES&posTag=STANDARD&match=PARTIAL_MATCHING",
+	   "c2":"https://en.wikipedia.org/wiki/Wikipedia:Top_25_Report"
 	},
-    "semeval2007" : {
-		"todas_pos" : ["a", "n", "r", "v"],
-		"dir_resultados_concorrentes" : "lexsubsystems",
-		"dir_raiz" : "SemEval2007",
-		"trial" : {
-			"gold_file": "trial/gold.trial",
-			"input": "trial/lexsub_trial.xml"
-		},
-		"test" : {
-			"gold_file": "task10data/scoring/gold",
-			"input": "test/lexsub_test.xml"
-		},
-		"comando_scorer" : "task10data/scoring/score.pl",
-		"criterio_ordenacao" : [ ],
-		"tarefas" : {
-			"limites" : {
-				"oot" : 10,
-				"best" : 1
-			},
-			"separadores" : {
-				"oot" : ":::",
-				"best" : "::"
-			}
-		},
-		"medidas" : ["Total", "Attempted", "Precision", "Recall", "TotalWithMode", "Attempted", "Precision", "Recall"],
-		"total_anotadores" : 5,
-		"max_sugestoes" : 3,
-		"nome_minha_abordagem" : "MR"
+	"wikipedia":{
+	   "url_base_verbete":"https://en.wikipedia.org/wiki",
+	   "paginas_populares":""
 	},
-	"possemeval2007" : {
-		"dir_resultados_concorrentes" : "",
-		"metricas" : ["gap"]
+	"semeval2007":{
+	   "todas_pos":[
+		  "a",
+		  "n",
+		  "r",
+		  "v"
+	   ],
+	   "dir_resultados_concorrentes":"lexsubsystems",
+	   "dir_raiz":"SemEval2007",
+	   "trial":{
+		  "gold_file":"trial/gold.trial",
+		  "input":"trial/lexsub_trial.xml"
+	   },
+	   "test":{
+		  "gold_file":"task10data/scoring/gold",
+		  "input":"test/lexsub_test.xml"
+	   },
+	   "comando_scorer":"task10data/scoring/score.pl",
+	   "criterio_ordenacao":[
+ 
+	   ],
+	   "tarefas":{
+		  "limites":{
+			 "oot":10,
+			 "best":1
+		  },
+		  "separadores":{
+			 "oot":":::",
+			 "best":"::"
+		  }
+	   },
+	   "medidas":[
+		  "Total",
+		  "Attempted",
+		  "Precision",
+		  "Recall",
+		  "TotalWithMode",
+		  "Attempted",
+		  "Precision",
+		  "Recall"
+	   ],
+	   "total_anotadores":5,
+	   "max_sugestoes":3,
+	   "nome_minha_abordagem":"MR"
 	},
-	"corpora" : {
-		"dir_indexes": "/mnt/ParticaoAlternat/Bases/Corpora/indexes",
-		"raiz": "",
-		"fontes" : {
-			"LeipzigCorpus": "",
-			"SignalMedia": ""
-		}
+	"possemeval2007":{
+	   "dir_resultados_concorrentes":"",
+	   "metricas":[
+		  "gap"
+	   ]
 	},
-	"aplicacao" : {
-		"dir_saida_base_coocorrencia" : "Edmonds1997",
-		"dir_cache_casador_definicoes": "Cache/CasadorDefinicoes",
-		"dir_cache_relacao_sinonimia" : "Cache/Oxford/Sinonimia"
+	"corpora":{
+		"contadores_pmi":"../Bases/Corpora/pmi.json",
+		"deletar_docs_duplicados":false,
+		"dir_indexes_exemplos":"../Bases/Corpora/indexes-exemplos",
+		"dir_palavras_indexadas_exemplos":"../Bases/palavras_exemplos_indexados.json",
+	   "dir_indexes":"../Bases/Corpora/indexes1",
+	   "raiz":"",
+	   "fontes":[
+		  "LeipzigCorpus",
+		  "SignalMedia"
+		]
 	},
-	"modelos" : {
-		"default" : "Modelos/vectors.bin",
-		"word2vec-default" : "Modelos/vectors.bin",
-		"glove-6B.50d" : "Modelos/glove.6B.50d.txt",
-		"glove-6B.100d" : "Modelos/glove.6B.100d.txt",
-		"glove-6B.200d" : "Modelos/glove.6B.200d.txt",
-		"glove-6B.300d" : "Modelos/glove.6B.300d.txt",
-		"sent2vec" : "",
-		"context2vec" : "",
-		"sense2vec" : "",
-		"fasttext-wiki-news-300d-1M" : "Modelos/wiki-news-300d-1M.vec"
+	"aplicacao":{
+	   "dir_saida_base_coocorrencia":"Edmonds1997",
+	   "dir_cache_casador_definicoes":"Cache/CasadorDefinicoes",
+	   "dir_cache_relacao_sinonimia":"Cache/Oxford/Sinonimia"
 	},
-	"pos_wander": ["v", "n"],
-	"base_wander" : "base_wander.json",
-	"total_sugestoes" : 40
-}
+	"carregar_modelo":true,
+	"modelos":{
+	   "default":"Modelos/vectors.bin",
+	   "word2vec-default":"Modelos/vectors.bin",
+	   "glove-6B.50d":"Modelos/glove.6B.50d.txt",
+	   "glove-6B.100d":"Modelos/glove.6B.100d.txt",
+	   "glove-6B.200d":"Modelos/glove.6B.200d.txt",
+	   "glove-6B.300d":"Modelos/glove.6B.300d.txt",
+	   "sent2vec":"",
+	   "context2vec":"",
+	   "sense2vec":"",
+	   "fasttext-wiki-news-300d-1M":"Modelos/wiki-news-300d-1M.vec"
+	},
+	"pos_wander":[
+	   "v",
+	   "n"
+	],
+	"base_wander":"base_wander.json",
+	"total_sugestoes":40
+ }

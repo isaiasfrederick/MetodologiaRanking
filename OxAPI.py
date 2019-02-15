@@ -45,8 +45,10 @@ class BaseOx(object):
         return self.cli_api_ox.obter_frequencia(palavra)
 
     def freq_modelo(self, palavra):
-        try: return RepVetorial.INSTANCE.modelo.vocab[palavra].count
-        except: return 0
+        if palavra in RepVetorial.INSTANCE.modelo.vocab:
+            return RepVetorial.INSTANCE.modelo.vocab[palavra].count
+        else:
+            return 0
 
     def obter_obj_cli_api(self, palavra):
         return self.cli_api_ox.iniciar_coleta(palavra)
@@ -304,7 +306,7 @@ class BaseOx(object):
                 if retorno == [ ] and sins_def != [ ]:
                     for noun in sins_def:
                         for s in wn.synsets(palavra, 'n'):
-                            for sh in s.hypernyms()+s.hyponyms()+s.similar_tos():                                
+                            for sh in s.hypernyms() + s.hyponyms() + s.similar_tos():                                
                                 if noun in sh.lemma_names():
                                     if not noun in retorno:
                                         retorno.append(noun)                            
@@ -579,8 +581,6 @@ class CliOxAPI(object):
             self.persistir_urls_invalidas()
         except:
             traceback.print_exc()
-
-
 
 class ExtWeb(object):
     EXT = None

@@ -24,9 +24,13 @@ class InterfaceBases():
 
         dir_modelo_default = cfgs["caminho_bases"]+"/"+cfgs["modelos"]["default"]
 
-        print("\nCarregando modelo '%s'"%dir_modelo_default)
-        RepVetorial.INSTANCE.carregar_modelo(dir_modelo_default, binario=True)
-        print("Modelo carregado!\n")
+        if cfgs['carregar_modelo'] == True:
+            print("\nCarregando modelo '%s'"%dir_modelo_default)
+            RepVetorial.INSTANCE.carregar_modelo(dir_modelo_default, binario=True)
+            print("Modelo carregado!\n")
+        else:
+            RepVetorial.INSTANCE = None
+            print("Modelo NAO carregado!\n")
 
         DesOx.INSTANCE = DesOx(cfgs, BaseOx.INSTANCE, RepVetorial.INSTANCE)
 

@@ -84,6 +84,13 @@ class Util(object):
         return data_md5
 
     @staticmethod
+    def md5sum_string(s):
+        import hashlib
+        m = hashlib.md5()
+        m.update(s)
+        return m.hexdigest()
+
+    @staticmethod
     def cvrsr_pos_wn_oxford(pos):
         #ADJ, ADJ_SAT, ADV, NOUN, VERB = 'a', 's', 'r', 'n', 'v'
         
@@ -255,6 +262,9 @@ class Util(object):
 
     @staticmethod
     def salvar_json(diretorio, obj):
+        if type(obj) == set:
+            obj = list(obj)
+            
         try:
             arq = open(diretorio, 'w')
             obj_serializado = json.dumps(obj, indent=4)

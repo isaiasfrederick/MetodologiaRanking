@@ -35,6 +35,26 @@ class VlddrSemEval(object):
 
         self.todas_abordagens = dict()
 
+    def aval_saida(self, tarefa, folder, dir_arq, pos_filtrada=None, metrica='Recall'):
+        originais = self.aval_parts_orig(tarefa, [pos_filtrada])
+
+        dir_completo = folder+'/'+dir_arq
+
+        os.system('cat %s | grep "\.%s " >> %s'%(dir_completo, pos_filtrada, dir_completo+'.tmp'))
+        originais[dir_completo] = self.obter_score(folder, dir_arq+'.tmp')        
+        os.system("rm %s"%dir_completo+'.tmp')
+        
+        originais = [(reg['nome'], reg) for reg in sorted(originais.values(), key=itemgetter(metrica), reverse=True)]
+
+        print("\n\n")
+        for _reg_ in originais:
+            nome, reg = _reg_
+            print(nome)
+            etmp = dict(reg)
+            del etmp['nome']
+            print(etmp)
+            print('\n')
+
     # Gera o score das metricas das tarefas do SemEval para as abordagens originais da competicao
     def aval_parts_orig(self, tarefa, pos_filtradas=None, lexelts_filtrados=None):
         # Alias para funcao
@@ -62,8 +82,7 @@ class VlddrSemEval(object):
             else:
                 dir_arq_filtrado = dir_arq_original
 
-            participante_filtrado = dir_arq_filtrado.split("/")[-1]   
-            print(dir_arq_filtrado)        
+            participante_filtrado = dir_arq_filtrado.split("/")[-1]
             resultados_json[participante_filtrado] = self.obter_score(self.dir_resp_compet, participante_filtrado)
             system("rm " + dir_arq_filtrado)
 

@@ -235,7 +235,6 @@ class DesOx(object):
         for arvore_sinonimia in todas_arvores:
             for caminho in arvore_sinonimia.percorrer():
                 try:
-
                     cam_tmp = [tuple(reg.split(':::')) for reg in caminho.split("/")]
                     cam_tmp = [p for (p, def_p) in cam_tmp if p in candidatos or candidatos == []]
 
@@ -245,7 +244,7 @@ class DesOx(object):
                     if Counter(cam_tmp).values() == conts_corretos:
                         if not caminho in caminhos_arvore:
                             caminhos_arvore.append(caminho)
-
+                            
                 except ValueError, ve:
                     pass
 

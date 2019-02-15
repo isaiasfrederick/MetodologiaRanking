@@ -1,28 +1,31 @@
 # -*- coding: UTF-8 -*-
-from DesOx import DesOx
-from DesambiguadorWordnet import DesWordnet
-from CasadorManual import CasadorManual
-from Utilitarios import Util
-from Arvore import Arvore, No
-from nltk.corpus import wordnet
-from RepresentacaoVetorial import RepVetorial
-from string import punctuation
-import CasadorManual
 import gc
-import traceback
-import math
-import sys
-import os
-import nltk
 import itertools
-import textblob
 import json
+import math
+import os
+import sys
+import traceback
+from string import punctuation
 
-from OxAPI import BaseOx
+import nltk
+import textblob
+from nltk.corpus import wordnet
 from pywsd.lesk import cosine_lesk
 
-wn = wordnet
+from Indexador import Whoosh
+import math
 
+import CasadorManual
+from Arvore import Arvore, No
+from CasadorManual import CasadorManual
+from DesambiguadorWordnet import DesWordnet
+from DesOx import DesOx
+from OxAPI import BaseOx
+from RepresentacaoVetorial import RepVetorial
+from Utilitarios import Util
+
+wn = wordnet
 
 class Alvaro(object):
     INSTANCE = None
@@ -32,11 +35,14 @@ class Alvaro(object):
 
     NGRAMS_COCA = { }
     NGRAMS_SIGNALMEDIA = { }
+    NGRAMS_LEIPZIG = { }
 
-    NGRAMS_EXOX_PLAIN = None
-    
-    INDEXES_REGID = None # lema::def => id_int
-    INDEXES_IDREG = None # id_int => lema::def
+    # Este objeto armazena quais palavras do
+    # dicionario de Oxford teve seus exemplos indexados também
+    PALAVRAS_EXEMPLOS_INDEXADOS = None
+
+    # Frequencia palavras 
+    FREQ_PMI = { }
 
     # "nome#pos" : relacao
     RELACAO_SINONIMIA = { }
@@ -140,7 +146,7 @@ class Alvaro(object):
 
         return caminhos_ponderados
 
-    def pontuar_relsin_exemplos(self, palavra, pos, todos_caminhos):
+    def pontuar_relacaosinonimia_exemplos(self, palavra, pos, todos_caminhos):
         wmd = RepVetorial.word_move_distance
 
         for caminho_iter in todos_caminhos:
@@ -192,26 +198,6 @@ class Alvaro(object):
                     Alvaro.PONDERACAO_DEFINICOES[str(chave)] = 1
 
         return None
-
-    def pontuar_relsin_subst(self, palavra, pos, todos_caminhos):
-        wmd = RepVetorial.word_move_distance
-        max_ex = 4
-
-        caminho_scores = { }
-
-        for caminho in todos_caminhos:
-            if not caminho in caminho_scores: caminho_scores[caminho] = [ ]
-            for aresta in caminho.split("/"):
-                lema, definicao = aresta.split(":::")
-                if lema != palavra:
-                    exemplos = BaseOx.obter_atributo(BaseOx.INSTANCE, lema, pos, definicao, 'exemplos')[:max_ex]
-                    for ex_iter in exemplos:
-                        ex = ex_iter.replace(lema, palavra)
-                        if ex != ex_iter:
-                            sc = wmd(RepVetorial.INSTANCE, ex, ex_iter)
-                            caminho_scores[caminho].append(sc)
-
-        return caminho_scores
 
     # Obtem a palavra mais usual para o significado mais usual para uma palavra
     def sugestao_contigencial(self, palavra,\
@@ -286,6 +272,28 @@ class Alvaro(object):
 
                 ex_blob = None
 
+    @staticmethod
+    def indexar_exemplos(cand_iter, pos, fonte='oxford'):
+        from Indexador import Whoosh
+
+        singleton = BaseOx.INSTANCE
+
+        if not cand_iter in Alvaro.PALAVRAS_EXEMPLOS_INDEXADOS:
+            documentos = [ ]
+
+            for def_iter in BaseOx.obter_definicoes(BaseOx.INSTANCE, cand_iter, pos):
+                titulo = cand_iter + ":::" + def_iter
+                dir_doc = "%s-%s.json"%(cand_iter, pos)
+
+                exemplos = BaseOx.obter_atributo(singleton, cand_iter, pos, def_iter, 'exemplos')
+                exemplos = ":::".join(exemplos)
+
+                documentos.append((titulo, dir_doc, exemplos))
+
+            Whoosh.iniciar_indexacao_exemplos(documentos)
+            Alvaro.PALAVRAS_EXEMPLOS_INDEXADOS.add(cand_iter)
+
+
     def selec_ngrams(self, palavra, frase, cands):
         cfgs = self.cfgs
         min_ngram = cfgs['ngram']['min']
@@ -298,53 +306,58 @@ class Alvaro(object):
 
         for cand_iter in cands:
             nova_frase = frase.replace(palavra, cand_iter)
+            ngrams_derivados_frase = Alvaro.gerar_ngrams_tagueados(\
+                                                    nova_frase, min_ngram,\
+                                                    max_ngram, cand_iter)
 
-            ngrams_leipzig = Alvaro.carregar_ngrams_leipzig(palavra, cand_iter)
+            ngrams_leipzig = {  }
 
-            ngrams_derivados_frase = Alvaro.gerar_ngrams_tagueados(nova_frase, min_ngram, max_ngram, cand_iter)
+            # Carregando N-grams de Leipzig e derivando N-grams para N = 2, 3, 4 e 5
+            if True:
+                if "leipzig" in self.cfgs['ngram']['fontes']:
+                    ngrams_leipzig = Alvaro.carregar_ngrams_leipzig(palavra, cand_iter)
+                    # derivando demais n-grams
+                    dir_ngrams_derivados = cfgs['ngram']['dir_derivado']%cand_iter
 
-            # derivando demais n-grams
-            dir_ngrams_derivados = cfgs['ngram']['dir_derivado'] % cand_iter
-            if os.path.exists(dir_ngrams_derivados) == False:
-                novos_ngrams = Alvaro.derivar_ngrams(ngrams_leipzig, cfgs['ngram']['min'], cfgs['ngram']['max'])
-                Util.salvar_json(dir_ngrams_derivados, novos_ngrams)
-            else:
-                novos_ngrams = Util.abrir_json(dir_ngrams_derivados)
+                    if os.path.exists(dir_ngrams_derivados) == False:
+                        min_ng, max_ng = cfgs['ngram']['min'], cfgs['ngram']['max']
+                        ngrams_derivados_leipzig = Alvaro.derivar_ngrams(ngrams_leipzig, min_ng, max_ng)
+                        Util.salvar_json(dir_ngrams_derivados, ngrams_derivados_leipzig)
+                    else:
+                        ngrams_derivados_leipzig = Util.abrir_json(dir_ngrams_derivados)
 
-            for ng_str in novos_ngrams:
-                ngrams_leipzig[ng_str] = novos_ngrams[ng_str]
+                    for ng_str in ngrams_derivados_leipzig:
+                        ngrams_leipzig[ng_str] = ngrams_derivados_leipzig[ng_str]
 
-            novos_ngrams = None
+                    ngrams_derivados_leipzig = None
 
             for __ng_iter__ in ngrams_derivados_frase:
                 ng_iter = [(unicode(p), pt) for (p, pt) in __ng_iter__]
                 ng_iter_sm = " ".join([p for (p, pt) in __ng_iter__])
 
-                freq_ngram_iter = 0
+                freq_ngram = 0
                 nova_pont = 0
 
-                # COCA Corpus
-                if unicode(ng_iter) in ngrams_coca:
-                    freq_ngram_iter = int(ngrams_coca[unicode(ng_iter)])
-                    nova_pont = Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
-                    pont_ngram[cand_iter] += nova_pont
+                corpus_ngrams = {
+                    "coca" : {"ngrams" : ngrams_coca, "ng_chave" : unicode(ng_iter)},
+                    "leipzig" : {"ngrams" : ngrams_leipzig, "ng_chave" : unicode(__ng_iter__)},
+                    "signalmedia" : {"ngrams" : ngrams_signalmedia, "ng_chave" : unicode(ng_iter_sm)}
+                }
 
-                # Leipzig Corpus
-                if unicode(__ng_iter__) in ngrams_leipzig:
-                    freq_ngram_iter += int(ngrams_leipzig[unicode(__ng_iter__)])
-                    nova_pont += Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter), max_ngram)
-                    pont_ngram[cand_iter] += nova_pont
+                for nome_corpus in set(corpus_ngrams.keys()) & set(self.cfgs['ngram']['fontes']):
+                    ngrams = corpus_ngrams[nome_corpus]['ngrams']
+                    ng_chave = corpus_ngrams[nome_corpus]['ng_chave']
 
-                # SignalMedia
-                if ng_iter_sm in ngrams_signalmedia:
-                    freq_ngram_iter += int(ngrams_signalmedia[ng_iter_sm])
-                    nova_pont += Alvaro.pont_colocacao(freq_ngram_iter, len(ng_iter_sm), max_ngram)
-                    pont_ngram[cand_iter] += nova_pont
+                    if ng_chave in ngrams:
+                        freq_ngram = int(ngrams[ng_chave])
+                        nova_pont = Alvaro.pont_colocacao(freq_ngram, len(__ng_iter__), max_ngram)
+                        pont_ngram[cand_iter] += nova_pont
 
             ngrams_leipzig = None
             ngrams_derivados_frase = None
 
         top_ngrams = [(p, pont_ngram[p]) for p in cands]
+
         return top_ngrams
 
     @staticmethod
@@ -404,15 +417,39 @@ class Alvaro(object):
 
         if 'wordnet' in fontes:
             for s in wn.synsets(palavra, pos):
-                candidatos.update(s.lemma_names()[:maxpordef])
-                if pos in ['n']:
+                for l in list(set(s.lemma_names()) - set(candidatos))[:maxpordef]:
+                    candidatos.update([l])
+
+                if pos in ['n', 'v'] and False:
                     for h in s.hypernyms():
-                        candidatos.update(h.lemma_names()[:maxpordef])
+                        hiperonimos = [h.name().split('.')[0]]+h.lemma_names()
+                        if palavra in hiperonimos:
+                            hiperonimos.remove(palavra)
+                        if hiperonimos: candidatos.update(hiperonimos[:1])
                     for h in s.hyponyms():
-                        candidatos.update(h.lemma_names()[:maxpordef])
-                elif pos in ['a', 'r', 'v']:
+                        hiponimos = [h.name().split('.')[0]]+h.lemma_names()
+                        if palavra in hiponimos:
+                            hiponimos.remove(palavra)
+                        if hiponimos: candidatos.update(hiponimos[:1])
+
+                elif pos in ['a', 'r', 'v'] and False:
                     for similar in s.similar_tos():
                         candidatos.update(similar.lemma_names()[:maxpordef])
+
+                try:
+                    if pos in ['n']:
+                        for h in s.hypernyms():
+                            candidatos.update(h.lemma_names()[:maxpordef])
+                            candidatos.update(h.lemma_names()[:maxpordef])
+                        for h in s.hyponyms():
+                            candidatos.update(h.lemma_names()[:maxpordef])
+                            candidatos.update(h.lemma_names()[:maxpordef])
+                    elif pos in ['a', 'r', 'v']:
+                        for similar in s.similar_tos():
+                            candidatos.update(similar.lemma_names()[:maxpordef])
+                            candidatos.update(similar.lemma_names()[:maxpordef])
+                except Exception, e:
+                    pass
 
         if 'oxford' in fontes:
             todas_definicoes = BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, pos)            
@@ -421,6 +458,7 @@ class Alvaro(object):
                     candidatos_tmp = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, definicao, pos)[:maxpordef_ox]
                 except:
                     candidatos_tmp = [ ]
+
                 candidatos.update([ ] if candidatos_tmp == None else candidatos_tmp)
 
         comprimento = len(candidatos)
@@ -437,18 +475,40 @@ class Alvaro(object):
         return [p for p in list(candidatos) if len(p) > 1]
 
     # Retirado de https://stevenloria.com/tf-idf/
-    def tf(self, word, blob):
+    @staticmethod
+    def tf(word, blob):
         return float(blob.words.count(word))
         #return float(blob.words.count(word)) / float(len(blob.words))
 
-    def n_containing(self, word, bloblist):
+    @staticmethod
+    def n_containing(word, bloblist):
         return sum(1 for blob in bloblist if word in blob.words)
 
-    def idf(self, word, bloblist):
-        return math.log(len(bloblist) / len((1 + self.n_containing(word, bloblist))))
+    @staticmethod
+    def idf(word, bloblist):
+        #return math.log(len(bloblist) / len((1 + self.n_containing(word, bloblist))))
+        x = n_containing(word, bloblist)
+        return math.log(len(bloblist) / (x if x else 1))
 
-    def tfidf(self, word, blob, bloblist):
+    @staticmethod
+    def tfidf(word, blob, bloblist):
         return self.tf(word, blob) * self.idf(word, bloblist)
+
+    # https://corpus.byu.edu/mutualInformation.asp
+    # https://corpustools.readthedocs.io/en/latest/mutual_information.html
+    # https://stackoverflow.com/questions/13488817/pointwise-mutual-information-on-text
+    # https://medium.com/@nicharuch/collocations-identifying-phrases-that-act-like-individual-words-in-nlp-f58a93a2f84a
+    @staticmethod
+    def pontwise_mutual_information(freq_x, freq_y, freq_xy, indexes):
+        searcher = Whoosh.searcher(Whoosh.DIR_INDEXES)
+
+        total_sentencas = searcher.doc_count()
+
+        px = float(freq_x) / total_sentencas
+        py = float(freq_y) / total_sentencas
+        pxy = float(freq_xy) / total_sentencas
+
+        return math.log(pxy / (px * py), 2)
 
     @staticmethod
     def gerar_ngrams_tagueados(sentenca, _min_, _max_, palavra_central=None):
@@ -507,7 +567,6 @@ class Alvaro(object):
     def pont_colocacao(freq, len_sintagma, max_sintagma):
         return freq * (len_sintagma ** 3)
 
-
     # https://stackoverflow.com/questions/24192979/
     @staticmethod
     def obter_antonimos(palavra, pos):
@@ -526,24 +585,18 @@ class Alvaro(object):
     def carregar_ngrams_leipzig(palavra, substituto):
         if substituto in Util.CONFIGS["ngram"]["blacklist"]:
             return { }
+        
+        dir_conts_ngrams_leipzig = Util.CONFIGS['ngram']['leipzig_conts']%substituto
 
-        dir_ngrams_lpzg = '../Bases/Corpora/Leipzig-ngrams'
-        dir_conts_ngrams = dir_ngrams_lpzg+'/%s.conts.json'%(substituto)
-
-        if os.path.exists(dir_conts_ngrams) == True:
-            return Util.abrir_json(dir_conts_ngrams)
+        if os.path.exists(dir_conts_ngrams_leipzig) == True:
+            return Util.abrir_json(dir_conts_ngrams_leipzig)
 
         dict_freq_ngrams = { }
 
         print("\nExtraindo do corpus sentencas para '%s'"% substituto)
-        try:
-            obj = Alvaro.gerar_ngrams_leipzig([substituto])
-        except:
-            print("\n@@@ Erro na geração de n-grams do Leipzig Corpus para a palavra '%s'!\n"%substituto)
-            obj = [ ]
+        try: obj = Alvaro.gerar_ngrams_leipzig([substituto])
+        except: obj = [ ]
         print("Sentencas extraidas!")
-
-        max_ngram = Util.CONFIGS['ngram']['max']
 
         print("Contabilizando n-grams!")
 
@@ -560,7 +613,7 @@ class Alvaro(object):
         obj = None
         arq = None       
 
-        Util.salvar_json(dir_conts_ngrams, dict_freq_ngrams)
+        Util.salvar_json(dir_conts_ngrams_leipzig, dict_freq_ngrams)
 
         return dict_freq_ngrams
 

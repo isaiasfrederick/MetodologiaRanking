@@ -8,16 +8,64 @@ from whoosh.fields import *
 from whoosh.index import create_in
 from whoosh.qparser import QueryParser
 
+from Utilitarios import Util
+
+import json
+import re
+
 
 class Whoosh(object):
-    DIR_INDEXES = "/mnt/ParticaoAlternat/Bases/Corpora/indexes"
-    SCHEMA = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
+    DIR_INDEXES = "../Bases/Corpora/indexes"
+    DIR_INDEXES_EXEMPLOS = "../Bases/Corpora/indexes-exemplos"
+
+    SCHEMA_CORPORA = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
+    SCHEMA_EXEMPLOS = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
+
+    @staticmethod
+    def remover_docs(docnums):
+        ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        writer = ix.writer()
+
+        for docnum in docnums:
+            writer.delete_document(docnum, delete=True)
+
+        writer.commit()
+
+    @staticmethod
+    def searcher(indexes):
+        ix = whoosh.index.open_dir(indexes)
+        return ix.searcher()
+
+    @staticmethod
+    def buscar_docnum_bypath(path):
+        ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        return ix.searcher().document_number(path=unicode(path))
+
+    @staticmethod
+    def deletar_bypattern(campo, pattern):
+        q = whoosh.query.Wildcard(campo, pattern)
+        ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        r = ix.delete_by_query(q)
+        ix.writer().commit()
+        return r
+
+    @staticmethod
+    def buscar_bypattern(campo, pattern):
+        q = whoosh.query.Wildcard(campo, pattern)
+        ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+
+        return ix.searcher().search(q)
+
+    @staticmethod
+    def documentos(indexes):
+        ix = whoosh.index.open_dir(indexes)
+        return ix.searcher().documents()
 
     @staticmethod
     def iniciar_indexacao(dir_lista_arquivos):
         if not os.path.exists(Whoosh.DIR_INDEXES):
             os.mkdir(Whoosh.DIR_INDEXES)
-            indexer = create_in(Whoosh.DIR_INDEXES, Whoosh.SCHEMA)
+            indexer = create_in(Whoosh.DIR_INDEXES, Whoosh.SCHEMA_CORPORA)
         else:
             indexer = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
 
@@ -58,11 +106,170 @@ class Whoosh(object):
         print('Commit realizado...')
 
     @staticmethod
-    def consultar_documentos(lista_palavras, operador, limite=None):
-        if type(lista_palavras) != list:
+    def iniciar_indexacao_signalmedia(dir_lista_arquivos, arquivos_duplicados):
+        arquivos_duplicados = Util.abrir_json(arquivos_duplicados, criarsenaoexiste=False)
+        arquivos_duplicados_set = set()
+
+        for reg_str in arquivos_duplicados:
+            path, _id_ = eval(reg_str)
+            arquivos_duplicados_set.add(_id_)
+
+        Whoosh.DIR_INDEXES = raw_input("Diretorio indexes: ")
+
+        if not os.path.exists(Whoosh.DIR_INDEXES):
+            os.mkdir(Whoosh.DIR_INDEXES)
+            indexer = create_in(Whoosh.DIR_INDEXES, Whoosh.SCHEMA_CORPORA)
+        else:
+            indexer = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+
+        writer = indexer.writer()
+
+        arquivo_lista = open(dir_lista_arquivos, 'r')
+        todos_arquivos = [e.replace('\n', '') for e in arquivo_lista.readlines()]
+        arquivo_lista.close()
+
+        indice_arquivo = 1
+        for _arquivo_ in todos_arquivos:
+            if writer.is_closed:
+                writer = None
+                writer = indexer.writer()
+
+            indice_linha = 1
+            arquivo = "../Bases/Corpora/SignalMedia/" + _arquivo_
+
+            print('\tArquivo %d' % (indice_arquivo))
+
+            with open(arquivo) as _arq_:
+                for linha_tmp in _arq_:
+                    try:
+                        obj_json = json.loads(linha_tmp)
+
+                        if not obj_json["id"] in arquivos_duplicados_set:
+                            titulo_doc_sm = obj_json["title"]
+
+                            arq = obj_json["content"]
+
+                            arq.replace(". \n\n", ". ")
+                            arq.replace("? \n\n", "? ")
+                            arq.replace("! \n\n", "! ")
+
+                            arq.replace(". \n \n", ". ")
+                            arq.replace("? \n \n", "? ")
+                            arq.replace("! \n \n", "! ")
+
+                            arq = re.split('[.?!]', arq)
+                            arq = [l for l in arq if l.strip() != '']
+
+                        else:
+                            arq = [ ]
+
+                    except:
+                        arq = [ ]
+
+                    for linha_arq in arq:
+                        try:
+                            #conteudo = unicode(str(linha_arq).decode('utf-8'))
+                            #conteudo = re.sub(r'[^\x00-\x7F]+',' ', conteudo)
+                            conteudo = str(linha_arq)
+                            conteudo = "".join([i if ord(i) < 128 else " " for i in conteudo])                            
+                            
+                            import random
+                            nome_arquivo = arquivo + '-' + str(Util.md5sum_string(conteudo))
+
+                            title = unicode(nome_arquivo)
+                            path = unicode(nome_arquivo)
+                            content = unicode(conteudo)
+
+                            try:
+                                if content.strip(" ") != "":
+                                    if writer.is_closed:
+                                        writer = indexer.writer()
+                                        if writer.is_closed == False: raw_input("Deu certo!")
+                                        else: raw_input("Deu errado!")
+                                    
+                                writer.add_document(title=title, path=path, content=content)
+                            except Exception, e:
+                                print("Content: " + str((content, title, path)))
+                                import traceback
+                                traceback.print_stack()
+                                raw_input("\nExcecao aqui: %s\n"%str(e))
+
+                        except Exception, e:
+                            import traceback
+                            traceback.print_stack()
+                            print("\nException: " + str(e) + "\n")
+
+#                       print('\tArquivo %d - Linha %d' % (indice_arquivo, indice_linha))
+                        indice_linha += 1
+            indice_arquivo += 1
+
+            print('Realizando commit. Vai gastar um bom tempo!')
+            try:
+                if writer.is_closed:
+                    raw_input("\nWriter estava fechado na hora do commit!\n")                
+                writer.commit()
+                print("@@@ " + _arquivo_)
+                print('Commit realizado...')
+            except Exception, e:
+                import traceback
+                print("@@@ " + _arquivo_)
+                print("\nException: " + str(e) + "\n")
+                print('Commit NAO realizado...')
+                traceback.print_stack()
+                print("===============================")
+
+    @staticmethod
+    def iniciar_indexacao_exemplos(documentos):
+        if not os.path.exists(Whoosh.DIR_INDEXES_EXEMPLOS):
+            os.mkdir(Whoosh.DIR_INDEXES_EXEMPLOS)
+            indexer = create_in(Whoosh.DIR_INDEXES_EXEMPLOS, Whoosh.SCHEMA_EXEMPLOS)
+        else:
+            indexer = whoosh.index.open_dir(Whoosh.DIR_INDEXES_EXEMPLOS)
+
+        writer = indexer.writer()
+
+        cont_doc = 1
+        print("\n")
+
+        for palavra_def, path_arquivo, conteudo_iter in documentos:
+            try:
+        		#conteudo = unicode(str(linha_arq).decode('utf-8'))
+        		#conteudo = re.sub(r'[^\x00-\x7F]+',' ', conteudo)
+                conteudo = str(conteudo_iter)
+                conteudo = "".join([i if ord(i) < 128 else " " for i in conteudo])
+
+                title = palavra_def
+                path = unicode(path_arquivo)
+                content = unicode(conteudo)
+
+                writer.add_document(title=title, path=path + '-' + str(cont_doc), content=content)
+                cont_doc += 1
+                print("\tIndexando exemplos da palavra '%s'" % path_arquivo)
+
+            except Exception, e:
+                print("\n")
+                traceback.print_exc()
+                print("\n")
+
+        print("\n")
+        print('\tRealizando commit de exemplos...')
+
+        try:
+            writer.commit()
+            print('\tCommit de exemplos realizado...')
+        except:
+            print('\tCommit de exemplos NAO realizado...')
+
+    @staticmethod
+    def consultar_documentos(lista_palavras, operador="AND", limite=None, dir_indexes=None):
+        operador = operador.upper()
+
+        if type(lista_palavras) == str:
+            lista_palavras = [lista_palavras]
+        elif type(lista_palavras) != list:
             raise Exception("Indexador deve receber uma lista!")
 
-        indexes = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        indexes = whoosh.index.open_dir(dir_indexes)
         searcher = indexes.searcher()
         parser = QueryParser("content", indexes.schema)
 
@@ -73,9 +280,18 @@ class Whoosh(object):
             consultar += arg+operador
 
         consultar = parser.parse(consultar[:-len(operador)])
-        resultado = [doc for doc in searcher.search(consultar, limit=limite)]
+        res_busca = searcher.search(consultar, limit=limite)
+
+        resultado = [doc for doc in res_busca]
 
         return resultado
+
+    @staticmethod
+    def buscar_docnum(path):
+        indexes = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        searcher = indexes.searcher()
+
+        return searcher.document_number(path=unicode(path))
 
     @staticmethod
     def get_regex():
