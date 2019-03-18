@@ -11,6 +11,8 @@ from sys import argv
 import re
 import io
 
+import nltk
+
 # Para temporizar a medida WMD
 import signal
 
@@ -21,6 +23,9 @@ wn = wordnet
 
 class RepVetorial(object):
     INSTANCE = None
+    MODELO_CARREGADO = False
+
+    STOP_WORDS = nltk.corpus.stopwords.words('english')
 
     def __init__(self, configs, diretorio_modelo=None, binario=True):
         self.modelo = None
@@ -67,18 +72,20 @@ class RepVetorial(object):
         signal.signal(signal.SIGALRM, self.sinal_timeout_wmd)
         signal.alarm(100)   # 100 segundos
 
+        stopwords = RepVetorial.STOP_WORDS
+
         try:            
             doc1_str, doc2_str = doc1_str.split(" "),  doc2_str.split(" ")
+
+            doc1_str = [p for p in doc1_str if not p in stopwords]
+            doc2_str = [p for p in doc2_str if not p in stopwords]
+
             valor = self.modelo.wmdistance(doc1_str, doc2_str)
             signal.alarm(0)
             return valor
         except Exception, e:
             try: signal.alarm(0)
             except: pass
-            print(e)
-            print("\nExcecao para os documentos:")
-            print("DOC1: "+str(doc1_str))
-            print("DOC2: "+str(doc2_str))
             return Util.MAX_WMD
 
     def obter_palavras_relacionadas(self, positivos=None, negativos=None, pos=None, topn=1):
@@ -134,7 +141,7 @@ class RepVetorial(object):
     def load_vectors(self, fname):
         fin = io.open(fname, 'r', encoding='utf-8', newline='\n', errors='ignore')
         n, d = map(int, fin.readline().split())
-        data = {}
+        data = { }
         for line in fin:
             tokens = line.rstrip().split(' ')
             data[tokens[0]] = map(float, tokens[1:])
@@ -142,19 +149,61 @@ class RepVetorial(object):
 
     # Retirado de https://radimrehurek.com/gensim/scripts/glove2word2vec.html
     def carregar_modelo(self, diretorio, binario=True):
-        try:
-            if binario == False:
-                arq_glove = diretorio
+        if True:
+            try:
+                if binario == False:
+                    arq_glove = diretorio
 
-                dir_arquivo_tmp = diretorio.split('/').pop()
-                arq_tmp = self.cfgs['dir_temporarios'] + \
-                    '/' + dir_arquivo_tmp + '.tmp'
+                    dir_arquivo_tmp = diretorio.split('/').pop()
+                    arq_tmp = self.cfgs['dir_temporarios'] + \
+                        '/' + dir_arquivo_tmp + '.tmp'
 
-                glove2word2vec(arq_glove, arq_tmp)
-                self.modelo = KeyedVectors.load_word2vec_format(arq_tmp)
-            else:
-                self.modelo = KeyedVectors.load_word2vec_format(
-                    diretorio, binary=True)
-        except Exception, e:
-            # Carregando vetores fasttext
-            self.modelo = self.load_vectors(diretorio)
+                    glove2word2vec(arq_glove, arq_tmp)
+                    self.modelo = KeyedVectors.load_word2vec_format(arq_tmp)
+                else:
+                    self.modelo = KeyedVectors.load_word2vec_format(
+                        diretorio, binary=True)
+            except Exception, e:
+                # Carregando vetores fasttext
+                self.modelo = self.load_vectors(diretorio)
+        
+            RepVetorial.MODELO_CARREGADO = True
+        else:
+            print("\nArquivo ja carregado!\n")
+
+    @staticmethod
+    def bow_embbedings_definicao(palavra, pos):
+        from OxAPI import BaseOx
+        from Alvaro import Alvaro
+
+        descricao_definicoes = {  }
+        uniao_definicoes = set()
+
+        for d in BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, pos=pos):
+            d_sins = BaseOx.obter_sins(BaseOx.INSTANCE, palavra, d, pos=pos)
+
+            correlatas = [ ]
+            for s in d_sins:
+                similares_tmp = [reg[0] for reg in Alvaro.palavras_similares(s, pos)]
+                uniao_definicoes.update(similares_tmp)
+                correlatas.append(similares_tmp)
+
+            # Interseccao entre palavras da mesma definicao
+            interseccao = set(correlatas[0])
+            for c in correlatas[:1]:
+                interseccao = set(interseccao)&set(c)
+
+            descricao_definicoes[d] = interseccao
+
+        #for d in descricao_definicoes:
+        #    descricao_definicoes[d] = list(set(descricao_definicoes[d]) - set(uniao_definicoes))
+        descricao_definicoes_tmp = {  }
+        for d in descricao_definicoes:
+            uniao_outros = set()
+            for outro in descricao_definicoes:
+                if outro != d: uniao_outros.update(descricao_definicoes[outro])
+            descricao_definicoes_tmp[d] = set(descricao_definicoes[d]) - uniao_outros
+            descricao_definicoes_tmp[d] = list(descricao_definicoes_tmp[d])
+            uniao_outros = None
+
+        return descricao_definicoes_tmp

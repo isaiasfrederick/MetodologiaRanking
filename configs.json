@@ -1,227 +1,624 @@
 {
-	"max_text_length":500,
-	"fontes_cands":["oxford", "wordnet"],
-	"params_exps":{
-	   "todos_criterios":["gabarito"],
-	   "max_entradas_pos":1000000,
-	   "pos_avaliadas":[["a", "n", "r", "v"]],
-	   "pos_avaliadas_":[["n"]],
-	   "qtde_exemplos":[
-		  30
-	   ],
-	   "qtde_sugestoes_best":[
-		  1
-	   ],
-	   "qtde_sugestoes_oot":[
-		  10
-	   ],
-	   "todas_fontes_def":[
-		  "oxford"
-	   ],
-	   "tipos_base":[
-		  "test"
-	   ],
-	   "usar_exemplos":[
-		  false
-	   ],
-	   "usar_gabarito":[
-		  false
-	   ],
-	   "comentarios":"pos_avaliadas = lista de listas"
-	},
-	"ordenador_pmi":{
-		"usar_ordenador":true
-	},
-	"ngram":{
-	   "usar_seletor":false,
-	   "fontes":["coca", "leipzig"],
-	   "blacklist":["new", "use"],
-	   "max_cands_filtro":4,
-	   "signalmedia_5grams":"../Bases/Corpora/SignalMedia/5grams.ngram.txt",
-	   "leipzig_conts":"../Bases/Corpora/Leipzig-ngrams/%s.conts.json",
-	   "dir_derivado":"../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
-	   "dir_exemplos":{
-		  "oxford_plain":"../Bases/Corpora/ngrams_exemplos_oxford_plain.json",
-		  "oxford_tagueados":"../Bases/Corpora/ngrams_exemplos_oxford_tagueados.json"
-	   },
-	   "min":2,
-	   "max":5
-	},
-	"saida_contig":{
-	   "habilitar":false,
-	   "metodo":"definicao_usual",
-	   "comentarios":"'definicao_usual' ou 'desambiguador'"
-	},
-	"alvaro":{
-	   "mxspdef":5,
-	   "mxspdef_ox":1,
-	   "comentarios":""
-	},
-	"medida_similaridade":"word_move_distance",
-	"saida_experimentos":"./Experimentos",
-	"caminho_bases":"../Bases",
-	"dir_saida_json":"./",
-	"dir_modelos":"Modelos",
-	"arquivo_log":"../Bases/log.txt",
-	"dir_temporarios":"tmp",
-	"separador":"@@@@@@",
-	"dir_saidas_rankeador":"SaidasRankeador",
-	"dir_base_casada_manualmente":"casamento_manual.json",
-	"espaco_branco":"",
-	"padrao_nome_submissao":"C=%s_G=%s_T=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
-	"pos_tags_treebank":[
-	   "JJ",
-	   "JJR",
-	   "JJS",
-	   "NN",
-	   "NNP",
-	   "NNS",
-	   "RB",
-	   "RBR",
-	   "RBS",
-	   "VB",
-	   "VBD",
-	   "VBG",
-	   "VBN",
-	   "VBP",
-	   "VBZ"
+	"max_text_length": 500,
+	"fontes_cands": [
+		"wordnet",
+		"oxford"
 	],
-	"arquivo_candidatos":"Cache/candidatos.json",
-	"dir_coca_ngrams":"../Bases/Corpora/COCA Corpus/coca-ngrams-postags.json",
-	"dir_signalmedia_ngrams":"../Bases/signalmedia-ngrams-postags.json",
-	"oxford":{
-	   "app_id":"",
-	   "app_key":"",
-	   "url_base":"https://od-api.oxforddictionaries.com/api/v1",
-	   "url_base_thesaurus":"https://od-api.oxforddictionaries.com/api/v1",
-	   "url_base_definicoes":"https://en.oxforddictionaries.com/definition",
-	   "pos":[
-		  "Adjective",
-		  "Adverb",
-		  "Noun",
-		  "Verb"
-	   ],
-	   "cache":{
-		  "desambiguador":"Cache/Oxford/Desambiguador",
-		  "sinonimos":"Cache/Oxford/Sinonimos",
-		  "sinonimia":"Cache/Oxford/Sinonimia",
-		  "definicoes":"Cache/Oxford/Definicoes",
-		  "frequencias":"Cache/Oxford/Frequencias",
-		  "extrator_web":"Cache/Oxford/ExtratorWeb",
-		  "obj_urls_invalidas_sinonimos":"Cache/Oxford/urls_invalidas_sinonimos.json",
-		  "obj_urls_invalidas_definicoes":"Cache/Oxford/urls_invalidas_definicoes.json",
-		  "obj_urls_invalidas_extrator":"Cache/Oxford/urls_invalidas_extrator.json"
-	   },
-	   "extrator_web":{
-		  "xpaths":{
- 
-		  }
-	   }
+	"params_exps": {
+		"todos_criterios": [
+			"exemplos"
+		],
+		"max_entradas_pos": 1000000,
+		"pos_avaliadas_": [
+			[
+				"a",
+				"n",
+				"r",
+				"v"
+			]
+		],
+		"pos_avaliadas": [
+			[
+				"n"
+			]
+		],
+		"qtde_exemplos": [
+			30
+		],
+		"qtde_sugestoes_best": [
+			1
+		],
+		"qtde_sugestoes_oot": [
+			10
+		],
+		"todas_fontes_def": [
+			"oxford"
+		],
+		"tipos_base": [
+			"test"
+		],
+		"usar_exemplos": [
+			false
+		],
+		"usar_gabarito": [
+			false
+		],
+		"comentarios": "pos_avaliadas = lista de listas"
 	},
-	"wordnet":{
-	   "cache":{
-		  "desambiguador":"Cache/Wordnet/Desambiguador"
-	   }
+	"gabarito": {
+		"tipo": "gap",
+		"desc": "default ou gap"
 	},
-	"babelnet":{
-	   "cache":{
-		  "desambiguador":"Cache/Oxford/Desambiguador"
-	   },
-	   "app_key":"aff183be-c1c4-4d30-8b50-d555b7d39c48",
-	   "url_base":"https://babelnet.io/v5",
-	   "c1":"https://en.wikipedia.org/wiki/User:West.andrew.g/Popular_pages",
-	   "url_desambiguador":"https://babelfy.io/v1/disambiguate?text=%s&lang=%s&key=%s&cands=ALL&dens=true&annType=NAMED_ENTITIES&posTag=STANDARD&match=PARTIAL_MATCHING",
-	   "c2":"https://en.wikipedia.org/wiki/Wikipedia:Top_25_Report"
+	"metodo_sinonimia_wmd": {
+		"usar_metodo": false
 	},
-	"wikipedia":{
-	   "url_base_verbete":"https://en.wikipedia.org/wiki",
-	   "paginas_populares":""
+	"wikipedia": {
+		"usar_frases": false,
+		"url_base_verbete": "https://en.wikipedia.org/wiki",
+		"dir_objeto_paginas_indexadas": "../Bases/Wikipedia/wikipedia_indexes.json",
+		"dir_frases": "../Bases/Wikipedia/dir_frases.json",
+		"dir_generico": "../Bases/Wikipedia/%s.json",
+		"url_desambiguacao": "https://en.wikipedia.org/wiki/%s_(disambiguation)"
+	},	
+	"metodo_pmi": {
+		"usar_metodo": false,
+		"verbose": false,
+		"dir_contadores": "../Bases/Corpora/pmi.json"
 	},
-	"semeval2007":{
-	   "todas_pos":[
-		  "a",
-		  "n",
-		  "r",
-		  "v"
-	   ],
-	   "dir_resultados_concorrentes":"lexsubsystems",
-	   "dir_raiz":"SemEval2007",
-	   "trial":{
-		  "gold_file":"trial/gold.trial",
-		  "input":"trial/lexsub_trial.xml"
-	   },
-	   "test":{
-		  "gold_file":"task10data/scoring/gold",
-		  "input":"test/lexsub_test.xml"
-	   },
-	   "comando_scorer":"task10data/scoring/score.pl",
-	   "criterio_ordenacao":[
- 
-	   ],
-	   "tarefas":{
-		  "limites":{
-			 "oot":10,
-			 "best":1
-		  },
-		  "separadores":{
-			 "oot":":::",
-			 "best":"::"
-		  }
-	   },
-	   "medidas":[
-		  "Total",
-		  "Attempted",
-		  "Precision",
-		  "Recall",
-		  "TotalWithMode",
-		  "Attempted",
-		  "Precision",
-		  "Recall"
-	   ],
-	   "total_anotadores":5,
-	   "max_sugestoes":3,
-	   "nome_minha_abordagem":"MR"
+	"ngram": {
+		"usar_seletor": true,
+		"fontes": [
+			"coca",
+			"leipzig",
+			"signalmedia"
+		],
+		"blacklist": [
+			"new",
+			"use"
+		],
+		"max_cands_filtro": 6,
+		"signalmedia_5grams": "../Bases/Corpora/SignalMedia/5grams.ngram.txt",
+		"leipzig_conts": "../Bases/Corpora/Leipzig-ngrams/%s.conts.json",
+		"dir_derivado": "../Bases/Corpora/Leipzig-ngrams/%s.conts.derivados.json",
+		"dir_exemplos": {
+			"oxford_plain": "../Bases/Corpora/ngrams_exemplos_oxford_plain.json",
+			"oxford_tagueados": "../Bases/Corpora/ngrams_exemplos_oxford_tagueados.json"
+		},
+		"min": 2,
+		"max": 5
 	},
-	"possemeval2007":{
-	   "dir_resultados_concorrentes":"",
-	   "metricas":[
-		  "gap"
-	   ]
+	"saida_contig": {
+		"habilitar": false,
+		"metodo": "definicao_usual",
+		"comentarios": "'definicao_usual' ou 'desambiguador'"
 	},
-	"corpora":{
-		"contadores_pmi":"../Bases/Corpora/pmi.json",
-		"deletar_docs_duplicados":false,
-		"dir_indexes_exemplos":"../Bases/Corpora/indexes-exemplos",
-		"dir_palavras_indexadas_exemplos":"../Bases/palavras_exemplos_indexados.json",
-	   "dir_indexes":"../Bases/Corpora/indexes1",
-	   "raiz":"",
-	   "fontes":[
-		  "LeipzigCorpus",
-		  "SignalMedia"
+	"alvaro": {
+		"mxspdef": 5,
+		"mxspdef_ox": 1,
+		"comentarios": ""
+	},
+	"medida_similaridade": "word_move_distance",
+	"saida_experimentos": "./Experimentos",
+	"caminho_bases": "../Bases",
+	"dir_saida_json": "./",
+	"dir_modelos": "Modelos",
+	"arquivo_log": "../Bases/log.txt",
+	"dir_temporarios": "tmp",
+	"separador": "@@@@@@",
+	"dir_saidas_rankeador": "SaidasRankeador",
+	"dir_base_casada_manualmente": "casamento_manual.json",
+	"espaco_branco": "",
+	"padrao_nome_submissao": "C=%s_G=%s_T=%s_MAXEX=%d_USAREX=%s_FONTESDEF=%s.%s",
+	"verbose": {
+		"geral": false
+	},
+	"arquivo_candidatos": "Cache/candidatos.json",
+	"dir_coca_ngrams": "../Bases/Corpora/COCA Corpus/coca-ngrams-postags.json",
+	"dir_signalmedia_ngrams": "../Bases/signalmedia-ngrams-postags.json",
+	"oxford": {
+		"app_id": "",
+		"app_key": "",
+		"url_base": "https://od-api.oxforddictionaries.com/api/v1",
+		"url_base_thesaurus": "https://od-api.oxforddictionaries.com/api/v1",
+		"url_base_definicoes": "https://en.oxforddictionaries.com/definition",
+		"pos": [
+			"Adjective",
+			"Adverb",
+			"Noun",
+			"Verb"
+		],
+		"cache": {
+			"desambiguador": "Cache/Oxford/Desambiguador",
+			"desambiguador_wmd": "../Bases/Cache/Oxford/DesambiguadorWMD",
+			"sinonimos": "Cache/Oxford/Sinonimos",
+			"sinonimia": "Cache/Oxford/Sinonimia",
+			"sinonimiaWMD": "Cache/Oxford/SinonimiaWMD",
+			"definicoes": "Cache/Oxford/Definicoes",
+			"frequencias": "Cache/Oxford/Frequencias",
+			"extrator_web": "Cache/Oxford/ExtratorWeb",
+			"obj_urls_invalidas_sinonimos": "Cache/Oxford/urls_invalidas_sinonimos.json",
+			"obj_urls_invalidas_definicoes": "Cache/Oxford/urls_invalidas_definicoes.json",
+			"obj_urls_invalidas_extrator": "Cache/Oxford/urls_invalidas_extrator.json"
+		},
+		"extrator_web": {
+			"xpaths": {}
+		}
+	},
+	"wordnet": {
+		"cache": {
+			"desambiguador": "Cache/Wordnet/Desambiguador"
+		}
+	},
+	"babelnet": {
+		"cache": {
+			"desambiguador": "Cache/Oxford/Desambiguador"
+		},
+		"app_key": "aff183be-c1c4-4d30-8b50-d555b7d39c48",
+		"url_base": "https://babelnet.io/v5",
+		"c1": "https://en.wikipedia.org/wiki/User:West.andrew.g/Popular_pages",
+		"url_desambiguador": "https://babelfy.io/v1/disambiguate?text=%s&lang=%s&key=%s&cands=ALL&dens=true&annType=NAMED_ENTITIES&posTag=STANDARD&match=PARTIAL_MATCHING",
+		"c2": "https://en.wikipedia.org/wiki/Wikipedia:Top_25_Report"
+	},
+	"semeval2007": {
+		"todas_pos": [
+			"a",
+			"n",
+			"r",
+			"v"
+		],
+		"dir_resultados_concorrentes": "lexsubsystems",
+		"dir_raiz": "SemEval2007",
+		"trial": {
+			"gold_file": "trial/gold.trial",
+			"input": "trial/lexsub_trial.xml"
+		},
+		"test": {
+			"gold_file": "task10data/scoring/gold",
+			"input": "test/lexsub_test.xml"
+		},
+		"comando_scorer": "task10data/scoring/score.pl",
+		"criterio_ordenacao": [],
+		"tarefas": {
+			"limites": {
+				"oot": 10,
+				"best": 1
+			},
+			"separadores": {
+				"oot": ":::",
+				"best": "::"
+			}
+		},
+		"medidas": [
+			"Total",
+			"Attempted",
+			"Precision",
+			"Recall",
+			"TotalWithMode",
+			"Attempted",
+			"Precision",
+			"Recall"
+		],
+		"total_anotadores": 5,
+		"max_sugestoes": 3,
+		"nome_minha_abordagem": "MR"
+	},
+	"possemeval2007": {
+		"dir_resultados_concorrentes": "",
+		"metricas": [
+			"gap"
 		]
 	},
-	"aplicacao":{
-	   "dir_saida_base_coocorrencia":"Edmonds1997",
-	   "dir_cache_casador_definicoes":"Cache/CasadorDefinicoes",
-	   "dir_cache_relacao_sinonimia":"Cache/Oxford/Sinonimia"
+	"corpora": {
+		"frases_coletadas_web": "../Bases/Corpora/exemplos-web.json",
+		"deletar_docs_duplicados": false,
+		"dir_indexes_exemplos": "../Bases/Corpora/indexes-exemplos",
+		"dir_palavras_indexadas_exemplos": "../Bases/palavras_exemplos_indexados.json",
+		"dir_indexes": "../Bases/Corpora/indexes1",
+		"raiz": "",
+		"fontes": [
+			"LeipzigCorpus",
+			"SignalMedia"
+		]
 	},
-	"carregar_modelo":true,
-	"modelos":{
-	   "default":"Modelos/vectors.bin",
-	   "word2vec-default":"Modelos/vectors.bin",
-	   "glove-6B.50d":"Modelos/glove.6B.50d.txt",
-	   "glove-6B.100d":"Modelos/glove.6B.100d.txt",
-	   "glove-6B.200d":"Modelos/glove.6B.200d.txt",
-	   "glove-6B.300d":"Modelos/glove.6B.300d.txt",
-	   "sent2vec":"",
-	   "context2vec":"",
-	   "sense2vec":"",
-	   "fasttext-wiki-news-300d-1M":"Modelos/wiki-news-300d-1M.vec"
+	"aplicacao": {
+		"dir_saida_base_coocorrencia": "Edmonds1997",
+		"dir_cache_casador_definicoes": "Cache/CasadorDefinicoes",
+		"dir_cache_relacao_sinonimia": "Cache/Oxford/Sinonimia"
 	},
-	"pos_wander":[
-	   "v",
-	   "n"
+	"carregar_modelo": true,
+	"modelos": {
+		"default": "Modelos/vectors.bin",
+		"word2vec-default": "Modelos/vectors.bin",
+		"glove-6B.50d": "Modelos/glove.6B.50d.txt",
+		"glove-6B.100d": "Modelos/glove.6B.100d.txt",
+		"glove-6B.200d": "Modelos/glove.6B.200d.txt",
+		"glove-6B.300d": "Modelos/glove.6B.300d.txt",
+		"sent2vec": "",
+		"context2vec": "",
+		"sense2vec": "",
+		"fasttext-wiki-news-300d-1M": "Modelos/wiki-news-300d-1M.vec",
+		"palavras_relacionadas": {
+			"google": ""
+		}
+	},
+	"preposicoes": [
+		"of",
+		"with",
+		"at",
+		"from",
+		"into",
+		"during",
+		"including",
+		"until",
+		"against",
+		"among",
+		"throughout",
+		"despite",
+		"towards",
+		"upon",
+		"concerning",
+		"to",
+		"in",
+		"for",
+		"on",
+		"by",
+		"about",
+		"like",
+		"through",
+		"over",
+		"before",
+		"between",
+		"after",
+		"since",
+		"without",
+		"under",
+		"within",
+		"along",
+		"following",
+		"across",
+		"behind",
+		"beyond",
+		"plus",
+		"except",
+		"but",
+		"up",
+		"out",
+		"around",
+		"down",
+		"off",
+		"above",
+		"near"
 	],
-	"base_wander":"base_wander.json",
-	"total_sugestoes":40
- }
+	"pronomes": [
+		"I",
+		"we ",
+		"you",
+		"he",
+		"she",
+		"it",
+		"they",
+		"me ",
+		"us",
+		"you",
+		"her",
+		"him",
+		"it",
+		"them",
+		"mine",
+		"ours",
+		"yours",
+		"hers",
+		"his",
+		"theirs",
+		"my",
+		"our",
+		"your",
+		"her",
+		"his",
+		"their",
+		"myself",
+		"yourself",
+		"herself",
+		"himself",
+		"itself",
+		"ourselves",
+		"yourselves",
+		"themselves",
+		"myself",
+		"yourself",
+		"herself",
+		"himself",
+		"itself",
+		"ourselves",
+		"yourselves",
+		"themselves",
+		"all",
+		"another",
+		"any",
+		"anybody",
+		"anyone",
+		"anything",
+		"both",
+		"each",
+		"either",
+		"everybody",
+		"everyone",
+		"everything",
+		"few",
+		"many",
+		"most",
+		"neither",
+		"nobody",
+		"none",
+		"no one",
+		"nothing",
+		"one",
+		"other",
+		"others",
+		"several",
+		"some",
+		"somebody",
+		"someone",
+		"something",
+		"such",
+		"such",
+		"that",
+		"these",
+		"this",
+		"those",
+		"what",
+		"whatever",
+		"which",
+		"whichever",
+		"who",
+		"whoever",
+		"whom ",
+		"whomever",
+		"whose",
+		"as",
+		"that",
+		"what",
+		"whatever",
+		"which",
+		"whichever",
+		"who",
+		"whoever",
+		"whom",
+		"whomever",
+		"whose",
+		"thou ",
+		"thee ",
+		"thy ",
+		"thine ",
+		"ye",
+		"all",
+		"another",
+		"any",
+		"anybody",
+		"anyone",
+		"anything",
+		"as",
+		"aught",
+		"both",
+		"each",
+		"each other",
+		"either",
+		"enough",
+		"everybody",
+		"everyone",
+		"everything",
+		"few",
+		"he",
+		"her",
+		"hers",
+		"herself",
+		"him",
+		"himself",
+		"his",
+		"I",
+		"idem",
+		"it",
+		"its",
+		"itself",
+		"many",
+		"me",
+		"mine",
+		"most",
+		"my",
+		"myself",
+		"naught",
+		"neither",
+		"no one",
+		"nobody",
+		"none",
+		"nothing",
+		"nought",
+		"one",
+		"one another",
+		"other",
+		"others",
+		"ought",
+		"our",
+		"ours",
+		"ourself",
+		"ourselves",
+		"several",
+		"she",
+		"some",
+		"somebody",
+		"someone",
+		"something",
+		"somewhat",
+		"such",
+		"suchlike",
+		"that",
+		"thee",
+		"their",
+		"theirs",
+		"theirself",
+		"theirselves",
+		"them",
+		"themself",
+		"themselves",
+		"there",
+		"these",
+		"they",
+		"thine",
+		"this",
+		"those",
+		"thou",
+		"thy",
+		"thyself",
+		"us",
+		"we ",
+		"what",
+		"whatever",
+		"whatnot",
+		"whatsoever",
+		"whence",
+		"where",
+		"whereby",
+		"wherefrom",
+		"wherein",
+		"whereinto",
+		"whereof",
+		"whereon",
+		"wherever",
+		"wheresoever",
+		"whereto",
+		"whereunto",
+		"wherewith",
+		"wherewithal",
+		"whether",
+		"which",
+		"whichever",
+		"whichsoever",
+		"who",
+		"whoever",
+		"whom ",
+		"whomever",
+		"whomso",
+		"whomsoever",
+		"whose",
+		"whosever",
+		"whosesoever",
+		"whoso",
+		"whosoever",
+		"ye",
+		"yon",
+		"yonder",
+		"you",
+		"your",
+		"yours",
+		"yourself",
+		"yourselves"
+	],
+	"conjuncoes": [
+		"and",
+		"but",
+		"or",
+		"nor",
+		"for",
+		"so",
+		"yet",
+		"as",
+		"both",
+		"whether",
+		"either",
+		"neither",
+		"after ",
+		"even though ",
+		"than ",
+		"whenever",
+		"although",
+		"if",
+		"that ",
+		"where",
+		"as ",
+		"in order that",
+		"though",
+		"whereas",
+		"as if",
+		"rather than",
+		"unless",
+		"wherever",
+		"because",
+		"since",
+		"until",
+		"whether",
+		"before",
+		"so that",
+		"when",
+		"while"
+	],
+	"artigos": [
+		"the",
+		"a",
+		"an",
+		"some"
+	],
+	"verbos_ligacao": [
+		"is",
+		"appears",
+		"smell",
+		"went",
+		"sound",
+		"look",
+		"am",
+		"might",
+		"have",
+		"been",
+		"acted",
+		"fell",
+		"come",
+		"stayed",
+		"seem",
+		"felt",
+		"taste",
+		"proves",
+		"has",
+		"remained",
+		"became",
+		"were",
+		"gets",
+		"grow",
+		"feel",
+		"was",
+		"turn",
+		"are bring",
+		"waxed",
+		"might",
+		"act",
+		"are",
+		"indicate",
+		"is",
+		"could",
+		"get",
+		"were",
+		"appeared",
+		"looked",
+		"shall",
+		"be",
+		"will",
+		"is",
+		"remains"
+	],
+	"pos_tags_treebank": [
+		"JJ",
+		"JJR",
+		"JJS",
+		"NN",
+		"NNP",
+		"NNS",
+		"RB",
+		"RBR",
+		"RBS",
+		"VB",
+		"VBD",
+		"VBG",
+		"VBN",
+		"VBP",
+		"VBZ"
+	],
+	"total_sugestoes": 40
+}

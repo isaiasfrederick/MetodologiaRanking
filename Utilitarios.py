@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
-from os import system
-import requests
 import glob
-import json
-import os
-import re, math
-from collections import Counter
-from pywsd.utils import lemmatize, porter, lemmatize_sentence
-from unicodedata import normalize
-from sys import version_info
-import random, string
-import unicodedata
-import re, math
-import string
-from nltk.corpus import stopwords
-from collections import Counter
-import requests
-from nltk.corpus import stopwords, wordnet
 import hashlib
+import json
+import math
+import os
+import random
+import re
+import string
+import unicodedata
+from collections import Counter
+from os import system
+from sys import version_info
+from unicodedata import normalize
+
 import bencode
 import nltk
+import requests
 import textblob
+from nltk.corpus import stopwords, wordnet
+from pywsd.utils import lemmatize, lemmatize_sentence, porter
 
 wn = wordnet
 
@@ -40,7 +38,9 @@ class Util(object):
 
     @staticmethod
     def media(vetor):
-        return sum(vetor)/len(vetor)
+        try:
+            return sum(vetor)/len(vetor)
+        except: return 0.00
 
     @staticmethod
     def norm_palavra(palavra):
@@ -303,7 +303,7 @@ class Util(object):
             resultado_tmp = [ ]
             for (palavra, pos_tmp) in nltk.pos_tag(Util.tokenize(definicao.lower())):
                 todos_lemas = list(itertools.chain(*[s.lemma_names() for s in wn.synsets(palavra, pos)]))
-                if palavra in todos_lemas:
+                if palavra in todos_lemas and False:
                     resultado_tmp.append((palavra, pos))
                 elif not palavra in sw and pos_tmp[0].lower() == pos:
                     resultado_tmp.append((palavra, pos_tmp))
@@ -360,8 +360,15 @@ class Util(object):
         return frase.strip().lower()
 
     @staticmethod
+    def gethostname():
+        import socket
+        try: return socket.gethostname()
+        except: return ""
+
+    @staticmethod
     def arq_existe(pasta, nome_arquivo):
         if pasta == None:
+            # Aqui, supoe-se que <nome_arquivo> é fullpath do arquivo
             return os.path.isfile(nome_arquivo)
         if pasta[-1] != "/":
             pasta = pasta + "/"
@@ -394,7 +401,12 @@ class Util(object):
 
     @staticmethod
     def exibir_json(obj, bloquear=False):
-        print(json.dumps(obj, indent=4))        
+        try:
+            print(json.dumps(obj, indent=4))
+        except Exception, e:
+            print("Excecao na exibicao do objeto!")
+            print(e)
+
         if bloquear: raw_input("\n\n<enter>")
 
     @staticmethod

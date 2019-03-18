@@ -15,7 +15,7 @@ import re
 from nltk.corpus import wordnet
 
 from Utilitarios import Util
-from textblob import Word
+from textblob import Word, TextBlob
 import traceback
 import json
 import time
@@ -256,6 +256,16 @@ class BaseOx(object):
 
         return obj_unificado
 
+    def obter_frequencia_exemplos(self, palavra, definicao, pos):
+        inst = BaseOx.INSTANCE
+        uniao_exemplos = BaseOx.obter_atributo(inst, palavra, pos, definicao, 'exemplos')
+        uniao_exemplos = " ".join(uniao_exemplos)
+
+        exemplos_blob = TextBlob(uniao_exemplos)
+
+        retorno = dict(exemplos_blob.word_counts).items()
+        return Util.sort(retorno, col=1, reverse=True), exemplos_blob
+
     # Obtem sinonimos a partir da palavra, definicao, pos e do OBJETO UNIFICADO
     def obter_sins(self, palavra, definicao, pos=None):
         obj_unificado = self.construir_objeto_unificado(palavra)
@@ -267,7 +277,7 @@ class BaseOx(object):
 
         sinonimos_retorno = [ ]
 
-        try:
+        try:            
             for pos in lista_pos:
                 for def_primaria in obj_unificado[pos]:
                     obj_filtrado = obj_unificado[pos][def_primaria]
@@ -276,6 +286,8 @@ class BaseOx(object):
                     for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
                         if definicao in def_sec or def_sec in definicao:
                             sinonimos_retorno = obj_filtrado['def_secs'][def_sec]['sinonimos']
+                            #if sinonimos_retorno == obj_filtrado['sinonimos']:
+                            #    sinonimos_retorno = self.extrair_sins_cands_def(definicao, pos)
 
             if sinonimos_retorno != [ ]:
                 return sinonimos_retorno
@@ -299,7 +311,9 @@ class BaseOx(object):
             sins_nouns = [ ]
 
             if pos in ['Adverb', 'Adjective', 'a', 'r']:
-                return sins_def
+                if not palavra in sins_def: return [palavra] + sins_def
+                else: return sins_def
+
             if pos in ['Noun', 'n', 'Verb', 'v']:
                 retorno = self.obter_sins_nv(palavra, definicao, sins_def, pos=pos[0].lower())
 
@@ -309,13 +323,17 @@ class BaseOx(object):
                             for sh in s.hypernyms() + s.hyponyms() + s.similar_tos():                                
                                 if noun in sh.lemma_names():
                                     if not noun in retorno:
-                                        retorno.append(noun)                            
+                                        retorno.append(noun)
+
                 if retorno:
-                    return retorno
+                    if not palavra in retorno: return [palavra] + retorno
+                    else: return retorno
                 else:
-                    return sins_def
+                    if not palavra in sins_def: return [palavra] + sins_def
+                    else: return sins_def
             else :
-                return sins_def
+                if not palavra in sins_def: return [palavra] + sins_def
+                else: return sins_def
 
         return [ ]
 
@@ -464,9 +482,9 @@ class CliOxAPI(object):
         self.dir_urls_invalidas_definicoes = dir_bases+'/'+cfg_cache['obj_urls_invalidas_definicoes']
         self.obj_urls_invalidas_definicoes = Util.abrir_json(self.dir_urls_invalidas_definicoes)
 
-        if not self.obj_urls_invalidas_sinonimos:
+        if None == self.obj_urls_invalidas_sinonimos:
             self.obj_urls_invalidas_sinonimos = dict()
-        if not self.obj_urls_invalidas_definicoes:
+        if None == self.obj_urls_invalidas_definicoes:
             self.obj_urls_invalidas_definicoes = dict()
 
     def obter_lista_categoria(self, categoria):

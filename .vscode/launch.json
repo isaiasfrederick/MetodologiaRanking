@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "Python: Terminal (external)",
             "type": "python",
@@ -82,7 +81,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "externalTerminal",
-            "args": ["configs.json", "aplicar"]
+            "args": ["configs.json", "extrair", "pot"]
         }
     ]
 }

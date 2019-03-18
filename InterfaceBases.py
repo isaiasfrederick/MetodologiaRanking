@@ -8,10 +8,20 @@ import os
 class InterfaceBases():
     OBJETOS = { }
     CFGS = None
+    INICIALIZADO = False
 
     @staticmethod
-    def setup(cfgs):
+    def setup(cfgs, dir_keys=None):
+        if InterfaceBases.INICIALIZADO == True:
+            return
+
+        if dir_keys != None:
+            app_cfg = Util.abrir_json("./keys.json")
+            cfgs['oxford']['app_id'] = app_cfg['app_id']
+            cfgs['oxford']['app_key'] = app_cfg['app_key']
+
         Util.deletar_arquivo("../Bases/ngrams.tmp")
+        Util.CONFIGS = cfgs
 
         CliOxAPI.CLI = CliOxAPI(cfgs)
         ExtWeb.EXT = ExtWeb(cfgs)
@@ -42,4 +52,6 @@ class InterfaceBases():
         InterfaceBases.OBJETOS[CliOxAPI.__name__] = CliOxAPI.CLI
         InterfaceBases.OBJETOS[ExtWeb.__name__] = ExtWeb.EXT
         InterfaceBases.OBJETOS[RepVetorial.__name__] = RepVetorial.INSTANCE
+
+        INICIALIZADO = True
     

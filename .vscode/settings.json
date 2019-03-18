@@ -13,7 +13,7 @@
     "python.unitTest.unittestArgs": [
         "-v",
         "-s",
-        ".",
+        "./Experimentos",
         "-p",
         "*test.py"
     ],

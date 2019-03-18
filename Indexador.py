@@ -22,6 +22,16 @@ class Whoosh(object):
     SCHEMA_EXEMPLOS = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
 
     @staticmethod
+    def count(keys, indexes):
+        if type(keys) == str: keys = [keys]
+            
+        obter_docs = Whoosh.consultar_documentos
+        docs_corpora_cand_par = obter_docs(keys, operador="AND", dir_indexes=indexes)
+        freq = len(docs_corpora_cand_par)
+        docs_corpora_cand_par = None
+        return freq
+
+    @staticmethod
     def remover_docs(docnums):
         ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
         writer = ix.writer()
@@ -264,7 +274,7 @@ class Whoosh(object):
     def consultar_documentos(lista_palavras, operador="AND", limite=None, dir_indexes=None):
         operador = operador.upper()
 
-        if type(lista_palavras) == str:
+        if type(lista_palavras) in [str, unicode]:
             lista_palavras = [lista_palavras]
         elif type(lista_palavras) != list:
             raise Exception("Indexador deve receber uma lista!")

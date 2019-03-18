@@ -1,22 +1,23 @@
 #! coding: utf-8
-from OxAPI import *
-from pywsd.lesk import cosine_lesk as cosine_lesk
-from nltk.corpus import wordnet as wordnet
-import xml.etree.ElementTree as ET
-from os.path import isfile, join
-from operator import itemgetter
-from random import shuffle
-from Utilitarios import *
-from lxml import etree
-from os import listdir
-from os import system
-from sys import argv
-import traceback
-import operator
-import os.path
 import copy
 import io
+import operator
+import os.path
 import re
+import traceback
+import xml.etree.ElementTree as ET
+from operator import itemgetter
+from os import listdir, system
+from os.path import isfile, join
+from random import shuffle
+from sys import argv
+
+from lxml import etree
+from nltk.corpus import wordnet as wordnet
+from pywsd.lesk import cosine_lesk as cosine_lesk
+
+from OxAPI import *
+from Utilitarios import *
 
 
 class VlddrSemEval(object):
@@ -417,3 +418,17 @@ class VlddrSemEval(object):
             return sorted(gabarito, key=lambda x: x[1], reverse=True)
         except:
             return [ ]
+
+    @staticmethod
+    def aplicar_gap(predicao, gabarito):
+        import gap
+
+        resultados = {  }
+
+        for lexelt in predicao:
+            ranklist = predicao[lexelt]
+            gold_ranklist = [palavra for palavra, peso in gabarito[lexelt]]
+            gold_weights = [peso for palavra, peso in gabarito[lexelt]]
+            resultados[lexelt] = gap.gap(ranklist, gold_ranklist, gold_weights)
+
+        return resultados, Util.media(resultados.values())
