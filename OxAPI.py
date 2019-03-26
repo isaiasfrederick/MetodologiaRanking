@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from RepresentacaoVetorial import RepVetorial as RV
 from RepresentacaoVetorial import RepVetorial
 from nltk.corpus import stopwords, wordnet
@@ -114,7 +116,6 @@ class BaseOx(object):
             else:
                 BaseOx.objs_sinonimos_inatingiveis.add(palavra)
                 BaseOx.objs_sinonimos_inatingiveis.add(palavra_sing)
-                #print("\n %s resultou null!\n"%dir_obj_sinonimos)
 
         if obj_extrator == None:
             obj_extrator = self.extrator_web_ox.iniciar_coleta(palavra)
@@ -267,7 +268,7 @@ class BaseOx(object):
         return Util.sort(retorno, col=1, reverse=True), exemplos_blob
 
     # Obtem sinonimos a partir da palavra, definicao, pos e do OBJETO UNIFICADO
-    def obter_sins(self, palavra, definicao, pos=None):
+    def obter_sins(self, palavra, definicao, pos=None, remover_sinonimos_replicados=False):
         obj_unificado = self.construir_objeto_unificado(palavra)
 
         if pos == None:
@@ -286,9 +287,13 @@ class BaseOx(object):
                     for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
                         if definicao in def_sec or def_sec in definicao:
                             sinonimos_retorno = obj_filtrado['def_secs'][def_sec]['sinonimos']
-                            #if sinonimos_retorno == obj_filtrado['sinonimos']:
-                            #    sinonimos_retorno = self.extrair_sins_cands_def(definicao, pos)
+                            # Se sinonimos de definicao mais aninhada é
+                            # igual às definicoes mais externas, entao, retorne nada!
+                            if sinonimos_retorno == obj_filtrado['sinonimos']:
+                                if remover_sinonimos_replicados == True:
+                                    return [ ]
 
+            # Se sinonimos estao no objeto
             if sinonimos_retorno != [ ]:
                 return sinonimos_retorno
 
@@ -386,7 +391,6 @@ class BaseOx(object):
         lista_sins = [p for p in sins_def if p in conj_lemas and Util.e_mpalavra(p) == False]
 
         return list(set(lista_sins + sins_nouns))
-
 
     # Obter todas as definicoes
     def obter_definicoes(self, palavra, pos=None):
@@ -762,7 +766,7 @@ class ExtWeb(object):
                 path = "div/ol[@class='subSenses']/li[@class='subSense']"
                 definicoes_secundarias = frame_definicao.findall(path)
 
-                resultado[def_princ_txt]['def_secs'] = {}
+                resultado[def_princ_txt]['def_secs'] = { }
                 resultado[def_princ_txt]['exemplos'] = exemplos_principais
 
                 for definicao_secundaria in definicoes_secundarias:

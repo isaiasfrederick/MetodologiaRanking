@@ -255,7 +255,7 @@ def original_lesk(context_sentence, ambiguous_word, dictionary=None):
 	"""
 	ambiguous_word = lemmatize(ambiguous_word)
 	if not dictionary: # If dictionary is not provided, use the WN defintion.
-		dictionary = {}
+		dictionary = { }
 		for ss in wn.synsets(ambiguous_word):
 			ss_definition = synset_properties(ss, 'definition')
 			dictionary[ss] = ss_definition
@@ -271,7 +271,7 @@ def simple_signature(ambiguous_word, pos=None, lemma=True, stem=False, \
 	(ii)  example sentences
 	(iii) hypernyms and hyponyms
 	"""
-	synsets_signatures = {}
+	synsets_signatures = { }
 	#for ss in wn.synsets(ambiguous_word):
 	for ss in criar_inventario_des_wn(ambiguous_word, pos=pos, busca_ampla=busca_ampla):
 		try: # If POS is specified.

@@ -146,7 +146,7 @@ class VlddrSemEval(object):
             # Retirando nome do participante, porém sem o diretorio que o contém
             todos_participantes.append(dir_arq_filtrado.split("/")[-1])
 
-        resultados_json = {}
+        resultados_json = { }
 
         for participante in todos_participantes:
             resultados_json[participante] = self.obter_score(self.dir_resp_compet, participante)
@@ -377,7 +377,7 @@ class VlddrSemEval(object):
         casos_testes = validador.carregar_caso_entrada(dir_entrada)
         # gabarito_dict[lexelt cod] = [[palavra votos], [palavra votos], [palavra votos], ...]
         # casos_testes_dict[lexema cod] = [frase, palavra, pos]
-        casos_testes_dict, gabarito_dict = {}, {}
+        casos_testes_dict, gabarito_dict = { }, { }
 
         # Filtrando lexelts por chave
         chaves_casos_testes = [ ]

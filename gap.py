@@ -3,7 +3,7 @@ import sys
 import io
 
 def constructX(my_ranklist, gold_ranklist):
-  x = [];
+  x = [ ];
   for item in my_ranklist:
     x.append(int(item in gold_ranklist));
   return x;

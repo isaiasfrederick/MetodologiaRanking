@@ -21,6 +21,7 @@ class Whoosh(object):
     SCHEMA_CORPORA = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
     SCHEMA_EXEMPLOS = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
 
+    # Gera a frequencia de uma palavra no Corpora utilizado
     @staticmethod
     def count(keys, indexes):
         if type(keys) == str: keys = [keys]
@@ -29,6 +30,7 @@ class Whoosh(object):
         docs_corpora_cand_par = obter_docs(keys, operador="AND", dir_indexes=indexes)
         freq = len(docs_corpora_cand_par)
         docs_corpora_cand_par = None
+
         return freq
 
     @staticmethod

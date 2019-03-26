@@ -16,7 +16,7 @@ class CasadorManual(object):
         self.base_ox = BaseOx(self.configs)
 
         if self.base_casada_manualmente == None:
-            self.base_casada_manualmente = {}
+            self.base_casada_manualmente = { }
 
     def ler_inteiros(self, msg):
         try:
@@ -36,7 +36,7 @@ class CasadorManual(object):
             del self.base_casada_manualmente[termo]
 
         if not termo in self.base_casada_manualmente:
-            self.base_casada_manualmente[termo] = {}
+            self.base_casada_manualmente[termo] = { }
 
         if not wn.synsets(unicode(termo), pos)[0].name() in self.base_casada_manualmente[termo]:
             obj_oxford = BaseOx.construir_objeto_unificado(termo)       

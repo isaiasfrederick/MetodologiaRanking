@@ -9,7 +9,7 @@
 			"exemplos"
 		],
 		"max_entradas_pos": 1000000,
-		"pos_avaliadas_": [
+		"pos_avaliadas": [
 			[
 				"a",
 				"n",
@@ -17,7 +17,7 @@
 				"v"
 			]
 		],
-		"pos_avaliadas": [
+		"pos_avaliadas_": [
 			[
 				"n"
 			]
@@ -66,7 +66,7 @@
 		"dir_contadores": "../Bases/Corpora/pmi.json"
 	},
 	"ngram": {
-		"usar_seletor": true,
+		"usar_seletor": false,
 		"fontes": [
 			"coca",
 			"leipzig",
@@ -93,8 +93,8 @@
 		"comentarios": "'definicao_usual' ou 'desambiguador'"
 	},
 	"alvaro": {
-		"mxspdef": 5,
 		"mxspdef_ox": 1,
+		"mxspdef_wn": 4,
 		"comentarios": ""
 	},
 	"medida_similaridade": "word_move_distance",
@@ -141,7 +141,7 @@
 			"obj_urls_invalidas_extrator": "Cache/Oxford/urls_invalidas_extrator.json"
 		},
 		"extrator_web": {
-			"xpaths": {}
+			"xpaths": { }
 		}
 	},
 	"wordnet": {
@@ -177,7 +177,7 @@
 			"input": "test/lexsub_test.xml"
 		},
 		"comando_scorer": "task10data/scoring/score.pl",
-		"criterio_ordenacao": [],
+		"criterio_ordenacao": [ ],
 		"tarefas": {
 			"limites": {
 				"oot": 10,

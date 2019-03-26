@@ -266,16 +266,13 @@ class Util(object):
             obj = list(obj)
             
         try:
-            arq = open(diretorio, 'w')
+            arq = open(diretorio, 'w+')
             obj_serializado = json.dumps(obj, indent=4)
             arq.write(obj_serializado)
             arq.close()
 
             return True
         except:
-            #import traceback
-            #traceback.print_stack()
-            #raw_input('\n\nERRO: '+diretorio)
             return False
 
     @staticmethod

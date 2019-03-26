@@ -54,7 +54,7 @@ class DesOx(object):
     def desambiguar(self, ctx, ambigua, pos, nbest=True,\
                     lematizar=True, stem=True, stop=True,\
                     usar_ontologia=False, usr_ex=False,\
-                    busca_ampla=False, med_sim='cosine', cands=[]):
+                    busca_ampla=False, med_sim='cosine', cands=[ ]):
 
         # Para gerar chave do CACHE
         vars_locais = dict(locals())
@@ -212,7 +212,7 @@ class DesOx(object):
                 else: reg_pont = pontuacao
             except ZeroDivisionError, zde: reg_pont = 0.00
 
-            res_des_tmp.append(((ambigua, def_ambigua, []), reg_pont))
+            res_des_tmp.append(((ambigua, def_ambigua, [ ]), reg_pont))
 
         return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
 
@@ -228,7 +228,7 @@ class DesOx(object):
                     candidatos=[ ]):
 
         alvaro = Alvaro.Alvaro.INSTANCE
-        todas_arvores = Alvaro.Alvaro.construir_arvore_definicoes(alvaro, ambigua, pos, profundidade, candidatos)
+        todas_arvores = Alvaro.Alvaro.construir_arvores_definicoes(alvaro, ambigua, pos, profundidade, candidatos)
        
         caminhos_arvore = [ ]
 
@@ -236,7 +236,7 @@ class DesOx(object):
             for caminho in arvore_sinonimia.percorrer():
                 try:
                     cam_tmp = [tuple(reg.split(':::')) for reg in caminho.split("/")]
-                    cam_tmp = [p for (p, def_p) in cam_tmp if p in candidatos or candidatos == []]
+                    cam_tmp = [p for (p, def_p) in cam_tmp if p in candidatos or candidatos == [ ]]
 
                     conts_corretos = [1 for i in range(len(Counter(cam_tmp).values()))]
 
@@ -335,7 +335,7 @@ class DesOx(object):
                 reg_pont = 0.00
 
             ambigua, def_ambigua = definicoes_caminho[0]
-            novo_reg = ((ambigua, def_ambigua, []), reg_pont)
+            novo_reg = ((ambigua, def_ambigua, [ ]), reg_pont)
             res_des_tmp.append(novo_reg)
 
         return sorted(res_des_tmp, key=lambda x: x[1], reverse=True)
@@ -506,7 +506,7 @@ class DesOx(object):
         resultado = BaseOx.construir_objeto_unificado(self.base_ox, lema)
 
         if not resultado:
-            resultado = {}
+            resultado = { }
 
         lema = lemmatize(lema)
 

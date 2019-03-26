@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "externalTerminal",
-            "args": ["configs.json", "aplicar"]
+            "args": ["configs", "I was driving my car", "car", "n", "[['car', 4], ['car', 1]]"]
         },
         {
             "name": "Python: Terminal (internal)",
@@ -18,7 +18,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "args": ["configs.json", "aplicar"]
+            "args": ["configs.json", "sinonimos", "sea", "n"]
         },
         /*{
             "name": "Python: Current File (Integrated Terminal)",

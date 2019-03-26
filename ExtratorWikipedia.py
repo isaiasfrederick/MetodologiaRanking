@@ -193,7 +193,7 @@ class ExtratorWikipedia(object):
         total_substantivos = 0
         tem_palavra = False
 
-        strings_invalidas = set("<>{}")
+        strings_invalidas = set("<>{ }")
 
         if set(frase).intersection(strings_invalidas) or '":"' in frase:
             return None
@@ -285,7 +285,7 @@ class ExtratorWikipedia(object):
                     todas_sentencas = [re.sub('[\s\n\t]', ' ', s) for s in todas_sentencas]
                     todas_sentencas = [s for s in todas_sentencas if s.count(' ') > 1]
                     for frase in todas_sentencas:
-                        if len(set(frase).intersection(set("<>{}"))) > 0 or not '":"' in frase:                            
+                        if len(set(frase).intersection(set("<>{ }"))) > 0 or not '":"' in frase:                            
                             if ExtratorWikipedia.filtrar_frase_bruta(frase, url_lema[url]) != None:
                                 nova_frase = frase.replace('\n', ' ').strip(' ')
                                 if not nova_frase in duplicatas:
