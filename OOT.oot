@@ -44,17 +44,6 @@
         "Total": 1696.0
     }, 
     {
-        "nome": "C=exemplos_G=False_T=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.oot", 
-        "ModeRecall": 55.2, 
-        "Attempted": 1696.0, 
-        "ModePrecision": 55.2, 
-        "Precision": 37.34, 
-        "TotalWithMode": 1230.0, 
-        "ModeAttempted": 1230.0, 
-        "Recall": 37.34, 
-        "Total": 1696.0
-    }, 
-    {
         "nome": "HIT.anrv.oot", 
         "ModeRecall": 46.91, 
         "Attempted": 1696.0, 
@@ -96,6 +85,17 @@
         "TotalWithMode": 1230.0, 
         "ModeAttempted": 1191.0, 
         "Recall": 34.96, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "C=assembled_G=False_T=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.oot", 
+        "ModeRecall": 42.03, 
+        "Attempted": 1686.0, 
+        "ModePrecision": 42.2, 
+        "Precision": 29.43, 
+        "TotalWithMode": 1230.0, 
+        "ModeAttempted": 1225.0, 
+        "Recall": 29.26, 
         "Total": 1696.0
     }, 
     {

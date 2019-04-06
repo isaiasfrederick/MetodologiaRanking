@@ -393,7 +393,7 @@ class BaseOx(object):
         return list(set(lista_sins + sins_nouns))
 
     # Obter todas as definicoes
-    def obter_definicoes(self, palavra, pos=None):
+    def obter_definicoes(self, palavra, pos=None, retornar_pos=False):
         obj_unificado = self.construir_objeto_unificado(palavra)
 
         if obj_unificado == None:
@@ -401,7 +401,10 @@ class BaseOx(object):
             if pos == pos_verb:
                 palavra = BaseOx.lematizador.lemmatize(palavra, pos=pos[0].lower())
                 try:
-                    return self.obter_definicoes(palavra, pos_verb)
+                    if retornar_pos == True:
+                        return self.obter_definicoes(palavra, pos_verb)
+                    else:
+                        return [(d, pos_verb) for d in  self.obter_definicoes(palavra, pos_verb)]
                 except Exception, e:
                     return None
         try:
@@ -423,10 +426,16 @@ class BaseOx(object):
         try:
             for pos in obj_unificado:
                 for def_primaria in obj_unificado[pos]:
-                    todas_definicoes.append(def_primaria)
+                    if retornar_pos == True:
+                        todas_definicoes.append((def_primaria, pos))
+                    else:
+                        todas_definicoes.append(def_primaria)
 
                     for def_sec in obj_unificado[pos][def_primaria]['def_secs']:
-                        todas_definicoes.append(def_sec)
+                        if retornar_pos == True:
+                            todas_definicoes.append((def_sec, pos))
+                        else:
+                            todas_definicoes.append(def_sec)
         except: pass
 
         return todas_definicoes
@@ -549,18 +558,18 @@ class CliOxAPI(object):
                 for sense in entry['entries'][0]['senses']:
                     saida[entry['lexicalCategory']].append(sense)
 
-            print('ClienteOxford URL certa: ' + url)
-            print('ClienteOxford: Salvando em cache: ' + str(Util.salvar_json(dir_obj_json, saida)))
+            print('\tClienteOxford URL certa: ' + url)
+            print('\tClienteOxford: Salvando em cache: ' + str(Util.salvar_json(dir_obj_json, saida)))
 
             return saida
         except Exception, e:
             self.obj_urls_invalidas_definicoes[palavra] = ""
-            Util.print_formatado('ClienteOxford: URL errada: '+palavra, visivel=False)
+            Util.print_formatado('\tClienteOxford: URL errada: '+palavra, visivel=False)
             return None
 
     def obter_sinonimos(self, palavra):
         if palavra in self.obj_urls_invalidas_sinonimos:
-            Util.print_formatado('ClienteOxford: URL evitada: ' + palavra)
+            Util.print_formatado('\tClienteOxford: URL evitada: ' + palavra)
             return None
 
         dir_bases = self.configs['caminho_bases']

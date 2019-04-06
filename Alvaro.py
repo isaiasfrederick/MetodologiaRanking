@@ -16,9 +16,9 @@ import textblob
 from nltk.corpus import wordnet
 from pywsd.lesk import cosine_lesk
 
-import CasadorManual
+#import CasadorManual
 from Arvore import Arvore, No
-from CasadorManual import CasadorManual
+#from CasadorManual import CasadorManual
 from DesambiguadorWordnet import DesWordnet
 from DesOx import DesOx
 from ExtratorWikipedia import ExtratorWikipedia
@@ -73,6 +73,32 @@ class Alvaro(object):
             inst, positivos=tokens, pos=pos, topn=200)
 
         return palavras_derivadas
+
+    """
+        Gera o PMI para a definicao de de determinada palavra
+    """
+    @staticmethod
+    def gerar_conceitos_fortemente_correlacionados(palavra, pos, definicao):
+        pmis = []
+        for t in nltk.word_tokenize(definicao.lower()):
+            try:
+                pmi = Alvaro.pmi(palavra, t)
+                pmis.append((t, pmi))
+            except:
+                pass
+
+        # @staticmethod
+        # def consultar_documentos(lista_palavras, operador="AND", limite=None, dir_indexes=None)
+
+        for token, pmi in pmis:
+            for def_token in BaseOx.obter_definicoes(BaseOx.INSTANCE, token, pos):
+                for doc in Whoosh.consultar_documentos(lista_palavras=[token], dir_indexes=Whoosh.DIR_INDEXES_EXEMPLOS):
+                    print(token)
+                    print(doc['title'])
+                    print("\n")
+                    raw_input("\n<enter>")
+
+        return pmis
 
     @staticmethod
     def contexto_comum_definicao(lema, pos, definicao):
@@ -652,7 +678,7 @@ class Alvaro(object):
     @staticmethod
     def tfidf(word, blob, bloblist):
         return Alvaro.tf(word, blob) * Alvaro.idf(word, bloblist)
-
+    
     # https://corpus.byu.edu/mutualInformation.asp
     # https://corpustools.readthedocs.io/en/latest/mutual_information.html
     # https://stackoverflow.com/questions/13488817/pointwise-mutual-information-on-text
@@ -1106,7 +1132,7 @@ class Alvaro(object):
     """
     @staticmethod
     def tf_exemplos(blob_exemplos, min_freq=1):
-        contadores = {}
+        contadores = { }
 
         cfgs = Util.CONFIGS
 
@@ -1116,7 +1142,7 @@ class Alvaro(object):
         conj = [p.lower() for p in cfgs['conjuncoes']]
         verbos_lig = [p.lower() for p in cfgs['verbos_ligacao']]
 
-        palavras_excluiveis = pro+prep+artigos+conj+verbos_lig
+        palavras_excluiveis = pro + prep + artigos + conj + verbos_lig
 
         for p in blob_exemplos.words:
             freq = Alvaro.tf(p, blob_exemplos)
@@ -1133,13 +1159,15 @@ class Alvaro(object):
     @staticmethod
     def interseccao_palavras(p1, p2, pos):
         inst = RepVetorial.INSTANCE
-        set_p1 = RepVetorial.obter_palavras_relacionadas(inst, positivos=[p1], pos=pos, topn=200)
-        set_p2 = RepVetorial.obter_palavras_relacionadas(inst, positivos=[p2], pos=pos, topn=200)
+        set_p1 = RepVetorial.obter_palavras_relacionadas(
+            inst, positivos=[p1], pos=pos, topn=200)
+        set_p2 = RepVetorial.obter_palavras_relacionadas(
+            inst, positivos=[p2], pos=pos, topn=200)
 
         set_p1 = [p for p, s in set_p1]
         set_p2 = [p for p, s in set_p2]
 
-        return list(set(set_p1)&set(set_p2))
+        return list(set(set_p1) & set(set_p2))
 
     @staticmethod
     def palavras_similares(c, pos):
@@ -1170,9 +1198,9 @@ class Alvaro(object):
             return []
 
     """
-    Dado um conjunto de candidatos, gera uma malha cartesiana
-    de sinonimia sobre todas definicoes de cada um dos candidatos
-    atraves da medida WMD. Ao final, salva em disco o objeto obtido
+        Dado um conjunto de candidatos, gera uma malha cartesiana
+        de sinonimia sobre todas definicoes de cada um dos candidatos
+        atraves da medida WMD. Ao final, salva em disco o objeto obtido
     """
     @staticmethod
     def gerar_pares_candidatos(lexelt, candidatos, pos):
@@ -1185,8 +1213,8 @@ class Alvaro(object):
         if Util.arq_existe(None, dir_arquivo):
             return Util.abrir_json(dir_arquivo)
 
-        definicoes = {}
-        ponderacoes = {}
+        definicoes = { }
+        ponderacoes = { }
 
         for c in candidatos:
             definicoes[c] = BaseOx.obter_definicoes(BaseOx.INSTANCE, c, pos)
@@ -1217,9 +1245,9 @@ class Alvaro(object):
         return ponderacoes
 
     """
-    Recebe um inventario de sentido na forma lista de lema:::definicao
-    e gera um score baseado na medida de word_move_distance
-    Retorna: uma lista ordenada de pares <lema:::definicao, score_wmd>
+        Recebe um inventario de sentido na forma lista de <lema:::definicao>
+        e gera um score baseado na medida de word_move_distance
+        Retorna: uma lista ordenada de pares <lema:::definicao, score_wmd>
     """
     @staticmethod
     def des_inventario_estendido_wmd(lexelt, frase, lista_inventario):
@@ -1245,6 +1273,10 @@ class Alvaro(object):
         else:
             return Util.abrir_json(dir_arquivo, criarsenaoexiste=False)
 
+    """
+        Recebe um verbete e extrai a pagina da Wikipedia.
+        Entao, armazena a pagina em plain text
+    """
     @staticmethod
     def salvar_documento_wikipedia(verbete, url):
         inst = ExtratorWikipedia.INSTANCE
@@ -1448,3 +1480,101 @@ class Alvaro(object):
         psaida = [(s, pontuacoes[s]) for s in pontuacoes]
 
         return Util.sort(psaida, col=1, reverse=False)
+
+    """
+        Recebe um determinado par <palavra P, pos> e, PARA CADA DEFINICAO D[i],
+        desambigua os termos t[i][j] nela inclusos. Utiliza de PMI para escolher 
+        os termos promissores e term-frequency para ver se determinada
+        definicao do mesmo termo t[i][j] possui ocorrencia significativa da P.
+    """
+    @staticmethod
+    def casar_conceitos(palavra, pos):
+        for d in BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, pos):
+            try:
+                tokens_def = [ ]
+                for t in nltk.word_tokenize(d.lower()):
+                    if t != palavra:
+                        try: tokens_def.append(((t, Alvaro.pmi(palavra, t))))
+                        except: pass
+
+                tokens_def = Util.sort(tokens_def, col=1, reverse=True)
+
+                if tokens_def[0][1] < min_pmi:
+                    tokens_def = [tokens_def[0]]
+                    print("\t*** O PMI de %s é abaixo do ideal, mas é o maior!"%(str((palavra, tokens_def[0][0]))))
+                else:
+                    tokens_def = [(t, pmi) for t, pmi in tokens_def if pmi > min_pmi]
+            except Exception, e:
+                tokens_def = [ ]
+
+            for t, pmi in tokens_def:
+                try:
+                    print("\t%s: %f" % ((palavra, t), pmi))
+                    palavras_correlatas = RepVetorial.obter_palavras_relacionadas(
+                        RepVetorial.INSTANCE, positivos=[palavra, t], pos=pos, topn=5)
+                    palavras_correlatas = [p for p, s in palavras_correlatas if sing(p) != sing(palavra)]
+                    print("\tRelacionadas: " + str(palavras_correlatas))
+
+                    try:
+
+                        for plvr_correlata in [p.lower() for p in palavras_correlatas]:
+                            par = (palavra, t, plvr_correlata)
+
+                            if not ':::'.join(par) in pares_gerados:
+                                pares_gerados.add(':::'.join(par))
+
+                                docs_recuperados = Whoosh.buscar_padrao('title', plvr_correlata, dir_indexes=index_ex)
+
+                                if not docs_recuperados:
+                                    try:
+                                        docs_recuperados = Whoosh.indexar_definicoes_palavra_ox(plvr_correlata)
+                                    except Exception, e: pass
+
+                                docs_recuperados = Whoosh.buscar_padrao('title', plvr_correlata, dir_indexes=index_ex)
+                                # Filtrando documento por POS-tag
+                                docs_recuperados = [doc for doc in docs_recuperados if '-' + pos + '.' in doc['path']]
+
+                                if docs_recuperados:
+                                    for doc in docs_recuperados:
+                                        if plvr_correlata + ":::" in doc['title']:
+                                            txt_blob = TextBlob(doc['content'].replace(":::", " "))
+
+                                            if sing(plvr_correlata) == sing(t):
+                                                contem_palavra = palavra in txt_blob.words
+                                            else:
+                                                contem_palavra = palavra in txt_blob.words or t in txt_blob.words
+
+                                            if contem_palavra and sing(plvr_correlata) != sing(palavra):
+                                                pmi_correlata = Alvaro.pmi(palavra, plvr_correlata)
+
+                                                print("\n\n")
+                                                print("\t%s + %s = %s" % (palavra, t, plvr_correlata))
+                                                print("\tTOKEN DEFINICAO ORIGINAL: " + t)
+                                                print("\tDEFINICAO DE 'PALAVRA ORIGINAL%s': %s" % (palavra, d))
+                                                print("\tDEFINICAO DE PALAVRA DERIVADA '%s': %s" % (plvr_correlata, doc['title']))
+                                                print("\tPATH: " + doc['path'])
+                                                print("\tPMI de %s: %f"%(str((palavra, t)), pmi))
+                                                print("\tPMI de %s: %f"%(str((palavra, plvr_correlata)), pmi_correlata))
+                                                print("\tCONTEM PALAVRA: %s" % bool(contem_palavra))
+
+                                                print("\tCONTEUDO: ")
+                                                freq_palavras = Util.sort(dict(txt_blob.word_counts).items(), col=1, reverse=True)
+                                                print(freq_palavras)
+                                                print("\n")
+                                                print("\n<enter>\n\n")
+
+                                            else:
+                                                print("\t(%s, %s) sao palavras nao contidas nos exemplos de '%s'"
+                                                    %(palavra, t, Util.completa_normalizacao(doc['title'])))
+                                        else:
+                                            print("\t*** A palavra correlata '%s' nao possui documentos associados..."%plvr_correlata)
+                                else:
+                                    print("\n\tA palavra correlata '%s' nao foi indexada!\n" % plvr_correlata)
+
+                                docs_recuperados = None
+                    except Exception, e: pass
+                    print("\n")                        
+                except: pass
+
+                print('\n')
+            print("\n")

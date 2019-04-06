@@ -15,8 +15,6 @@ from sys import argv
 import nltk
 from nltk.corpus import wordnet
 from textblob import TextBlob
-
-# Testar Abordagem Alvaro
 from Alvaro import Alvaro
 from CasadorManual import CasadorManual
 # Experimentacao
@@ -32,7 +30,7 @@ from Utilitarios import Util
 
 # Fim pacotes da Experimentacao
 wn = wordnet
-
+sing = Util.singularize
 
 def exibir_bases(cfgs, fonte='wordnet', tipo='test', td_pos=['a', 'n', 'r', 'v']):
     validador = VlddrSemEval(cfgs)
@@ -42,6 +40,8 @@ def exibir_bases(cfgs, fonte='wordnet', tipo='test', td_pos=['a', 'n', 'r', 'v']
     palavras = set()
 
     alvaro = Alvaro.INSTANCE
+
+    retorno = set()
 
     for lexelt in set(casos_testes_dict.keys()) & set(gabarito_dict.keys()):
         p = lexelt.split(".")[0]
@@ -54,18 +54,23 @@ def exibir_bases(cfgs, fonte='wordnet', tipo='test', td_pos=['a', 'n', 'r', 'v']
 
         if palavra in palavras:
             if not 'HEROES' in frase:
-                nfrase = str(frase).replace(palavra, "(%s)" % palavra)
-                nfrase = frase
-                Util.verbose_ativado = True
-                Util.print_formatado("%s" % frase)
-                Util.print_formatado("Palavra: "+palavra)
-                Util.print_formatado("POS: "+pos)
-                Util.print_formatado("Resposta: " +
-                                     str(validador.fltr_gabarito(gabarito_dict[lexelt])))
-                cands = alvaro.selec_candidatos(
-                    palavra, pos, fontes=['wordnet', 'oxford'])
-                print("Candidatos: " + str(cands['uniao']))
-                print("\n\n")
+                if pos in td_pos:
+                    nfrase = str(frase).replace(palavra, "(%s)" % palavra)
+                    nfrase = frase
+                    Util.verbose_ativado = True
+                    Util.print_formatado("%s" % frase)
+                    Util.print_formatado("Palavra: "+palavra)
+                    Util.print_formatado("POS: "+pos)
+                    Util.print_formatado("Resposta: " +
+                                         str(validador.fltr_gabarito(gabarito_dict[lexelt])))
+                    cands = alvaro.selec_candidatos(
+                        palavra, pos, fontes=['wordnet', 'oxford'])
+                    print("Candidatos: " + str(cands['uniao']))
+                    print("\n\n")
+
+            retorno.add(str((palavra, pos)))
+
+    return [eval(reg) for reg in retorno]
 
 
 def carregar_bases(cfgs, tipo_base, pos_avaliadas=None):
@@ -157,16 +162,16 @@ def predizer_sins(
     else:
 
         if "coca" in Util.CONFIGS['ngram']['fontes']:
-            print("\nCarregando n-grams COCA Corpus!")
+            print("\n\t- Carregando n-grams COCA Corpus!")
             Alvaro.NGRAMS_COCA = Util.abrir_json(cfgs['dir_coca_ngrams'])
-            print("n-grams COCA Corpus carregado!")
+            print("\t- n-grams COCA Corpus carregado!")
 
         if "signalmedia" in Util.CONFIGS['ngram']['fontes']:
             # Abrindo ngrams SignalMedia
             arq_ngrams_tmp = {}
 
             with open(Util.CONFIGS['ngram']['signalmedia_5grams'], 'r') as todas_linhas:
-                print("\nCarregando n-grams SignalMedia Corpus!")
+                print("\n\t- Carregando n-grams SignalMedia Corpus!")
 
                 for linha_ngram in todas_linhas:
                     try:
@@ -178,9 +183,9 @@ def predizer_sins(
                     except:
                         pass
 
-                print("\nn-grams SignalMedia Corpus carregado!")
+                print("\n\t- n-grams SignalMedia Corpus carregado!")
 
-            print("\nDerivando n-grams SignalMedia Corpus!")
+            print("\n\t- Derivando n-grams SignalMedia Corpus!")
 
             ngrams_signalmedia_derivados = \
                 Alvaro.derivar_ngrams_string(Alvaro.NGRAMS_SIGNALMEDIA,
@@ -189,7 +194,7 @@ def predizer_sins(
             for ng in ngrams_signalmedia_derivados:
                 Alvaro.NGRAMS_SIGNALMEDIA[ng] = ngrams_signalmedia_derivados[ng]
 
-            print("n-grams SignalMedia Corpus derivado!")
+            print("\t- n-grams SignalMedia Corpus derivado!")
 
             ngrams_signalmedia_derivados = None
 
@@ -197,7 +202,7 @@ def predizer_sins(
     Alvaro.PALAVRAS_EXEMPLOS_INDEXADOS = set(
         Util.abrir_json(dir_palavras_indexadas, criarsenaoexiste=True))
 
-    obj_candidatos = { }
+    obj_candidatos = {}
     total_acertos = 0
 
     qtde_sugestoes_oot = Util.CONFIGS['params_exps']['qtde_sugestoes_oot'][0]
@@ -413,10 +418,10 @@ def predizer_sins(
 
             obj_candidatos = {
                 'top_ngrams': top_ngrams,
-                'top_unigrams': top_ngrams
+                'top_unigrams': top_unigrams
             }
 
-            if criterio == "assembled":
+            if criterio in ["assembled", "assemble"]:
                 # Este FOR indexa exemplos para a palavra
                 for cand_iter in cands:
                     Alvaro.indexar_exemplos(cand_iter, pos)
@@ -440,60 +445,11 @@ def predizer_sins(
                 if melhor_substituto in cands:
                     total_acertos += 1
 
-                if melhor_substituto in cands and cfgs['metodo_pmi']['usar_metodo'] == True:
-                    pares_ponderaveis = Alvaro.gerar_pares_pmi(
-                        palavra, frase, cands)
+                # arvores = Alvaro.construir_arvores_definicoes(
+                #    Alvaro.INSTANCE, palavra, pos, 4, cands)
+                #caminhos_arvore = Alvaro.construir_caminho_arvore(arvores)
 
-                    print("PARES:")
-                    print(pares_ponderaveis)
-                    print("GABARITO: ")
-                    print(gab_ordenado)
-                    print("\n\n<enter>\n")
-
-                    pontuacao_definicoes = Alvaro.pontuar_frase_correlacao_pmi(
-                        pares_ponderaveis, pos, palavra, frase)
-
-                    pontuacao_definicoes_tmp = []
-
-                    for def_iter in pontuacao_definicoes:
-                        registros = (def_iter, Util.media(
-                            pontuacao_definicoes[def_iter]))
-                        pontuacao_definicoes_tmp.append(registros)
-
-                    pontuacao_definicoes_tmp = Util.sort(
-                        pontuacao_definicoes_tmp, 1, reverse=True)
-
-                    try:
-                        melhor_score = pontuacao_definicoes_tmp[0][1]
-                        cands_ordenados_estatisticamente = [
-                            d for (d, s) in pontuacao_definicoes_tmp if s == melhor_score]
-
-                        cands_tmp = []
-
-                        for reg in cands_ordenados_estatisticamente:
-                            lema, definicao = reg.split(':::')
-                            sinonimos = BaseOx.obter_sins(
-                                BaseOx.INSTANCE, lema, definicao, pos)
-                            for s in sinonimos:
-                                if s in cands:
-                                    cands_tmp.append(s)
-
-                        for s in cands:
-                            if not s in cands_tmp:
-                                cands_tmp.append(s)
-
-                        cands = list(cands_tmp)
-
-                    except:
-                        cands_ordenados_estatisticamente = []
-
-                arvores = Alvaro.construir_arvores_definicoes(
-                    Alvaro.INSTANCE, palavra, pos, 4, cands)
-                caminhos_arvore = Alvaro.construir_caminho_arvore(arvores)
-
-                """
-                    caminhos_wmd = Alvaro.pontuar_relacaosinonimia_wmd(Alvaro.INSTANCE,\
-                                                            palavra, pos, caminhos_arvore)"""
+                #caminhos_wmd = Alvaro.pontuar_relacaosinonimia_wmd(Alvaro.INSTANCE, palavra, pos, caminhos_arvore)
 
                 try:
                     inst = Alvaro.INSTANCE
@@ -684,7 +640,7 @@ def predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito):
     des_ox = DesOx.INSTANCE
     des_wn = None
 
-    todos_cands = { }
+    todos_cands = {}
 
     # Resultado de saida <lexelt : lista>
     predicao_final = dict()
@@ -744,7 +700,7 @@ def predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito):
     Alvaro.PALAVRAS_EXEMPLOS_INDEXADOS = set(
         Util.abrir_json(dir_palavras_indexadas, criarsenaoexiste=True))
 
-    obj_candidatos = { }
+    obj_candidatos = {}
     total_acertos = 0
 
     qtde_sugestoes_oot = Util.CONFIGS['params_exps']['qtde_sugestoes_oot'][0]
@@ -756,7 +712,7 @@ def predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito):
         lexelt = ""
         frase = Util.descontrair(frase).replace("  ", " ")
 
-        exemplos_ponderado = [ ]
+        exemplos_ponderado = []
 
         print("\n\n\n\n\n\n")
         print("@@@ Processando a entrada " + str(lexelt))
@@ -792,7 +748,7 @@ def predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito):
             top_ngrams = [(p, s) for (
                 p, s) in top_ngrams if wordnet.synsets(p, pos)]
         else:
-            top_ngrams = [ ]
+            top_ngrams = []
 
             cands = [p for p in cands if Util.e_mpalavra(p) == False]
 
@@ -801,22 +757,22 @@ def predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito):
                 p for (p, s) in top_ngrams[:cfgs['ngram']['max_cands_filtro']]]
             # Inicializando com TOP unigramas
             cands += [p for (p, s) in top_unigrams if not p in cands]
-        
+
         if verbose_geral == True:
             print("\n")
             print("Candidatos brutos: (%d): %s\n" %
-                    (len(cands_brutos), cands_brutos))
+                  (len(cands_brutos), cands_brutos))
             print("Seletor candidatos brutos acertou: " +
-                    str(gab_ordenado[0][0] in cands_brutos))
+                  str(gab_ordenado[0][0] in cands_brutos))
             print("\n")
             print("Candidatos selecionados: " + str(cands))
             print("Seletor candidatos acertou: " +
-                    str(gab_ordenado[0][0] in cands))
+                  str(gab_ordenado[0][0] in cands))
             print("\n")
             print("Seletor 1-GRAMS: " +
-                    str(gab_ordenado[0][0] in top_unigrams))
+                  str(gab_ordenado[0][0] in top_unigrams))
             print("Seletor N-GRAMS: " +
-                    str(gab_ordenado[0][0] in top_ngrams))
+                  str(gab_ordenado[0][0] in top_ngrams))
             print("\n")
             print("\nTOP N-GRAMS: " + str(top_ngrams))
             print("\nTOP 1-GRAMS: " + str(top_unigrams))
@@ -872,10 +828,6 @@ def aplicar_abordagens(cfgs):
     params_exps = cfgs['params_exps']
 
     Util.CONFIGS = cfgs
-
-    #app_cfg = Util.abrir_json("./keys.json")
-    #Util.CONFIGS['oxford']['app_id'] = app_cfg['app_id']
-    #Util.CONFIGS['oxford']['app_key'] = app_cfg['app_key']
 
     # InterfaceBases.setup(cfgs)
     rep_vet = RepVetorial.INSTANCE
@@ -980,7 +932,6 @@ def aplicar_abordagens(cfgs):
 
                 predicao, casos, gabarito, candidatos, todos_cands = pred_saida
 
-                from SemEval2007 import VlddrSemEval
                 todas_instancias, media = VlddrSemEval.aplicar_gap(
                     predicao, gabarito)
                 print("\n\nGAP: %s\n\n" % str(media))
@@ -1134,8 +1085,8 @@ if __name__ == '__main__':
             for t in nltk.word_tokenize(definicao.lower()):
                 try:
                     if not derivar_palavras:
-                        soma = [ ]
-                        interseccao = [ ]
+                        soma = []
+                        interseccao = []
                     else:
                         soma = RepVetorial.obter_palavras_relacionadas(
                             inst_repvet, positivos=[palavra, t], pos=pos, topn=200)
@@ -1181,18 +1132,10 @@ if __name__ == '__main__':
         aplicar_abordagens(cfgs)
 
     elif argv[2] == 'caso_unico':
-        frase = argv[3]
-        palavra = argv[4]
-        pos = argv[5]
-        gabarito = eval(argv[6])
-
         vldr_se = VlddrSemEval.INSTANCE
         entrada, gabarito = VlddrSemEval.carregar_bases(vldr_se, cfgs, 'trial')
 
         gabarito_tmp = dict(gabarito)
-
-#        for lexelt in gabarito_tmp:
-#            raw_input(gabarito_tmp[lexelt])
 
         for lexelt in entrada:
             try:
@@ -1200,12 +1143,14 @@ if __name__ == '__main__':
                 frase = entrada[lexelt][0]
 
                 gabarito = gabarito_tmp[lexelt]
-                saida = predizer_sins_caso_unico(cfgs, frase, palavra, pos, gabarito)
+                saida = predizer_sins_caso_unico(
+                    cfgs, frase, palavra, pos, gabarito)
 
-                print((palavra, pos, numero))                
+                print((palavra, pos, numero))
                 print(saida['top_ngrams'])
 
-            except Exception, e: pass
+            except Exception, e:
+                pass
 
     elif argv[2] == 'indexar':
         lista_arqs = "../Bases/Corpora/SignalMedia/arquivos.txt"
@@ -1215,7 +1160,12 @@ if __name__ == '__main__':
 
     elif argv[2] == 'ver_base':
         tipo = argv[3]
-        exibir_bases(cfgs, tipo=tipo)
+
+        if len(argv) == 5:
+            td_pos = list(argv[4])
+            exibir_bases(cfgs, tipo=tipo, td_pos=td_pos)
+        else:
+            exibir_bases(cfgs, tipo=tipo)
 
     elif argv[2] == 'pmi':
         palavra1 = argv[3]
@@ -1225,7 +1175,6 @@ if __name__ == '__main__':
         print("\nPMI para o par (%s, %s): %f" % (palavra1, palavra2, pmi))
 
     elif argv[2] == 'pmi_definicao':
-        import nltk
         palavra = argv[3]
         pos = argv[4]
 
@@ -1235,9 +1184,35 @@ if __name__ == '__main__':
                 try:
                     pmi = Alvaro.pmi(palavra, t)
                     print("\t%s: %f" % ((palavra, t), pmi))
+                    relacionadas = Alvaro.interseccao_palavras(palavra, t, pos)
+                    print("\tInterseccao: " + str(relacionadas))
+                    print("\n")
+                    palavras_relacionadas = RepVetorial.obter_palavras_relacionadas(
+                        RepVetorial.INSTANCE, positivos=[palavra, t], pos=pos)
+                    print("\tRelacionadas: " + str(palavras_relacionadas))
+                    print("\n\n")
                 except:
                     pass
             print("\n")
+
+    elif argv[2] == 'pmi_definicao_targets':
+        tipo = argv[3]
+        pos = argv[4]
+        min_pmi = float(argv[5])
+
+        targets_pos = exibir_bases(cfgs, tipo=tipo, td_pos=list(pos))
+
+        raw_input("\n\nPressione <enter> para avançar...\n\n\n")
+        Util.cls()
+
+        index_ex = Whoosh.DIR_INDEXES_EXEMPLOS
+
+        pares_gerados = set()
+        indice = 0
+        
+        raw_input(Alvaro.pmi('car', 'vehicle'))
+
+        exit(0)
 
     elif argv[2] == 'ver_definicoes':
         palavra, pos = argv[3], argv[4]
@@ -1308,4 +1283,3 @@ if __name__ == '__main__':
             print((desc, f))
 
     print('\n\n\n\nFim do __main__\n\n\n\n')
-

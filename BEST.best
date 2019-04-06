@@ -1,16 +1,5 @@
 [
     {
-        "nome": "C=exemplos_G=False_T=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.best", 
-        "ModeRecall": 22.11, 
-        "Attempted": 1696.0, 
-        "ModePrecision": 22.11, 
-        "Precision": 10.99, 
-        "TotalWithMode": 1230.0, 
-        "ModeAttempted": 1230.0, 
-        "Recall": 10.99, 
-        "Total": 1696.0
-    }, 
-    {
         "nome": "UNT.anrv.best", 
         "ModeRecall": 20.73, 
         "Attempted": 1696.0, 
@@ -85,6 +74,17 @@
         "TotalWithMode": 1230.0, 
         "ModeAttempted": 1230.0, 
         "Recall": 8.06, 
+        "Total": 1696.0
+    }, 
+    {
+        "nome": "C=assembled_G=False_T=test_MAXEX=30_USAREX=False_FONTESDEF=oxford.best", 
+        "ModeRecall": 9.02, 
+        "Attempted": 1686.0, 
+        "ModePrecision": 9.06, 
+        "Precision": 5.78, 
+        "TotalWithMode": 1230.0, 
+        "ModeAttempted": 1225.0, 
+        "Recall": 5.75, 
         "Total": 1696.0
     }, 
     {

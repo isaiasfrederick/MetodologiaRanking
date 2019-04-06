@@ -62,16 +62,37 @@ class Whoosh(object):
         return r
 
     @staticmethod
-    def buscar_bypattern(campo, pattern):
+    def buscar_padrao(campo, pattern, dir_indexes):
         q = whoosh.query.Wildcard(campo, pattern)
-        ix = whoosh.index.open_dir(Whoosh.DIR_INDEXES)
+        ix = whoosh.index.open_dir(dir_indexes)
 
-        return ix.searcher().search(q)
+        res = ix.searcher().search(q)
+        return res
 
     @staticmethod
     def documentos(indexes):
         ix = whoosh.index.open_dir(indexes)
         return ix.searcher().documents()
+
+    @staticmethod
+    def indexar_definicoes_palavra_ox(palavra):
+        from OxAPI import BaseOx
+
+        documentos = [ ]
+        numero = 1
+
+        for d, pos in BaseOx.obter_definicoes(BaseOx.INSTANCE, palavra, retornar_pos=True):
+            exemplos = BaseOx.obter_atributo(BaseOx.INSTANCE, palavra, None, d, 'exemplos')
+            exemplos = ":::".join(exemplos)
+
+            path = '%s-%s.json-%d'%(palavra, pos[0].lower(), numero)
+            reg = (palavra + ":::" + d, path, exemplos)
+            documentos.append(reg)
+
+            numero += 1
+        
+        Whoosh.iniciar_indexacao_exemplos(documentos)
+        return documentos
 
     @staticmethod
     def iniciar_indexacao(dir_lista_arquivos):
@@ -211,7 +232,7 @@ class Whoosh(object):
                             traceback.print_stack()
                             print("\nException: " + str(e) + "\n")
 
-#                       print('\tArquivo %d - Linha %d' % (indice_arquivo, indice_linha))
+                       #"""print('\tArquivo %d - Linha %d' % (indice_arquivo, indice_linha))"""
                         indice_linha += 1
             indice_arquivo += 1
 
@@ -230,6 +251,10 @@ class Whoosh(object):
                 traceback.print_stack()
                 print("===============================")
 
+    """
+        Indexa exemplos das definicoes.
+        Recebe uma lista de registros <palavra:::def; path; exemplos juntos por :::>
+    """
     @staticmethod
     def iniciar_indexacao_exemplos(documentos):
         if not os.path.exists(Whoosh.DIR_INDEXES_EXEMPLOS):
@@ -245,8 +270,10 @@ class Whoosh(object):
 
         for palavra_def, path_arquivo, conteudo_iter in documentos:
             try:
+                
         		#conteudo = unicode(str(linha_arq).decode('utf-8'))
         		#conteudo = re.sub(r'[^\x00-\x7F]+',' ', conteudo)
+
                 conteudo = str(conteudo_iter)
                 conteudo = "".join([i if ord(i) < 128 else " " for i in conteudo])
 
@@ -269,8 +296,9 @@ class Whoosh(object):
         try:
             writer.commit()
             print('\tCommit de exemplos realizado...')
-        except:
+        except Exception, e:
             print('\tCommit de exemplos NAO realizado...')
+            print('\tExcecoes: ' + str(e))
 
     @staticmethod
     def consultar_documentos(lista_palavras, operador="AND", limite=None, dir_indexes=None):
@@ -297,7 +325,7 @@ class Whoosh(object):
         resultado = [doc for doc in res_busca]
 
         return resultado
-
+   
     @staticmethod
     def buscar_docnum(path):
         indexes = whoosh.index.open_dir(Whoosh.DIR_INDEXES)

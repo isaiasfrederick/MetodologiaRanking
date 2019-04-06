@@ -3,14 +3,15 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [
+    "configurations": [            
+        
         {
             "name": "Python: Terminal (external)",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "externalTerminal",
-            "args": ["configs", "I was driving my car", "car", "n", "[['car', 4], ['car', 1]]"]
+            "args": ["configs.json", "pmi_definicao_targets", "test", "n"]
         },
         {
             "name": "Python: Terminal (internal)",
@@ -18,7 +19,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "args": ["configs.json", "sinonimos", "sea", "n"]
+            "args": ["configs.json", "pmi_definicao_targets", "test", "n"]
         },
         /*{
             "name": "Python: Current File (Integrated Terminal)",

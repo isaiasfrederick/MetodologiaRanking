@@ -6,7 +6,7 @@
 	],
 	"params_exps": {
 		"todos_criterios": [
-			"exemplos"
+			"assembled"
 		],
 		"max_entradas_pos": 1000000,
 		"pos_avaliadas": [
@@ -59,7 +59,7 @@
 		"dir_frases": "../Bases/Wikipedia/dir_frases.json",
 		"dir_generico": "../Bases/Wikipedia/%s.json",
 		"url_desambiguacao": "https://en.wikipedia.org/wiki/%s_(disambiguation)"
-	},	
+	},
 	"metodo_pmi": {
 		"usar_metodo": false,
 		"verbose": false,
